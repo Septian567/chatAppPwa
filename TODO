@@ -1,0 +1,40 @@
+TODO 28 Juli 2025
+1. buat starter project next js, typescript, dan tailwind -- SUCCESS
+2. buat halaman side bar -- SUCCESS
+3. tambah Kontak, chat, profile, logout -- SUCCESS
+4. tampilkan masing-masing menu di main page dengan teks dummy  -- SUCCESS
+5. buat tampilan agar responsive -- SUCCESS
+6. setting agar hide menu menjadi default -- SUCCESS
+7. menu chat horizontal default -- SUCCESS
+
+
+TODO 30 Juli 2025 20:30 - 23.00
+1. pasang localstorage agar layar tidak berubah saat di reload -- SUCCESS
+2. refactoring agar komponen terpisah -- SUCCESS
+3. lakukan refactoring agar menggunakan redux -- SUCCESS
+4. tambah halaman chat -- SUCCESS
+5. buat detail Halaman Chat  -- SUCCESS
+6. atur responsive chat kiri dan kanan -- SUCCESS
+
+
+TODO 2 Agustus 2025
+1. perbaiki form pesan -- SUCCESS
+2. buat agar pesan bisa di kirim dengan enter -- SUCCESS
+3. buat agar message input responsive -- SUCCESS
+4. buat agar pesan bisa menulis di baris baru dengan shift + enter -- SUCCESS
+5. aktifkan fitur pesan suara -- SUCCESS
+6. aktifkan fitur kirim file -- SUCCESS
+7. perbaiki tampilan pesan suara -- SUCCESS
+8. aktifkan fitur tambah file -- SUCCESS
+9. perbaiki tampilan tambah file -- SUCCESS
+
+TODO 4 Agustus 2025
+1. perbaiki fitur rekam suara  -- SUCCESS
+
+TODO 5 Agustus 2025
+1. tambah fitur kamera saat tampilan mobile di form pesan
+2. tambah fitur edit pesan
+3. tambah fitur hapus pesan (teks dan file)
+4. pastikan saat pesan ditambah, tampilan otomatis scrol ke pesan paling bawah
+
+

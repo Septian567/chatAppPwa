@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import ChatHeader from "../ChatHeader";
 import MessageInput from "../MessageInput";
@@ -17,12 +15,14 @@ type ChatMessage = {
     audioUrl?: string;
     fileUrl?: string;
     fileName?: string;
+    duration?: number;
     time: string;
 };
 
 export default function ChatPage( { isMobile, onBack }: ChatPageProps )
 {
     const [messages, setMessages] = useState<ChatMessage[]>( [] );
+    const [editingIndex, setEditingIndex] = useState<number | null>( null );
 
     const getTime = () =>
     {
@@ -51,7 +51,6 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
         {
             audio.addEventListener( "loadedmetadata", () =>
             {
-                // Debug untuk melihat apakah durasi terdeteksi
                 console.log( "Durasi terdeteksi:", audio.duration );
                 resolve();
             } );
@@ -64,8 +63,6 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
         setMessages( ( prev ) => [...prev, newMessage] );
     };
 
-
-
     const handleSendFile = ( file: File ) =>
     {
         const fileUrl = URL.createObjectURL( file );
@@ -77,14 +74,47 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
         setMessages( ( prev ) => [...prev, newMessage] );
     };
 
+    const handleEditTextMessage = ( index: number ) =>
+    {
+        setEditingIndex( index );
+    };
+
+    const handleSubmitEdit = ( newText: string ) =>
+    {
+        if ( editingIndex !== null )
+        {
+            setMessages( ( prev ) =>
+            {
+                const updated = [...prev];
+                updated[editingIndex] = {
+                    ...updated[editingIndex],
+                    text: newText,
+                };
+                return updated;
+            } );
+            setEditingIndex( null );
+        }
+    };
+
+    const handleCancelEdit = () =>
+    {
+        setEditingIndex( null );
+    };
+
+    const editingMessage = editingIndex !== null ? messages[editingIndex] : null;
+
     return (
         <main className="flex-1 flex flex-col bg-transparent text-black overflow-hidden">
             <ChatHeader isMobile={ isMobile } onBack={ onBack } />
-            <ChatBody messages={ messages } />
+            <ChatBody messages={ messages } onEditTextMessage={ handleEditTextMessage } />
             <MessageInput
                 onSend={ handleSendMessage }
                 onSendAudio={ handleSendAudio }
                 onSendFile={ handleSendFile }
+                isEditing={ editingIndex !== null }
+                initialEditValue={ editingMessage?.text || "" }
+                onSubmitEdit={ handleSubmitEdit }
+                onCancelEdit={ handleCancelEdit }
             />
         </main>
     );

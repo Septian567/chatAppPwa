@@ -16,21 +16,27 @@ interface ChatMessage
 interface ChatBodyProps
 {
     messages: ChatMessage[];
+    onEditTextMessage?: ( index: number ) => void;
 }
 
-export default function ChatBody( { messages }: ChatBodyProps )
+export default function ChatBody( { messages, onEditTextMessage }: ChatBodyProps )
 {
     return (
         <div className="flex-1 py-6 overflow-auto w-full responsive-padding">
-            {/* Chat Statis */ }
             <ChatStaticMessages />
 
-            {/* Pesan Dinamis */ }
             { messages.map( ( msg, index ) =>
             {
                 if ( msg.text )
                 {
-                    return <ChatTextMessage key={ index } text={ msg.text } time={ msg.time } />;
+                    return (
+                        <ChatTextMessage
+                            key={ index }
+                            text={ msg.text }
+                            time={ msg.time }
+                            onEditClick={ () => onEditTextMessage?.( index ) }
+                        />
+                    );
                 }
 
                 if ( msg.audioUrl )

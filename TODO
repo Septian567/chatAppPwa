@@ -32,9 +32,38 @@ TODO 4 Agustus 2025
 1. perbaiki fitur rekam suara  -- SUCCESS
 
 TODO 5 Agustus 2025
-1. tambah fitur kamera saat tampilan mobile di form pesan
-2. tambah fitur edit pesan -- SUCCESS
-3. tambah fitur hapus pesan (teks dan file)
-4. pastikan saat pesan ditambah, tampilan otomatis scrol ke pesan paling bawah
+1. tambah fitur edit pesan -- SUCCESS
+
+TODO 7 Agustus 2025
+1. tambah fitur hapus pesan
+- hapus untuk saya -- SUCCESS
+- hapus di database -- SUCCESS
+- perbaiki tombol -- SUCCESS
+
+2. tambah fitur insert caption di tambah file -- SUCCESS
+
+TODO 13 Agustus 2025
+1. tambah fitur edit pesan di fileMessage -- SUCCESS
+2. perbaiki tampilannya -- SUCCESS
+3. tambah tombol hapus untuk saya dan hapus pesan di pesan audio  -- SUCCESS
+4. pisahkan hook dan komponen -- SUCCESS
+
+TODO 14 Agustus 2025
+2. pastikan saat pesan ditambah, tampilan otomatis scrol ke pesan paling bawah -- SUCCESS
+3. tambah fitur kamera saat tampilan mobile di form pesan -- SUCCESS
+
+
+TODO 15 Agustus 2025
+1. pastikan fitur kamera berfungsi dengan baik --SUCCESS
+
+TODO 16 Agustus 2025
+1. pastikan foto yang diambil dari kamera bisa dilihat dulu sebelum di kirim -- SUCCESS
+2. pastikan container saat mengambil foto dan menampilkan foto sama dan rapi -- SUCCESS
+3. foto yang diambil dari kamera bisa ditambah caption sebelum di kirim 
+4. pastikan video yang diambil dari kamera bisa dilihat dulu sebelum di kirim -- SUCCESS
+5. buat tampilan rekam video -- SUCCESS
+6. video yang diambil dari kamera bisa ditambah caption sebelum di kirim
+7. atur kamera mati saat mode kamera ditutup, setelah merekam video, dan setelah mengambil foto -- SUCCESS
+
 
 

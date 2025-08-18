@@ -1,4 +1,3 @@
-// components/ChatHeader.tsx
 import { ArrowLeft, User } from "react-feather";
 
 interface ChatHeaderProps
@@ -22,7 +21,7 @@ export default function ChatHeader( { isMobile, onBack }: ChatHeaderProps )
                         <User size={ 20 } className="text-black" />
                     </div>
                     <h2 className="text-lg font-semibold text-black">
-                        Rifqi Ariq Prayoga
+                        Bento
                     </h2>
                 </div>
             </div>

@@ -1,5 +1,3 @@
-// components/MainContent.tsx
-
 "use client";
 
 import { ReactNode } from "react";

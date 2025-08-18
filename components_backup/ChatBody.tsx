@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import ChatTextMessage from "./ChatTextMessage";
 import ChatAudioMessage from "./ChatAudioMessage";
 import ChatFileMessage from "./ChatFileMessage";
@@ -20,6 +21,17 @@ interface ChatBodyProps
 
 export default function ChatBody( { messages }: ChatBodyProps )
 {
+    const scrollRef = useRef<HTMLDivElement | null>( null );
+
+    useEffect( () =>
+    {
+        // Scroll ke bawah setiap kali pesan berubah
+        if ( scrollRef.current )
+        {
+            scrollRef.current.scrollIntoView( { behavior: "smooth" } );
+        }
+    }, [messages] );
+
     return (
         <div className="flex-1 py-6 overflow-auto w-full responsive-padding">
             {/* Chat Statis */ }
@@ -30,14 +42,14 @@ export default function ChatBody( { messages }: ChatBodyProps )
             {
                 if ( msg.text )
                 {
-                    return <ChatTextMessage key={ index } text={ msg.text } time={ msg.time } />;
+                    return <ChatTextMessage key={ `${ msg.time }-${ index }` } text={ msg.text } time={ msg.time } />;
                 }
 
                 if ( msg.audioUrl )
                 {
                     return (
                         <ChatAudioMessage
-                            key={ index }
+                            key={ `${ msg.time }-${ index }` }
                             audioUrl={ msg.audioUrl }
                             time={ msg.time }
                             duration={ msg.duration }
@@ -49,7 +61,7 @@ export default function ChatBody( { messages }: ChatBodyProps )
                 {
                     return (
                         <ChatFileMessage
-                            key={ index }
+                            key={ `${ msg.time }-${ index }` }
                             fileUrl={ msg.fileUrl }
                             fileName={ msg.fileName }
                             time={ msg.time }
@@ -59,6 +71,9 @@ export default function ChatBody( { messages }: ChatBodyProps )
 
                 return null;
             } ) }
+
+            {/* Elemen dummy di akhir untuk scroll otomatis */ }
+            <div ref={ scrollRef } />
         </div>
     );
 }

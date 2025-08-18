@@ -1,0 +1,10 @@
+pelajari cara menambahkan kode sedikit demi sedikit
+gunakana arsitektur kode yang mudah di pahami
+biasakan baca kode
+pelajari cara menulis kode secara manual
+satu hari satu fokus todo, tapi sampai rampung (kalau bisa)
+sambil di pahami cara menambah fitur pelan-pelan tulis manual
+tulis kode yang manusiawi dan clean code
+
+jangan buru-buru dan tergesa-gesa, pelan-pelan saja yang penting rampung dan prosesnya dinikmati
+alurnya jelas dan dimengerti

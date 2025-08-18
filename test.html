@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Perekam Suara Sederhana</title>
+  <style>
+    body { font-family: sans-serif; margin: 30px; background: #f0f0f0; }
+    .controls { margin-bottom: 20px; }
+    button { margin-right: 10px; padding: 10px 15px; }
+    .recordings { margin-top: 20px; }
+    .recording { margin-bottom: 10px; background: #fff; padding: 10px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1>🎙️ Perekam Suara</h1>
+  <div class="controls">
+    <button id="startBtn">Mulai Rekam</button>
+    <button id="stopBtn" disabled>Stop</button>
+    <span id="timer">00:00</span>
+  </div>
+
+  <div class="recordings" id="recordings"></div>
+
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const recordings = document.getElementById('recordings');
+    const timerEl = document.getElementById('timer');
+
+    let mediaRecorder;
+    let chunks = [];
+    let startTime;
+    let timerInterval;
+
+    function updateTimer() {
+      const diff = Math.floor((Date.now() - startTime) / 1000);
+      const m = String(Math.floor(diff / 60)).padStart(2, '0');
+      const s = String(diff % 60).padStart(2, '0');
+      timerEl.textContent = `${m}:${s}`;
+    }
+
+    startBtn.onclick = async () => {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+
+      mediaRecorder.ondataavailable = e => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+
+        const recDiv = document.createElement('div');
+        recDiv.classList.add('recording');
+        recDiv.innerHTML = `
+          <audio controls src="${url}"></audio><br>
+          <small>Durasi: ${timerEl.textContent}</small>
+        `;
+        recordings.appendChild(recDiv);
+
+        chunks = [];
+        clearInterval(timerInterval);
+        timerEl.textContent = '00:00';
+      };
+
+      mediaRecorder.start();
+      startTime = Date.now();
+      timerInterval = setInterval(updateTimer, 500);
+
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    };
+
+    stopBtn.onclick = () => {
+      mediaRecorder.stop();
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    };
+  </script>
+</body>
+</html>

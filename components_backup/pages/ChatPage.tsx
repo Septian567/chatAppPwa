@@ -44,14 +44,12 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
     const handleSendAudio = async ( audioBlob: Blob ) =>
     {
         const audioUrl = URL.createObjectURL( audioBlob );
-        const audio = new Audio();
-        audio.src = audioUrl;
+        const audio = new Audio( audioUrl );
 
         await new Promise<void>( ( resolve ) =>
         {
             audio.addEventListener( "loadedmetadata", () =>
             {
-                // Debug untuk melihat apakah durasi terdeteksi
                 console.log( "Durasi terdeteksi:", audio.duration );
                 resolve();
             } );
@@ -63,8 +61,6 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
         };
         setMessages( ( prev ) => [...prev, newMessage] );
     };
-
-
 
     const handleSendFile = ( file: File ) =>
     {

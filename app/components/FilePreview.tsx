@@ -1,4 +1,3 @@
-// FilePreview.tsx
 import React from "react";
 
 interface FilePreviewProps

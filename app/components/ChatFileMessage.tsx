@@ -1,107 +1,67 @@
-import { useMemo } from "react";
-import FilePreview from "./FilePreview";
-import ImagePreview from "./ImagePreview";
-import VideoPreview from "./VideoPreview";
-import AudioPreview from "./AudioPreview";
+import { useFilePreview } from "../hooks/useFilePreview";
+import { ChatFilePreview } from "./ChatFilePreview";
+import { MessageMenu } from "./MessageMenu";
 
 interface ChatFileMessageProps
 {
     fileUrl: string;
     fileName?: string;
+    caption?: string;
     time: string;
+    onEditClick?: () => void;
+    onSoftDeleteClick?: () => void;
+    onDeleteClick?: () => void;
 }
 
-export default function ChatFileMessage( { fileUrl, fileName = "Dokumen", time }: ChatFileMessageProps )
+export default function ChatFileMessage( {
+    fileUrl,
+    fileName = "Dokumen",
+    caption,
+    time,
+    onEditClick,
+    onSoftDeleteClick,
+    onDeleteClick,
+}: ChatFileMessageProps )
 {
-    const fileExtension = useMemo( () => fileName.split( "." ).pop()?.toLowerCase(), [fileName] );
+    const {
+        fileExtension,
+        isImage,
+        isVideo,
+        isAudio,
+        fileIcon,
+        handleDownload,
+    } = useFilePreview( fileUrl, fileName );
 
-    const isImage = useMemo( () =>
-        ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].includes( fileExtension ?? "" ), [fileExtension] );
-
-    const isVideo = useMemo( () =>
-        ["mp4", "webm", "ogg"].includes( fileExtension ?? "" ), [fileExtension] );
-
-    const isAudio = useMemo( () =>
-        ["mp3", "wav", "ogg", "aac", "m4a"].includes( fileExtension ?? "" ), [fileExtension] );
-
-    const fileIcon = useMemo( () =>
-    {
-        if ( isImage ) return "🖼️";
-        if ( isVideo ) return "🎞️";
-        if ( isAudio ) return "🎵";
-        if ( fileExtension === "pdf" ) return "📄";
-        if ( ["doc", "docx"].includes( fileExtension ?? "" ) ) return "📝";
-        return "📎";
-    }, [fileExtension, isImage, isVideo, isAudio] );
-
-    const handleDownload = async () =>
-    {
-        try
-        {
-            const response = await fetch( fileUrl );
-            const blob = await response.blob();
-
-            if ( "showSaveFilePicker" in window )
-            {
-                const extension = fileName.split( "." ).pop() || "";
-                try
-                {
-                    const handle = await ( window as any ).showSaveFilePicker( {
-                        suggestedName: fileName,
-                        types: [{
-                            description: `${ extension.toUpperCase() } File`,
-                            accept: { [`application/${ extension }`]: [`.${ extension }`] },
-                        }],
-                    } );
-
-                    const writable = await handle.createWritable();
-                    await writable.write( blob );
-                    await writable.close();
-                } catch ( err: any )
-                {
-                    if ( err.name !== "AbortError" )
-                    {
-                        console.error( "Gagal saat menyimpan file:", err );
-                        alert( "Gagal menyimpan file." );
-                    }
-                }
-            } else
-            {
-                const link = document.createElement( "a" );
-                link.href = URL.createObjectURL( blob );
-                link.download = fileName;
-                document.body.appendChild( link );
-                link.click();
-                document.body.removeChild( link );
-                URL.revokeObjectURL( link.href );
-            }
-        } catch ( error )
-        {
-            console.error( "Gagal mengunduh file:", error );
-            alert( "Gagal mengunduh file." );
-        }
-    };
+    const isSoftDeleted =
+        caption === "Pesan telah dihapus" || caption === "Pesan ini sudah dihapus";
 
     return (
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end mb-4 relative">
             <div className="chat-box bg-green-100 rounded-lg px-3 py-3 shadow border border-green-300 max-w-xs sm:max-w-sm">
-                { isImage ? (
-                    <ImagePreview fileUrl={ fileUrl } fileName={ fileName } />
-                ) : isVideo ? (
-                    <VideoPreview fileUrl={ fileUrl } fileName={ fileName } />
-                ) : isAudio ? (
-                    <AudioPreview fileUrl={ fileUrl } fileName={ fileName } />
-                ) : (
-                    <FilePreview
-                        fileUrl={ fileUrl }
-                        fileName={ fileName }
-                        fileExtension={ fileExtension || "" }
-                        fileIcon={ fileIcon }
-                        onDownload={ handleDownload }
-                    />
-                ) }
-                <div className="text-right text-xs text-gray-500 mt-1">{ time }</div>
+                <ChatFilePreview
+                    fileUrl={ fileUrl }
+                    fileName={ fileName }
+                    fileExtension={ fileExtension }
+                    isImage={ isImage }
+                    isVideo={ isVideo }
+                    isAudio={ isAudio }
+                    fileIcon={ fileIcon }
+                    handleDownload={ handleDownload }
+                    isSoftDeleted={ isSoftDeleted }
+                    duration="0:00"
+                    caption={ caption }
+                    time={ time }
+                />
             </div>
+
+            { ( onEditClick || onSoftDeleteClick || onDeleteClick ) && (
+                <MessageMenu
+                    isSoftDeleted={ isSoftDeleted }
+                    onEditClick={ onEditClick }
+                    onSoftDeleteClick={ onSoftDeleteClick }
+                    onDeleteClick={ onDeleteClick }
+                />
+            ) }
         </div>
     );
 }

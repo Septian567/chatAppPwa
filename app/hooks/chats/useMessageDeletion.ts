@@ -1,4 +1,5 @@
 import { ChatMessage } from "./useMessageState";
+import { DEFAULT_SOFT_DELETED_TEXT } from "../../components/chat/deletedMessage";
 
 export function useMessageDeletion(
     messages: ChatMessage[],
@@ -8,9 +9,8 @@ export function useMessageDeletion(
     setEditType: ( type: "text" | "file" | null ) => void
 )
 {
-    const handleDeleteTextMessage = ( index: number ) =>
+    const resetEditingIfNeeded = ( index: number ) =>
     {
-        setMessages( ( prev ) => prev.filter( ( _, i ) => i !== index ) );
         if ( editingIndex === index )
         {
             setEditingIndex( null );
@@ -21,6 +21,14 @@ export function useMessageDeletion(
         }
     };
 
+    // 🔹 Hard delete text → remove dari array
+    const handleDeleteTextMessage = ( index: number ) =>
+    {
+        setMessages( ( prev ) => prev.filter( ( _, i ) => i !== index ) );
+        resetEditingIfNeeded( index );
+    };
+
+    // 🔹 Soft delete text → placeholder
     const handleSoftDeleteTextMessage = ( index: number ) =>
     {
         setMessages( ( prev ) =>
@@ -28,18 +36,15 @@ export function useMessageDeletion(
             const updated = [...prev];
             updated[index] = {
                 ...updated[index],
-                text: "Pesan telah dihapus",
+                text: DEFAULT_SOFT_DELETED_TEXT,
                 isSoftDeleted: true,
             };
             return updated;
         } );
-        if ( editingIndex === index )
-        {
-            setEditingIndex( null );
-            setEditType( null );
-        }
+        resetEditingIfNeeded( index );
     };
 
+    // 🔹 Soft delete file → null-kan file, caption jadi placeholder
     const handleSoftDeleteFileMessage = ( index: number ) =>
     {
         setMessages( ( prev ) =>
@@ -48,28 +53,22 @@ export function useMessageDeletion(
             updated[index] = {
                 ...updated[index],
                 fileUrl: null,
-                caption: null,
+                caption: DEFAULT_SOFT_DELETED_TEXT,
                 isSoftDeleted: true,
             };
             return updated;
         } );
+        resetEditingIfNeeded( index );
     };
 
+    // 🔹 Hard delete file → remove dari array
     const handleDeleteFileMessage = ( index: number ) =>
     {
-        setMessages( ( prev ) =>
-        {
-            const updated = [...prev];
-            updated[index] = {
-                ...updated[index],
-                fileUrl: null,
-                caption: "Pesan ini sudah dihapus",
-                isSoftDeleted: true,
-            };
-            return updated;
-        } );
+        setMessages( ( prev ) => prev.filter( ( _, i ) => i !== index ) );
+        resetEditingIfNeeded( index );
     };
 
+    // 🔹 Soft delete audio → kosongkan audioUrl + placeholder text
     const handleSoftDeleteAudioMessage = ( index: number ) =>
     {
         setMessages( ( prev ) =>
@@ -77,17 +76,20 @@ export function useMessageDeletion(
             const updated = [...prev];
             updated[index] = {
                 ...updated[index],
-                audioUrl: "",
+                audioUrl: null,
+                text: DEFAULT_SOFT_DELETED_TEXT,
                 isSoftDeleted: true,
-                text: "Pesan telah dihapus",
             };
             return updated;
         } );
+        resetEditingIfNeeded( index );
     };
 
+    // 🔹 Hard delete audio → remove dari array
     const handleDeleteAudioMessage = ( index: number ) =>
     {
         setMessages( ( prev ) => prev.filter( ( _, i ) => i !== index ) );
+        resetEditingIfNeeded( index );
     };
 
     return {

@@ -20,7 +20,7 @@ export default function AudioRecorder( { onSendAudio }: AudioRecorderProps )
     } = useAudioRecorder( { onSendAudio } );
 
     const renderWaveIndicator = () => (
-        <div className="flex items-center gap-[2px] w-6 h-4 mt-[2px]">
+        <div className="flex items-center gap-[2px] w-6 h-4 mt-[10px]">
             <div className="w-[3px] h-full bg-red-500 animate-wave1 rounded"></div>
             <div className="w-[3px] h-full bg-red-500 animate-wave2 rounded"></div>
             <div className="w-[3px] h-full bg-red-500 animate-wave3 rounded"></div>
@@ -32,8 +32,12 @@ export default function AudioRecorder( { onSendAudio }: AudioRecorderProps )
     return (
         <div className="flex items-center gap-2">
             { !recording && (
-                <button onClick={ startRecording } className="text-black" title="Mulai rekam">
-                    <Mic size={ 20 } className="relative top-[-8px]" />
+                <button
+                    onClick={ startRecording }
+                    className="text-black"
+                    title="Mulai rekam"
+                >
+                    <Mic size={ 20 } className="relative top-[-2px]" />
                 </button>
             ) }
 
@@ -44,7 +48,9 @@ export default function AudioRecorder( { onSendAudio }: AudioRecorderProps )
                     </button>
 
                     <div className="flex items-center gap-2">
-                        <span className="text-red-600 text-sm">● { formatTime( recordTime ) }</span>
+                        <span className="text-red-600 text-sm">
+                            ● { formatTime( recordTime ) }
+                        </span>
                         { renderWaveIndicator() }
                     </div>
 
@@ -56,6 +62,7 @@ export default function AudioRecorder( { onSendAudio }: AudioRecorderProps )
                         ) }
                     </button>
 
+                    {/* Send lebih turun */ }
                     <button onClick={ stopRecording } title="Kirim">
                         <Send size={ 18 } className="text-black" />
                     </button>

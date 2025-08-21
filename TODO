@@ -59,11 +59,24 @@ TODO 15 Agustus 2025
 TODO 16 Agustus 2025
 1. pastikan foto yang diambil dari kamera bisa dilihat dulu sebelum di kirim -- SUCCESS
 2. pastikan container saat mengambil foto dan menampilkan foto sama dan rapi -- SUCCESS
-3. foto yang diambil dari kamera bisa ditambah caption sebelum di kirim 
+3. foto yang diambil dari kamera bisa ditambah caption sebelum di kirim -- SUCCESS
 4. pastikan video yang diambil dari kamera bisa dilihat dulu sebelum di kirim -- SUCCESS
 5. buat tampilan rekam video -- SUCCESS
-6. video yang diambil dari kamera bisa ditambah caption sebelum di kirim
+6. video yang diambil dari kamera bisa ditambah caption sebelum di kirim -- SUCCESS
 7. atur kamera mati saat mode kamera ditutup, setelah merekam video, dan setelah mengambil foto -- SUCCESS
 
+TODO 19 Agustus 2025
+1. seragamkan font untuk pesan dan caption -- SUCCESS
+2. seragamkan posisi waktu dan tombol moreVertikal -- SUCCESS
+3. samakan panjang pesan audio dengan pesan file -- SUCCESS
+4. pastikan body pesan seragam dengan garis tepi hitam dan garis dalam gambar dan video juga ada -- SUCCESS
+5. pastikan fitur hapus pesan konsisten -- SUCCESS
 
+TODO Chat belum beres
+1. pesan dari kamera belum otomatis ke bawah -- SUCCESS
+2. saat hapus pesan di tengah halaman, biarkan posisi tetap, jangan skrol ke bawah -- SUCCESS
+3. buat chat dari user lain yang di sebelah kiri 
+4. periksa implementasi local storage
 
+TODO 21 Agustus 2025
+1. buat halaman profile

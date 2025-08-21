@@ -1,10 +1,10 @@
 "use client";
 
-import Sidebar from "./components/Sidebar";
+import Sidebar from "./components/sidebar/Sidebar";
 import { useSidebarLayout } from "./hooks/useSidebarLayout";
-import ChatPage from "./components/pages/ChatPage";
+import ChatPage from "./components/chat/ChatPage";
 import ContactsPage from "./components/pages/ContactsPage";
-import ProfilePage from "./components/pages/ProfilePage";
+import ProfilePage from "./components/profile/ProfilePage";
 
 export default function Home()
 {

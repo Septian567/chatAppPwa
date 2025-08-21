@@ -56,13 +56,13 @@ export default function MessageInput( {
             <CameraModal
                 isOpen={ isCameraModalOpen }
                 onClose={ () => setCameraModalOpen( false ) }
-                onCapturePhoto={ ( file ) =>
+                onCapturePhoto={ ( file, caption ) =>
                 {
-                    if ( onSendFile ) onSendFile( file );
+                    if ( onSendFile ) onSendFile( file, caption );
                 } }
-                onCaptureVideo={ ( file ) =>
+                onCaptureVideo={ ( file, caption ) =>
                 {
-                    if ( onSendFile ) onSendFile( file );
+                    if ( onSendFile ) onSendFile( file, caption );
                 } }
             />
 
@@ -75,15 +75,6 @@ export default function MessageInput( {
 
                 <div className="flex items-end gap-3">
                     <FileInputButton onChange={ handleFileChange } />
-
-                    {/* Tombol Kamera */ }
-                    <button
-                        onClick={ () => setCameraModalOpen( true ) }
-                        className="p-2 hover:bg-gray-200 rounded-full"
-                        aria-label="Open camera"
-                    >
-                        <CameraIcon size={ 20 } />
-                    </button>
 
                     <MessageTextarea
                         value={ message }
@@ -102,11 +93,22 @@ export default function MessageInput( {
                     { isEditing ? (
                         <EditActions onCancel={ onCancelEdit! } onSave={ handleSend } />
                     ) : (
-                        <SendActions
-                            onSend={ handleSend }
-                            onSendAudio={ onSendAudio }
-                            showAudioRecorder={ message.trim() === "" && !selectedFile }
-                        />
+                        <div className="flex items-center gap-1">
+                            {/* Kamera di kiri Mic */ }
+                            <button
+                                onClick={ () => setCameraModalOpen( true ) }
+                                className="p-2 hover:bg-gray-200 rounded-full"
+                                aria-label="Open camera"
+                            >
+                                <CameraIcon size={ 20 } />
+                            </button>
+
+                            <SendActions
+                                onSend={ handleSend }
+                                onSendAudio={ onSendAudio }
+                                showAudioRecorder={ message.trim() === "" && !selectedFile }
+                            />
+                        </div>
                     ) }
                 </div>
             </div>

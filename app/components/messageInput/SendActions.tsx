@@ -17,7 +17,7 @@ export function SendActions( { onSend, onSendAudio, showAudioRecorder }: SendAct
 
     return (
         <button className="text-black mr-2" onClick={ onSend }>
-            <Send size={ 20 } className="relative top-[-8px]" />
+            <Send size={ 20 } className="relative top-[-2px]" />
         </button>
     );
 }

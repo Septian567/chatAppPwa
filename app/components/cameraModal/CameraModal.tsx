@@ -5,6 +5,14 @@ import { CameraView } from "./CameraView";
 import { CameraControls } from "./CameraControls";
 import { CameraPreview } from "./CameraPreview";
 
+interface CameraModalProps
+{
+    isOpen: boolean;
+    onClose: () => void;
+    onCapturePhoto?: ( file: File, caption?: string ) => void;
+    onCaptureVideo?: ( file: File, caption?: string ) => void;
+}
+
 export default function CameraModal( {
     isOpen,
     onClose,
@@ -19,25 +27,28 @@ export default function CameraModal( {
         flipCamera,
         handlePhotoClick,
         handleVideoClick,
-        restartCamera, // ✅ pakai ini
+        restartCamera,
         error,
     } = useCameraController( { isOpen, onClose } );
 
     const [previewFile, setPreviewFile] = useState<File | null>( null );
+    const [previewCaption, setPreviewCaption] = useState( "" );
 
     if ( !isOpen ) return null;
 
-    // 🔒 pastikan close modal juga reset preview
+    // reset preview + caption kalau modal ditutup
     const handleClose = () =>
     {
         setPreviewFile( null );
+        setPreviewCaption( "" );
         onClose();
     };
 
     const handleRetake = async () =>
     {
         setPreviewFile( null );
-        await restartCamera(); // ✅ restart kamera saat undo
+        setPreviewCaption( "" );
+        await restartCamera();
     };
 
     return (
@@ -50,12 +61,15 @@ export default function CameraModal( {
                 { previewFile ? (
                     <CameraPreview
                         file={ previewFile }
+                        caption={ previewCaption }
+                        onCaptionChange={ setPreviewCaption }
                         onRetake={ handleRetake }
-                        onSend={ ( file ) =>
+                        onSend={ ( file, caption ) =>
                         {
-                            if ( mode === "photo" && onCapturePhoto ) onCapturePhoto( file );
-                            if ( mode === "video" && onCaptureVideo ) onCaptureVideo( file );
+                            if ( mode === "photo" && onCapturePhoto ) onCapturePhoto( file, caption );
+                            if ( mode === "video" && onCaptureVideo ) onCaptureVideo( file, caption );
                             setPreviewFile( null );
+                            setPreviewCaption( "" );
                             handleClose(); // kamera mati hanya saat modal ditutup
                         } }
                     />

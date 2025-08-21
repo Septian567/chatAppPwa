@@ -1,4 +1,9 @@
 import { Dispatch, SetStateAction } from "react";
+import
+    {
+        DEFAULT_SOFT_DELETED_TEXT,
+        DEFAULT_FILE_DELETED_TEXT,
+    } from "../components/chat/deletedMessage";
 
 export interface ChatMessage
 {
@@ -9,55 +14,58 @@ export interface ChatMessage
     caption?: string | null;
     duration?: number;
     time: string;
+    isSoftDeleted?: boolean;
 }
 
 export function useChatMessageActions(
     setMessages: Dispatch<SetStateAction<ChatMessage[]>>
 )
 {
-    // Soft delete file (hapus untuk saya)
-    const handleSoftDeleteFileMessage = ( index: number ) =>
+    const softDelete = (
+        index: number,
+        updates: Partial<ChatMessage> & { isSoftDeleted?: boolean } = {}
+    ) =>
     {
         setMessages( ( prev ) =>
         {
             const updated = [...prev];
-            updated.splice( index, 1 ); // Hilang dari chat user
+            updated[index] = {
+                ...updated[index],
+                isSoftDeleted: true,
+                ...updates,
+            };
             return updated;
         } );
     };
 
-    // Soft delete text
     const handleSoftDeleteTextMessage = ( index: number ) =>
-    {
-        setMessages( ( prev ) =>
-        {
-            const updated = [...prev];
-            updated[index] = {
-                ...updated[index],
-                text: "Pesan telah dihapus",
-            };
-            return updated;
-        } );
-    };
+        softDelete( index, { text: DEFAULT_SOFT_DELETED_TEXT } );
 
-    // Delete permanen file (ubah jadi placeholder)
-    const handleDeleteFileMessage = ( index: number ) =>
-    {
-        setMessages( ( prev ) =>
-        {
-            const updated = [...prev];
-            updated[index] = {
-                ...updated[index],
-                fileUrl: null,
-                caption: "Pesan ini sudah dihapus",
-            };
-            return updated;
+    const handleSoftDeleteFileMessage = ( index: number ) =>
+        softDelete( index, {
+            fileUrl: null,
+            caption: DEFAULT_SOFT_DELETED_TEXT,
         } );
-    };
+
+    const handleSoftDeleteAudioMessage = ( index: number ) =>
+        softDelete( index, { audioUrl: null, text: DEFAULT_SOFT_DELETED_TEXT } );
+
+    const handleDeleteMessage = ( index: number ) =>
+        setMessages( ( prev ) => prev.filter( ( _, i ) => i !== index ) );
+
+    const handleDeleteFileMessage = ( index: number ) =>
+        setMessages( prev => prev.filter( ( _, i ) => i !== index ) );
+
+
+    const handleDeleteAudioMessage = ( index: number ) =>
+        softDelete( index, { audioUrl: null, text: DEFAULT_FILE_DELETED_TEXT } );
 
     return {
-        handleSoftDeleteFileMessage,
         handleSoftDeleteTextMessage,
+        handleSoftDeleteFileMessage,
+        handleSoftDeleteAudioMessage,
+        handleDeleteMessage,
         handleDeleteFileMessage,
+        handleDeleteAudioMessage,
     };
 }

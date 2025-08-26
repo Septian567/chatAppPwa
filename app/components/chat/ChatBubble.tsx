@@ -4,7 +4,7 @@ interface ChatBubbleProps
 {
     children: ReactNode;
     variant?: "text" | "media";
-    fixedWidth?: string; // 👈 tambahan
+    fixedWidth?: string;
 }
 
 export function ChatBubble( { children, variant = "text", fixedWidth }: ChatBubbleProps )

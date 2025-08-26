@@ -3,7 +3,7 @@
 import Sidebar from "./components/sidebar/Sidebar";
 import { useSidebarLayout } from "./hooks/useSidebarLayout";
 import ChatPage from "./components/chat/ChatPage";
-import ContactsPage from "./components/pages/ContactsPage";
+import ContactsPage from "./components/contacts/ContactsPage";
 import ProfilePage from "./components/profile/ProfilePage";
 
 export default function Home()

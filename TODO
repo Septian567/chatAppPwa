@@ -79,4 +79,28 @@ TODO Chat belum beres
 4. periksa implementasi local storage
 
 TODO 21 Agustus 2025
-1. buat halaman profile
+1. buat halaman profile -- SUCCESS
+
+
+TODO 24 Agustus 2025
+1. perbaiki fitur kontak - USER -- SUCCESS
+2. perbaiki fitur user - KONTAK -- SUCCESS
+3. pastikan bila user banyak bisa di scrol -- SUCCESS
+4. pastikan bila kontak banyak bisa di scrol -- SUCCESS
+
+TODO 25 Agustus 2025
+1. simpan user dan kontak ke localstorage -- SUCCESS
+2. sinkronkan dengan tampilan sidebar -- user -- SUCCESS
+3. singkronkan dengan tampilan sidebar -- kontak -- SUCCESS
+4. aktifkan fitur cari user -- SUCCESS
+5. aktifkan fitur cari kontak -- SUCCESS
+4. buat halaman login -- SUCCESS
+5. buat halaman register -- SUCCESS
+6. perbaiki tampilan profile --> pakai header -- SUCCESS
+7. perbaiki tampilan chat, ada beberapa yang belum beres (responsive) -- SUCCESS
+
+TODO 26 Agustus 2025
+1. perbaiki respnsive halaman kontak saya (user dan kontak) -- SUCCESS
+2. buat chat kiri
+3. lakukan simulasi aplikasi chat tanpa api sampai proses pengiriman pesan
+4. tambahkan fitur ganti bahasa (inggris dan indonesia) dan ganti tema

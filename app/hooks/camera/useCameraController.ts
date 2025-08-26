@@ -111,7 +111,7 @@ export function useCameraController( {
         facing,
         flipCamera,
         isRecording,
-        duration, // <-- diteruskan di sini
+        duration,
         handlePhotoClick,
         handleVideoClick,
         restartCamera,

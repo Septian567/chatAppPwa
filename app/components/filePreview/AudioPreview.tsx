@@ -5,9 +5,10 @@ interface AudioPreviewProps
 {
     fileUrl: string;
     fileName: string;
+    align?: "left" | "right"; // ➕ TAMBAHKAN PROP ALIGN
 }
 
-export default function AudioPreview( { fileUrl, fileName }: AudioPreviewProps )
+export default function AudioPreview( { fileUrl, fileName, align = "right" }: AudioPreviewProps ) // ➕ DEFAULT VALUE
 {
     const {
         audioRef,
@@ -22,7 +23,7 @@ export default function AudioPreview( { fileUrl, fileName }: AudioPreviewProps )
     } = useAudioPlayer( fileUrl );
 
     return (
-        <div className="w-full">
+        <div className={ `w-full ${ align === "left" ? "text-left" : "text-right" }` }>
             <audio
                 ref={ audioRef }
                 src={ fileUrl }

@@ -1,13 +1,16 @@
+"use client";
+
+import { useState } from "react";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "../messageInput/MessageInput";
 import ChatBody from "./ChatBody";
 import
-    {
-        useMessageState,
-        useMessageSending,
-        useMessageEditing,
-        useMessageDeletion,
-    } from "../../hooks/chats";
+{
+    useMessageState,
+    useMessageEditing,
+    useMessageDeletion,
+} from "../../hooks/chats";
+import { ChatMessage } from "../../hooks/useChatMessageActions";
 
 interface ChatPageProps
 {
@@ -30,9 +33,6 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
         handleCancelEdit,
     } = useMessageEditing( messages, setMessages );
 
-    const { handleSendMessage, handleSendAudio, handleSendFile } =
-        useMessageSending( setMessages );
-
     const {
         handleDeleteTextMessage,
         handleSoftDeleteTextMessage,
@@ -48,20 +48,61 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
         ( t ) => handleEditTypeChange( t )
     );
 
+    // 🔹 state untuk posisi pesan
+    const [chatSide, setChatSide] = useState<"kiri" | "kanan">( "kanan" );
+
     function handleEditIndexChange( i: number | null )
     {
-        // agar deletion bisa ubah editingIndex
         ( editingIndex as any ) = i;
     }
     function handleEditTypeChange( t: "text" | "file" | null )
     {
-        // agar deletion bisa ubah editType
         ( editType as any ) = t;
     }
 
+    // 🔹 Fungsi lokal untuk mengirim pesan (tanpa useMessageSending hook)
+    const handleSendMessage = ( message: string ) =>
+    {
+        const newMessage: ChatMessage = {
+            text: message,
+            time: new Date().toLocaleTimeString( [], { hour: "2-digit", minute: "2-digit" } ),
+            side: chatSide,
+        };
+        setMessages( ( prev ) => [...prev, newMessage] );
+    };
+
+    const handleSendAudio = ( audioBlob: Blob ) =>
+    {
+        const audioUrl = URL.createObjectURL( audioBlob );
+        const newMessage: ChatMessage = {
+            audioUrl,
+            time: new Date().toLocaleTimeString( [], { hour: "2-digit", minute: "2-digit" } ),
+            side: chatSide,
+        };
+        setMessages( ( prev ) => [...prev, newMessage] );
+    };
+
+    const handleSendFile = ( file: File, caption?: string ) =>
+    {
+        const fileUrl = URL.createObjectURL( file );
+        const newMessage: ChatMessage = {
+            fileUrl,
+            fileName: file.name,
+            caption: caption?.trim() || undefined,
+            time: new Date().toLocaleTimeString( [], { hour: "2-digit", minute: "2-digit" } ),
+            side: chatSide,
+        };
+        setMessages( ( prev ) => [...prev, newMessage] );
+    };
+
     return (
         <main className="flex-1 flex flex-col bg-transparent text-black overflow-hidden">
-            <ChatHeader isMobile={ isMobile } onBack={ onBack } />
+            <ChatHeader
+                isMobile={ isMobile }
+                onBack={ onBack }
+                onChatKiri={ () => setChatSide( "kiri" ) }
+                onChatKanan={ () => setChatSide( "kanan" ) }
+            />
             <ChatBody
                 messages={ messages }
                 setMessages={ setMessages }

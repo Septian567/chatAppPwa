@@ -15,6 +15,7 @@ export interface ChatMessage
     duration?: number;
     time: string;
     isSoftDeleted?: boolean;
+    side: "kiri" | "kanan";
 }
 
 export function useChatMessageActions(
@@ -54,8 +55,7 @@ export function useChatMessageActions(
         setMessages( ( prev ) => prev.filter( ( _, i ) => i !== index ) );
 
     const handleDeleteFileMessage = ( index: number ) =>
-        setMessages( prev => prev.filter( ( _, i ) => i !== index ) );
-
+        setMessages( ( prev ) => prev.filter( ( _, i ) => i !== index ) );
 
     const handleDeleteAudioMessage = ( index: number ) =>
         softDelete( index, { audioUrl: null, text: DEFAULT_FILE_DELETED_TEXT } );

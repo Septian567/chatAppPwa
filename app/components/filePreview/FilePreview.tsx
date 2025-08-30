@@ -7,6 +7,7 @@ interface FilePreviewProps
     fileExtension: string;
     fileIcon: string;
     onDownload: () => void;
+    align?: "left" | "right"; // ➕ TAMBAHKAN PROP ALIGN
 }
 
 export default function FilePreview( {
@@ -15,10 +16,11 @@ export default function FilePreview( {
     fileExtension,
     fileIcon,
     onDownload,
+    align = "right", // ➕ DEFAULT VALUE
 }: FilePreviewProps )
 {
     return (
-        <>
+        <div className={ `${ align === "left" ? "text-left" : "text-right" }` }>
             {/* File Info */ }
             <div className="flex items-center gap-2 mb-2">
                 <span className="text-2xl">{ fileIcon }</span>
@@ -37,6 +39,6 @@ export default function FilePreview( {
                     Download
                 </button>
             </div>
-        </>
+        </div>
     );
 }

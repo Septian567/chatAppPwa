@@ -18,15 +18,16 @@ interface ChatFilePreviewProps
     duration?: string;
     caption?: string;
     time?: string;
+    align?: "left" | "right"; // ➕ TAMBAHKAN PROP ALIGN
 }
 
 // Hanya render caption + time, tanpa duplikasi
-function CaptionWithTime( { caption, time }: { caption?: string; time?: string } )
+function CaptionWithTime( { caption, time, align }: { caption?: string; time?: string; align?: "left" | "right" } )
 {
     if ( !caption && !time ) return null;
 
     return (
-        <div className="flex justify-between items-end mt-1">
+        <div className={ `flex justify-between items-end mt-1 ${ align === "left" ? "flex-row" : "flex-row-reverse" }` }>
             <div className={ `text-base break-words ${ caption ? "text-black" : "invisible" }` }>
                 { caption || "placeholder" }
             </div>
@@ -48,13 +49,17 @@ export function ChatFilePreview( {
     duration,
     caption,
     time,
+    align, // ➕ DEFAULT VALUE
 }: ChatFilePreviewProps )
 {
+
+    console.log( "ChatFilePreview - align received:", align );
+    console.log( "ChatFilePreview - props:", { fileUrl, fileName, align } );
     // Soft deleted, tampilkan hanya teks soft delete + time
     if ( isSoftDeleted )
     {
         return (
-            <div className="flex justify-between items-end mt-1 text-sm text-gray-500 italic">
+            <div className={ `flex justify-between items-end mt-1 text-sm text-gray-500 italic ${ align === "left" ? "flex-row" : "flex-row-reverse" }` }>
                 <div>{ SOFT_DELETED_MESSAGES[1] }</div>
                 { time && <div className="text-xs text-gray-700">{ time }</div> }
             </div>
@@ -64,7 +69,7 @@ export function ChatFilePreview( {
     // Render file preview hanya kalau fileUrl ada
     if ( !fileUrl )
     {
-        return <CaptionWithTime caption={ caption } time={ time } />;
+        return <CaptionWithTime caption={ caption } time={ time } align={ align } />;
     }
 
     // Render file preview sesuai tipe
@@ -72,8 +77,8 @@ export function ChatFilePreview( {
     {
         return (
             <div className="flex flex-col">
-                <ImagePreview fileUrl={ fileUrl } fileName={ fileName } />
-                <CaptionWithTime caption={ caption } time={ time } />
+                <ImagePreview fileUrl={ fileUrl } fileName={ fileName } align={ align } />
+                <CaptionWithTime caption={ caption } time={ time } align={ align } />
             </div>
         );
     }
@@ -82,8 +87,8 @@ export function ChatFilePreview( {
     {
         return (
             <div className="flex flex-col">
-                <VideoPreview fileUrl={ fileUrl } fileName={ fileName } duration={ duration } />
-                <CaptionWithTime caption={ caption } time={ time } />
+                <VideoPreview fileUrl={ fileUrl } fileName={ fileName } duration={ duration } align={ align } />
+                <CaptionWithTime caption={ caption } time={ time } align={ align } />
             </div>
         );
     }
@@ -92,8 +97,8 @@ export function ChatFilePreview( {
     {
         return (
             <div className="flex flex-col">
-                <AudioPreview fileUrl={ fileUrl } fileName={ fileName } duration={ duration } />
-                <CaptionWithTime caption={ caption } time={ time } />
+                <AudioPreview fileUrl={ fileUrl } fileName={ fileName } duration={ duration } align={ align } />
+                <CaptionWithTime caption={ caption } time={ time } align={ align } />
             </div>
         );
     }
@@ -106,8 +111,9 @@ export function ChatFilePreview( {
                 fileExtension={ fileExtension || "" }
                 fileIcon={ fileIcon }
                 onDownload={ handleDownload }
+                align={ align }
             />
-            <CaptionWithTime caption={ caption } time={ time } />
+            <CaptionWithTime caption={ caption } time={ time } align={ align } />
         </div>
     );
 }

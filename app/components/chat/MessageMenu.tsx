@@ -6,6 +6,7 @@ import { useRef, useEffect, useState } from "react";
 interface MessageMenuProps
 {
     isSoftDeleted: boolean;
+    align?: "left" | "right";
     onEditClick?: () => void;
     onSoftDeleteClick?: () => void;
     onDeleteClick?: () => void;
@@ -13,6 +14,7 @@ interface MessageMenuProps
 
 export function MessageMenu( {
     isSoftDeleted,
+    align = "right",
     onEditClick,
     onSoftDeleteClick,
     onDeleteClick,
@@ -28,18 +30,49 @@ export function MessageMenu( {
         setIsOpen( false );
     };
 
-    // Hitung posisi tombol untuk taruh menu di body
     useEffect( () =>
     {
-        if ( isOpen && buttonRef.current )
+        function updatePosition()
         {
-            const rect = buttonRef.current.getBoundingClientRect();
-            setPosition( {
-                top: rect.bottom + window.scrollY + 4, // 4px offset
-                left: rect.right + window.scrollX - 176, // 176 = width 44 * 4 (w-44)
-            } );
+            if ( isOpen && buttonRef.current && menuRef.current )
+            {
+                const rect = buttonRef.current.getBoundingClientRect();
+                const menuWidth = menuRef.current.offsetWidth;
+                const viewportWidth = window.innerWidth;
+
+                let left: number;
+                if ( align === "right" )
+                {
+                    left = rect.right + window.scrollX - menuWidth;
+                } else
+                {
+                    left = rect.left + window.scrollX;
+                    if ( left + menuWidth > viewportWidth - 15 )
+                    {
+                        left = viewportWidth - menuWidth - 15;
+                    }
+                }
+
+                setPosition( {
+                    top: rect.bottom + window.scrollY + 4,
+                    left,
+                } );
+            }
         }
-    }, [isOpen] );
+
+        updatePosition();
+        window.addEventListener( "resize", updatePosition );
+        window.addEventListener( "scroll", updatePosition );
+
+        return () =>
+        {
+            window.removeEventListener( "resize", updatePosition );
+            window.removeEventListener( "scroll", updatePosition );
+        };
+    }, [isOpen, align] );
+
+
+
 
     const menu = (
         <div
@@ -51,6 +84,7 @@ export function MessageMenu( {
                 <>
                     { onEditClick && (
                         <button
+                            type="button"
                             className="flex items-center gap-2 w-full text-left px-3 py-1 hover:bg-gray-100"
                             onClick={ () => handleClick( onEditClick ) }
                         >
@@ -59,6 +93,7 @@ export function MessageMenu( {
                     ) }
                     { onSoftDeleteClick && (
                         <button
+                            type="button"
                             className="flex items-center gap-2 w-full text-left px-3 py-1 hover:bg-gray-100"
                             onClick={ () => handleClick( onSoftDeleteClick ) }
                         >
@@ -66,6 +101,7 @@ export function MessageMenu( {
                         </button>
                     ) }
                     <button
+                        type="button"
                         className="flex items-center gap-2 w-full text-left px-3 py-1 hover:bg-gray-100"
                         onClick={ () => handleClick( onDeleteClick ) }
                     >
@@ -74,6 +110,7 @@ export function MessageMenu( {
                 </>
             ) : (
                 <button
+                    type="button"
                     className="flex items-center gap-2 w-full text-left px-3 py-1 hover:bg-gray-100"
                     onClick={ () => handleClick( onDeleteClick ) }
                 >
@@ -85,16 +122,14 @@ export function MessageMenu( {
 
     return (
         <div className="relative">
-            {/* Tombol MoreVertical */ }
             <button
+                type="button"
                 ref={ buttonRef }
                 className="p-1 text-gray-500 hover:text-gray-700"
-                onClick={ () => setIsOpen( prev => !prev ) }
+                onClick={ () => setIsOpen( ( prev ) => !prev ) }
             >
                 <MoreVertical size={ 16 } />
             </button>
-
-            {/* Menu pakai portal ke body */ }
             { isOpen && createPortal( menu, document.body ) }
         </div>
     );

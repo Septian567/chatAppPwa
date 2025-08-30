@@ -12,6 +12,7 @@ interface VideoPreviewProps
     caption?: string;
     time?: string;
     isSoftDeleted?: boolean;
+    align?: "left" | "right"; // ➕ TAMBAHKAN PROP ALIGN
 }
 
 const ThumbnailOverlay = () => (
@@ -60,6 +61,7 @@ export default function VideoPreview( {
     caption,
     time,
     isSoftDeleted = false,
+    align = "right", // ➕ DEFAULT VALUE
 }: VideoPreviewProps )
 {
     const [isModalOpen, setIsModalOpen] = useState( false );
@@ -103,7 +105,7 @@ export default function VideoPreview( {
     }
 
     return (
-        <>
+        <div className={ `${ align === "left" ? "text-left" : "text-right" }` }>
             <div
                 className="relative mb-2 cursor-pointer rounded-lg overflow-hidden w-full flex justify-center bg-green-100 border border-black"
                 onClick={ () => setIsModalOpen( true ) }
@@ -119,11 +121,11 @@ export default function VideoPreview( {
                 <DurationBadge duration={ videoDuration } />
             </div>
 
-            <CaptionWithTime caption={ caption } time={ time } />
+            <CaptionWithTime caption={ caption } time={ time } align={ align } />
 
             { isModalOpen && (
                 <VideoModal fileUrl={ fileUrl } onClose={ () => setIsModalOpen( false ) } />
             ) }
-        </>
+        </div>
     );
 }

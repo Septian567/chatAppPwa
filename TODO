@@ -102,5 +102,16 @@ TODO 25 Agustus 2025
 TODO 26 Agustus 2025
 1. perbaiki respnsive halaman kontak saya (user dan kontak) -- SUCCESS
 2. buat chat kiri
-3. lakukan simulasi aplikasi chat tanpa api sampai proses pengiriman pesan
-4. tambahkan fitur ganti bahasa (inggris dan indonesia) dan ganti tema
+- pesan teks kiri -- SUCCESS
+- sesuaikan posisi morevertikal menu responsive kiri -- SUCCESS
+- perbaiki agar saat muncul menu morevertikal, tidak bisa di scroll 
+- pesan file kiri -- SUCCESS
+- pesan audio kiri  -- SUCCESS
+- fitur hapus pesan file, samakan ukuran "pesan telah dihapus" dengan pesan teks -- SUCCESS
+
+
+
+TODO 30 Agustus 2025
+1. sinkronkan menu kontak dengan sidebar horizontal menu
+2. lakukan simulasi aplikasi chat tanpa api sampai proses pengiriman pesan
+3. tambahkan fitur ganti bahasa (inggris dan indonesia) dan ganti tema

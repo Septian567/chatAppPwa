@@ -33,25 +33,20 @@ export default function ChatBody( {
     onDeleteFileMessage,
     onSoftDeleteFileMessage,
     onDeleteAudioMessage,
-    onSoftDeleteAudioMessage
+    onSoftDeleteAudioMessage,
 }: ChatBodyProps )
 {
-    const {
-        handleSoftDeleteFileMessage,
-        handleSoftDeleteTextMessage,
-    } = useChatMessageActions( setMessages );
+    const { handleSoftDeleteFileMessage, handleSoftDeleteTextMessage } =
+        useChatMessageActions( setMessages );
 
     const bottomRef = useRef<HTMLDivElement | null>( null );
     const prevMessageCount = useRef( messages.length );
 
     useEffect( () =>
     {
-        // Hanya scroll otomatis kalau jumlah pesan bertambah (pesan baru terkirim)
         if ( messages.length > prevMessageCount.current )
         {
             bottomRef.current?.scrollIntoView( { behavior: "smooth" } );
-
-            // Jika pesan baru ada gambar/video, tunggu sampai load selesai lalu scroll lagi
             const mediaElements = document.querySelectorAll( "img, video" );
             mediaElements.forEach( ( el ) =>
             {
@@ -70,6 +65,14 @@ export default function ChatBody( {
 
             { messages.map( ( msg, index ) =>
             {
+                // ✅ Tentukan align secara eksplisit
+                const align: "left" | "right" =
+                    msg.side === "kiri"
+                        ? "left"
+                        : msg.side === "kanan"
+                            ? "right"
+                            : "right"; // fallback
+
                 // TEXT MESSAGE
                 if ( msg.text )
                 {
@@ -79,6 +82,7 @@ export default function ChatBody( {
                             key={ index }
                             text={ msg.text }
                             time={ msg.time }
+                            align={ align }
                             onEditClick={
                                 !isDeleted ? () => onEditTextMessage?.( index ) : undefined
                             }
@@ -106,6 +110,7 @@ export default function ChatBody( {
                             duration={ msg.duration }
                             isSoftDeleted={ msg.isSoftDeleted }
                             textStatus={ msg.text }
+                            align={ align }
                             onSoftDeleteClick={
                                 !msg.isSoftDeleted
                                     ? () => onSoftDeleteAudioMessage?.( index )
@@ -121,6 +126,16 @@ export default function ChatBody( {
                 {
                     const isSoftDeleted = isSoftDeletedMessage( msg.caption );
 
+                    // ✅ TAMBAHKAN CONSOLE LOG UNTUK DEBUGGING
+                    console.log( "File Message:", {
+                        index,
+                        side: msg.side,
+                        align: align,
+                        fileUrl: msg.fileUrl,
+                        caption: msg.caption
+                    } );
+
+
                     return (
                         <ChatFileMessage
                             key={ index }
@@ -128,6 +143,7 @@ export default function ChatBody( {
                             fileName={ msg.fileName }
                             caption={ msg.caption || "" }
                             time={ msg.time }
+                            align={ align } // ✅ sekarang aman
                             onEditClick={
                                 !isSoftDeleted ? () => onEditFileMessage?.( index ) : undefined
                             }
@@ -136,7 +152,6 @@ export default function ChatBody( {
                                     ? () => onSoftDeleteFileMessage?.( index )
                                     : undefined
                             }
-                            // Hard delete tetap bisa dipanggil meski file sudah soft deleted
                             onDeleteClick={ () => onDeleteFileMessage?.( index ) }
                         />
                     );
@@ -144,7 +159,6 @@ export default function ChatBody( {
 
                 return null;
             } ) }
-            {/* target untuk scroll otomatis */ }
             <div ref={ bottomRef } />
         </div>
     );

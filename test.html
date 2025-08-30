@@ -3,81 +3,133 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Perekam Suara Sederhana</title>
+  <title>Klik Dua Detik</title>
   <style>
-    body { font-family: sans-serif; margin: 30px; background: #f0f0f0; }
-    .controls { margin-bottom: 20px; }
-    button { margin-right: 10px; padding: 10px 15px; }
-    .recordings { margin-top: 20px; }
-    .recording { margin-bottom: 10px; background: #fff; padding: 10px; border-radius: 6px; }
+    body { font-family: system-ui, sans-serif; display: grid; place-items: center; min-height: 100dvh; margin: 0; }
+    #target {
+      padding: 16px 20px; border: 2px solid #ddd; border-radius: 12px; cursor: pointer;
+      user-select: none;
+    }
+    /* Menu */
+    .menu {
+      position: fixed; inset: auto auto 0 0; transform: translate(-9999px,-9999px);
+      background: #fff; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      min-width: 180px; padding: 6px; z-index: 9999;
+    }
+    .menu.show { transform: none; }
+    .menu button {
+      width: 100%; background: transparent; border: 0; text-align: left; padding: 10px 12px; border-radius: 10px; font-size: 14px;
+    }
+    .menu button:hover, .menu button:focus { background: #f2f2f2; outline: none; }
+    .backdrop {
+      position: fixed; inset: 0; background: transparent; display: none; z-index: 9998;
+    }
+    .backdrop.show { display: block; }
   </style>
 </head>
 <body>
-  <h1>🎙️ Perekam Suara</h1>
-  <div class="controls">
-    <button id="startBtn">Mulai Rekam</button>
-    <button id="stopBtn" disabled>Stop</button>
-    <span id="timer">00:00</span>
-  </div>
+  <div id="target" tabindex="0">klik dua detik</div>
 
-  <div class="recordings" id="recordings"></div>
+  <div class="menu" id="menu" role="menu" aria-hidden="true">
+    <button id="editBtn" role="menuitem">✏️ Edit tulisan</button>
+    <button id="deleteBtn" role="menuitem">🗑️ Hapus</button>
+  </div>
+  <div class="backdrop" id="backdrop" aria-hidden="true"></div>
 
   <script>
-    const startBtn = document.getElementById('startBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const recordings = document.getElementById('recordings');
-    const timerEl = document.getElementById('timer');
+    (function () {
+      const target = document.getElementById('target');
+      const menu = document.getElementById('menu');
+      const backdrop = document.getElementById('backdrop');
+      const editBtn = document.getElementById('editBtn');
+      const deleteBtn = document.getElementById('deleteBtn');
 
-    let mediaRecorder;
-    let chunks = [];
-    let startTime;
-    let timerInterval;
+      let pressTimer = null;
+      let startPoint = { x: 0, y: 0 };
+      const holdMs = 1000;
 
-    function updateTimer() {
-      const diff = Math.floor((Date.now() - startTime) / 1000);
-      const m = String(Math.floor(diff / 60)).padStart(2, '0');
-      const s = String(diff % 60).padStart(2, '0');
-      timerEl.textContent = `${m}:${s}`;
-    }
+      // Helper: show/hide menu
+      function showMenu(x, y) {
+        // pastikan menu tidak keluar layar
+        const padding = 8;
+        const mw = 200, mh = 100;
+        let left = Math.min(Math.max(x, padding), window.innerWidth - mw - padding);
+        let top  = Math.min(Math.max(y, padding), window.innerHeight - mh - padding);
 
-    startBtn.onclick = async () => {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream);
+        menu.style.left = left + 'px';
+        menu.style.top = top + 'px';
+        menu.classList.add('show');
+        backdrop.classList.add('show');
+        menu.setAttribute('aria-hidden', 'false');
+      }
+      function hideMenu() {
+        menu.classList.remove('show');
+        backdrop.classList.remove('show');
+        menu.setAttribute('aria-hidden', 'true');
+      }
 
-      mediaRecorder.ondataavailable = e => {
-        if (e.data.size > 0) chunks.push(e.data);
-      };
+      // Long-press handlers (mouse & touch)
+      function startPress(x, y) {
+        clearTimeout(pressTimer);
+        startPoint = { x, y };
+        pressTimer = setTimeout(() => showMenu(x, y), holdMs);
+      }
+      function cancelPress() {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
 
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'audio/webm' });
-        const url = URL.createObjectURL(blob);
+      // Mouse
+      target.addEventListener('mousedown', e => {
+        if (e.button !== 0) return; // hanya klik kiri
+        startPress(e.clientX, e.clientY);
+      });
+      document.addEventListener('mouseup', cancelPress);
+      target.addEventListener('mouseleave', cancelPress);
+      target.addEventListener('mousemove', e => {
+        // jika bergerak jauh, batalkan
+        if (!pressTimer) return;
+        const dx = e.clientX - startPoint.x, dy = e.clientY - startPoint.y;
+        if (Math.hypot(dx, dy) > 8) cancelPress();
+      });
 
-        const recDiv = document.createElement('div');
-        recDiv.classList.add('recording');
-        recDiv.innerHTML = `
-          <audio controls src="${url}"></audio><br>
-          <small>Durasi: ${timerEl.textContent}</small>
-        `;
-        recordings.appendChild(recDiv);
+      // Touch
+      target.addEventListener('touchstart', e => {
+        const t = e.touches[0];
+        startPress(t.clientX, t.clientY);
+      }, { passive: true });
+      target.addEventListener('touchmove', e => {
+        if (!pressTimer) return;
+        const t = e.touches[0];
+        const dx = t.clientX - startPoint.x, dy = t.clientY - startPoint.y;
+        if (Math.hypot(dx, dy) > 12) cancelPress();
+      }, { passive: true });
+      target.addEventListener('touchend', cancelPress);
+      target.addEventListener('touchcancel', cancelPress);
 
-        chunks = [];
-        clearInterval(timerInterval);
-        timerEl.textContent = '00:00';
-      };
+      // Optional: cegah menu klik kanan default agar tidak mengganggu
+      target.addEventListener('contextmenu', e => e.preventDefault());
 
-      mediaRecorder.start();
-      startTime = Date.now();
-      timerInterval = setInterval(updateTimer, 500);
+      // Actions
+      editBtn.addEventListener('click', () => {
+        const current = target.textContent.trim();
+        const baru = prompt('Ubah tulisan:', current);
+        if (baru !== null) target.textContent = baru || '';
+        hideMenu();
+      });
 
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
-    };
+      deleteBtn.addEventListener('click', () => {
+        if (confirm('Yakin hapus tulisannya?')) {
+          target.remove();
+        }
+        hideMenu();
+      });
 
-    stopBtn.onclick = () => {
-      mediaRecorder.stop();
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-    };
+      // Tutup menu saat klik di luar
+      backdrop.addEventListener('click', hideMenu);
+      window.addEventListener('resize', hideMenu);
+      window.addEventListener('scroll', hideMenu);
+    })();
   </script>
 </body>
 </html>

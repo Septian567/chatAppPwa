@@ -10,6 +10,7 @@ interface ChatAudioMessageProps
     duration?: number;
     isSoftDeleted?: boolean;
     textStatus?: string;
+    align?: "left" | "right";
     onSoftDeleteClick?: () => void;
     onDeleteClick?: () => void;
 }
@@ -20,12 +21,13 @@ export default function ChatAudioMessage( {
     duration,
     isSoftDeleted,
     textStatus,
+    align = "right", // default kanan
     onSoftDeleteClick,
     onDeleteClick,
 }: ChatAudioMessageProps )
 {
     return (
-        <ChatBubble variant="media">
+        <ChatBubble variant="media" align={ align }>
             <div className="flex flex-col gap-1 w-full max-w-xs">
                 {/* Baris utama: play, wave, waktu, menu */ }
                 <div className="flex items-center justify-between gap-3">
@@ -55,7 +57,13 @@ export default function ChatAudioMessage( {
                 { !isSoftDeleted && (
                     <div className="flex justify-between text-[11px] text-gray-500 pl-7">
                         <span>0:00</span>
-                        <span>{ duration ? `${ Math.floor( duration / 60 ) }:${ String( Math.floor( duration % 60 ) ).padStart( 2, "0" ) }` : "--:--" }</span>
+                        <span>
+                            { duration
+                                ? `${ Math.floor( duration / 60 ) }:${ String(
+                                    Math.floor( duration % 60 )
+                                ).padStart( 2, "0" ) }`
+                                : "--:--" }
+                        </span>
                     </div>
                 ) }
             </div>

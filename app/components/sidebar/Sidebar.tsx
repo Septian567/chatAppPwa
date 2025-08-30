@@ -8,6 +8,8 @@ import Header from "./Header";
 import SearchBox from "./SearchBox";
 import { useSidebarState } from "../../hooks/useSidebarState";
 import { HorizontalSubMenu } from "../../states/sidebarSlice";
+import UserItem from "../contacts/UserItem"; // import UserItem
+import { useContactsPage } from "../../hooks/contacts/useContactsPage"; // untuk ambil data users
 
 interface SidebarProps
 {
@@ -22,12 +24,6 @@ const MAIN_MENU_ITEMS = [
   { label: "Logout", icon: <LogOut size={ 18 } />, key: null },
 ];
 
-const HORIZONTAL_MENU_CONTENT: Record<HorizontalSubMenu, string> = {
-  user: "Sidebar says: welcome to horizontal user.",
-  contact: "Sidebar says: these are quick contacts.",
-  chat: "Sidebar says: recent sidebar chats.",
-};
-
 export default function Sidebar( { onMainMenuClick, width }: SidebarProps )
 {
   const {
@@ -38,6 +34,8 @@ export default function Sidebar( { onMainMenuClick, width }: SidebarProps )
     HORIZONTAL_MENU_LABELS,
   } = useSidebarState();
 
+  const { users, handleAliasSave } = useContactsPage(); // ambil users & handler alias
+
   const isDesktop = typeof width === "number";
 
   return (
@@ -47,7 +45,7 @@ export default function Sidebar( { onMainMenuClick, width }: SidebarProps )
     >
       { isDesktop && <Resizer /> }
       <Header isExpanded={ isMainMenuVisible } onToggle={ toggleMainMenu } />
-      <nav className="flex-1">
+      <nav className="flex-1 overflow-y-auto">
         { isMainMenuVisible && (
           <MainMenu items={ MAIN_MENU_ITEMS } onClick={ onMainMenuClick } />
         ) }
@@ -57,9 +55,34 @@ export default function Sidebar( { onMainMenuClick, width }: SidebarProps )
           onChange={ updateHorizontalMenu }
           items={ HORIZONTAL_MENU_LABELS }
         />
-        <p className="text-sm text-gray-600 p-2">
-          { HORIZONTAL_MENU_CONTENT[activeHorizontalMenu] }
-        </p>
+
+        {/* Render isi submenu */ }
+        <div className="mt-2 p-2 text-sm">
+          { activeHorizontalMenu === "user" && (
+            <div className="space-y-2">
+              { users.length > 0 ? (
+                users.map( ( u ) => (
+                  <UserItem
+                    key={ u.email }
+                    name={ u.name }
+                    email={ u.email }
+                    onAliasSave={ handleAliasSave }
+                  />
+                ) )
+              ) : (
+                <p className="text-gray-500 text-sm">No users available</p>
+              ) }
+            </div>
+          ) }
+
+          { activeHorizontalMenu === "contact" && (
+            <p className="text-gray-600">Sidebar says: these are quick contacts.</p>
+          ) }
+
+          { activeHorizontalMenu === "chat" && (
+            <p className="text-gray-600">Sidebar says: recent sidebar chats.</p>
+          ) }
+        </div>
       </nav>
     </aside>
   );

@@ -5,16 +5,22 @@ interface ImagePreviewProps
 {
     fileUrl: string;
     fileName: string;
+    align?: "left" | "right"; // ➕ TAMBAHKAN PROP ALIGN
 }
 
-export default function ImagePreview( { fileUrl, fileName }: ImagePreviewProps )
+export default function ImagePreview( { fileUrl, fileName, align = "right" }: ImagePreviewProps ) // ➕ DEFAULT VALUE
 {
     const { isModalOpen, scale, openModal, closeModal, handleWheel } = useImagePreview();
 
     return (
         <>
-            <div className="mb-2 cursor-pointer" onClick={ openModal }>
-                <img src={ fileUrl } alt={ fileName } style={ { width: "8cm" } } className="rounded shadow border" />
+            <div className={ `mb-2 cursor-pointer ${ align === "left" ? "text-left" : "text-right" }` } onClick={ openModal }>
+                <img
+                    src={ fileUrl }
+                    alt={ fileName }
+                    style={ { width: "8cm" } }
+                    className="rounded shadow border"
+                />
             </div>
 
             { isModalOpen && (

@@ -11,6 +11,7 @@ interface ChatTextMessageProps
     onEditClick?: () => void;
     onDeleteClick?: () => void;
     onSoftDeleteClick?: () => void;
+    align?: "left" | "right"; // ➕ posisi bubble
 }
 
 export default function ChatTextMessage( {
@@ -19,6 +20,7 @@ export default function ChatTextMessage( {
     onEditClick,
     onDeleteClick,
     onSoftDeleteClick,
+    align = "right", // default kanan (hijau)
 }: ChatTextMessageProps )
 {
     const isSoftDeleted = isSoftDeletedMessage( text );
@@ -38,24 +40,25 @@ export default function ChatTextMessage( {
         {
             setIsMultiLine( false );
         }
-    }, [text] );
+    }, [text, isSoftDeleted] ); // selalu 2 item, konsisten
+
 
     // Tentukan layout utama
     const layoutClass = isSoftDeleted
         ? "flex-row items-end gap-2"
         : isMultiLine
             ? "flex-col"
-            : "flex-row items-end gap-2"; // pesan pendek tetap horizontal
+            : "flex-row items-end gap-2";
 
     // Posisi waktu
     const timePositionClass = isSoftDeleted
-        ? "" // pesan dihapus tetap sejajar
+        ? ""
         : isMultiLine
-            ? "justify-end mt-1 self-end" // multiline → bawah kanan
-            : "translate-y-[2px]"; // pesan pendek → waktu sedikit turun
+            ? "justify-end mt-1 self-end"
+            : "translate-y-[2px]";
 
     return (
-        <ChatBubble fixedWidth={ isSoftDeleted ? "cm" : undefined }>
+        <ChatBubble fixedWidth={ isSoftDeleted ? "cm" : undefined } align={ align }>
             <div className={ `flex ${ layoutClass }` }>
                 {/* Bagian teks */ }
                 <div className="flex-1">
@@ -85,6 +88,7 @@ export default function ChatTextMessage( {
                             onEditClick={ onEditClick }
                             onSoftDeleteClick={ onSoftDeleteClick }
                             onDeleteClick={ onDeleteClick }
+                            align={ align }   // ✅ kirim align ke MessageMenu
                         />
                     ) }
                 </div>

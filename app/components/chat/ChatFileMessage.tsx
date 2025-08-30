@@ -11,6 +11,7 @@ interface ChatFileMessageProps
     fileName?: string;
     caption?: string;
     time: string;
+    align?: "left" | "right";
     onEditClick?: () => void;
     onSoftDeleteClick?: () => void;
     onDeleteClick?: () => void;
@@ -21,6 +22,7 @@ export default function ChatFileMessage( {
     fileName = "Dokumen",
     caption,
     time,
+    align,
     onEditClick,
     onSoftDeleteClick,
     onDeleteClick,
@@ -35,66 +37,70 @@ export default function ChatFileMessage( {
         handleDownload,
     } = useFilePreview( fileUrl, fileName );
 
-    // Cek soft delete
     const isSoftDeleted = isSoftDeletedMessage( caption );
+    const displayCaption = isSoftDeleted ? DEFAULT_FILE_DELETED_TEXT : caption || "";
 
-    // Caption yang ditampilkan
-    const displayCaption = isSoftDeleted ? DEFAULT_FILE_DELETED_TEXT : caption;
+    // 🔹 Komponen kecil untuk time + menu
+    const TimeAndMenu = (
+        <div className="flex items-center gap-1 ml-auto">
+            <span className="text-xs text-gray-700 whitespace-nowrap">
+                { time }
+            </span>
+            <MessageMenu
+                isSoftDeleted={ isSoftDeleted }
+                onEditClick={ onEditClick }
+                onSoftDeleteClick={ onSoftDeleteClick }
+                onDeleteClick={ onDeleteClick }
+                align={ align }
+            />
+        </div>
+    );
 
     return (
-        <ChatBubble variant="media" fixedWidth={ isSoftDeleted ? "cm" : undefined }>
+        <ChatBubble
+            variant="media"
+            align={ align }
+            fixedWidth={ isSoftDeleted ? "5cm" : undefined } // hanya soft-deleted
+        >
             <div className="flex flex-col gap-1">
-                {/* Preview file (hanya kalau belum soft delete) */ }
-                { !isSoftDeleted && (
-                    <ChatFilePreview
-                        fileUrl={ fileUrl }
-                        fileName={ fileName }
-                        fileExtension={ fileExtension }
-                        isImage={ isImage }
-                        isVideo={ isVideo }
-                        isAudio={ isAudio }
-                        fileIcon={ fileIcon }
-                        handleDownload={ handleDownload }
-                        duration="0:00"
-                    />
-                ) }
-
-                {/* Baris caption + waktu + tombol MoreVertical */ }
-                <div className="flex items-end gap-3">
-                    {/* Caption di kiri */ }
-                    <div className="flex-1">
-                        { isSoftDeleted ? (
-                            <div className="flex items-left justify-left w-full min-h-[1.9rem]">
-                                <SoftDeletedMessage text={ displayCaption } />
-                            </div>
-                        ) : (
-                            <span
-                                className={ `whitespace-pre-line ${ isSoftDeleted
-                                        ? "text-gray-500 italic text-sm"
-                                        : "text-black"
-                                    }` }
-                            >
+                { !isSoftDeleted ? (
+                    // 📎 Default file message
+                    <div className="flex flex-col gap-1 w-full max-w-full">
+                        <ChatFilePreview
+                            fileUrl={ fileUrl }
+                            fileName={ fileName }
+                            fileExtension={ fileExtension }
+                            isImage={ isImage }
+                            isVideo={ isVideo }
+                            isAudio={ isAudio }
+                            fileIcon={ fileIcon }
+                            handleDownload={ handleDownload }
+                            duration="0:00"
+                            isSoftDeleted={ isSoftDeleted }
+                            align={ align }
+                        />
+                        { displayCaption && (
+                            <span className="whitespace-pre-wrap break-words text-black">
                                 { displayCaption }
                             </span>
                         ) }
+
+                        {/* Waktu + menu */ }
+                        { ( onEditClick || onSoftDeleteClick || onDeleteClick ) && (
+                            <div className="flex items-center gap-1 self-end mt-1">
+                                { TimeAndMenu }
+                            </div>
+                        ) }
                     </div>
-
-                    {/* Waktu + tombol MoreVertical di kanan bawah */ }
-                    { ( onEditClick || onSoftDeleteClick || onDeleteClick ) && (
-                        <div className="flex items-center gap-1 self-end">
-                            <span className="text-xs text-gray-700 whitespace-nowrap">
-                                { time }
-                            </span>
-                            <MessageMenu
-                                isSoftDeleted={ isSoftDeleted }
-                                onEditClick={ onEditClick }
-                                onSoftDeleteClick={ onSoftDeleteClick }
-                                onDeleteClick={ onDeleteClick }
-                            />
+                ) : (
+                    // ✅ Tampilan saat soft deleted sejajar dengan time & menu
+                    <div className="flex items-center gap-1 min-h-[1.9rem]">
+                        <div className="mr-[2.5px]">
+                            <SoftDeletedMessage text={ displayCaption } />
                         </div>
-                    ) }
-                </div>
-
+                        { ( onEditClick || onSoftDeleteClick || onDeleteClick ) && TimeAndMenu }
+                    </div>
+                ) }
             </div>
         </ChatBubble>
     );

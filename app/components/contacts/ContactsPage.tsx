@@ -1,11 +1,18 @@
+"use client";
+
 import Header from "./ContactHeader";
 import SearchBar from "./SearchBar";
 import TabMenu from "./TabMenu";
 import UserList from "./UserList";
 import ContactList from "./ContactList";
-import { useContactsPage } from "../../hooks/contacts/useContactsPage";
 import { useScrollPositions } from "../../hooks/contacts/useScrollPosition";
 import { useSearchFilter } from "../../hooks/contacts/useSearchFilter";
+import { useDispatch } from "react-redux";
+import { RootState } from "../../states";
+import { addUser } from "../../states/usersSlice";
+import { setContacts } from "../../states/contactsSlice";
+import { useContactsPage } from "../../hooks/contacts/useContactsPage";
+import { useEffect } from "react";
 
 interface ContactsPageProps
 {
@@ -15,6 +22,9 @@ interface ContactsPageProps
 
 export default function ContactsPage( { isMobile, onBack }: ContactsPageProps )
 {
+    const dispatch = useDispatch();
+
+    // 🔹 ambil semua state & handler dari hook
     const {
         activeMenu,
         setActiveMenu,
@@ -32,6 +42,21 @@ export default function ContactsPage( { isMobile, onBack }: ContactsPageProps )
         handleDeleteContact,
         handleUpdateContact,
     } = useContactsPage();
+
+    // 🔹 sinkronkan contacts ke Redux
+    useEffect( () =>
+    {
+        dispatch( setContacts( contacts ) );
+    }, [contacts, dispatch] );
+
+    // 🔹 kalau butuh sync users → tambahkan ke store
+    useEffect( () =>
+    {
+        users.forEach( ( u ) =>
+        {
+            dispatch( addUser( { name: u.name, email: u.email } ) );
+        } );
+    }, [users, dispatch] );
 
     const { scrollRef, handleScroll } = useScrollPositions( activeMenu );
 

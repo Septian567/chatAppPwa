@@ -112,6 +112,18 @@ TODO 26 Agustus 2025
 
 
 TODO 30 Agustus 2025
-1. sinkronkan menu kontak dengan sidebar horizontal menu
+1. sinkronkan menu kontak dengan sidebar horizontal menu -- SUCCESS
+2. perbaiki fitur scroll di menu kontak -- SUCCESS
+3. pada sidebar, kontak hanya tampilkan foto profil dan alias -- SUCCESS
+4. saat di reload, langsung tampilkan user dan kontak di sidebar -- SUCCESS
+5. pada sidebar, scrol berlaku setelah menu horizontal "user", "contacts", dan "menu" -- SUCCESS
+6. aktifkan searchbox -- SUCCESS
+7. pastikan searchbox bisa cari alias dari user
+8. di menu chat, patikan saat di klik morevertikal, tidak bisa di scroll
+
+
+
+
+
 2. lakukan simulasi aplikasi chat tanpa api sampai proses pengiriman pesan
 3. tambahkan fitur ganti bahasa (inggris dan indonesia) dan ganti tema

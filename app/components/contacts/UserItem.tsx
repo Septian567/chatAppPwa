@@ -5,33 +5,49 @@ interface UserItemProps
 {
     name: string;
     email: string;
+    alias?: string;
     onAliasSave?: ( name: string, email: string, alias: string ) => void;
+    readOnly?: boolean;
+    compact?: boolean;
+    hideEmail?: boolean;
+    hideName?: boolean;
+    showAliasAsName?: boolean;
 }
 
-export default function UserItem( { name, email, onAliasSave }: UserItemProps )
+export default function UserItem( {
+    name,
+    email,
+    alias: propAlias = "",
+    onAliasSave,
+    readOnly = false,
+    compact = false,
+    hideEmail = false,
+    hideName = false,
+    showAliasAsName = false,
+}: UserItemProps )
 {
     const [addingAlias, setAddingAlias] = useState( false );
-    const [alias, setAlias] = useState( "" );
-
+    const [alias, setAlias] = useState( propAlias );
     const storageKey = `alias_${ email }`;
     const inputRef = useRef<HTMLInputElement>( null );
 
     useEffect( () =>
     {
+        setAlias( propAlias );
+    }, [propAlias] );
+
+    useEffect( () =>
+    {
         const savedAlias = localStorage.getItem( storageKey );
-        if ( savedAlias )
-        {
-            setAlias( savedAlias );
-        }
+        if ( savedAlias ) setAlias( savedAlias );
     }, [storageKey] );
 
-    // Fokus otomatis saat masuk mode tambah/edit
     useEffect( () =>
     {
         if ( addingAlias && inputRef.current )
         {
             inputRef.current.focus();
-            inputRef.current.select(); // auto highlight text lama
+            inputRef.current.select();
         }
     }, [addingAlias] );
 
@@ -41,21 +57,14 @@ export default function UserItem( { name, email, onAliasSave }: UserItemProps )
         {
             localStorage.setItem( storageKey, alias );
             setAddingAlias( false );
-
-            if ( onAliasSave )
-            {
-                onAliasSave( name, email, alias );
-            }
+            if ( onAliasSave ) onAliasSave( name, email, alias );
         }
     };
 
     const handleCancel = () =>
     {
         setAddingAlias( false );
-        if ( !localStorage.getItem( storageKey ) )
-        {
-            setAlias( "" );
-        }
+        if ( !localStorage.getItem( storageKey ) ) setAlias( "" );
     };
 
     const handleKeyDown = ( e: React.KeyboardEvent<HTMLInputElement> ) =>
@@ -73,19 +82,35 @@ export default function UserItem( { name, email, onAliasSave }: UserItemProps )
     };
 
     return (
-        <div className="flex items-start justify-between p-4 border-b">
+        <div
+            className={ `flex items-center justify-between border-b ${ compact ? "py-2 pl-0 pr-2" : "p-4"
+                }` }
+        >
             {/* Avatar + Info */ }
-            <div className="flex gap-3">
-                <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+            <div className={ `flex items-center ${ compact ? "gap-2" : "gap-3" }` }>
+                <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center shrink-0">
                     <User className="w-6 h-6 text-gray-500" />
                 </div>
-                <div>
-                    <p className="font-semibold">{ name }</p>
-                    <p className="text-sm text-gray-600">{ email }</p>
 
-                    {/* Alias Section */ }
-                    { addingAlias ? (
-                        <div className="mt-2 flex items-center gap-2">
+                <div className={ `flex flex-col ${ compact ? "leading-tight" : "" }` }>
+                    {/* Nama utama / alias sebagai nama */ }
+                    { showAliasAsName && alias ? (
+                        <span className="font-semibold text-sm">{ alias }</span>
+                    ) : (
+                        !hideName && <span className="font-semibold text-sm">{ name }</span>
+                    ) }
+
+                    {/* Email */ }
+                    { !hideEmail && !showAliasAsName && (
+                        <span className="text-sm text-gray-600">{ email }</span>
+                    ) }
+
+                    {/* Input alias */ }
+                    { addingAlias && !showAliasAsName && (
+                        <div
+                            className={ `flex items-center ${ compact ? "mt-1 gap-1" : "mt-2 gap-2"
+                                }` }
+                        >
                             <input
                                 ref={ inputRef }
                                 type="text"
@@ -94,7 +119,7 @@ export default function UserItem( { name, email, onAliasSave }: UserItemProps )
                                 onKeyDown={ handleKeyDown }
                                 placeholder="alias..."
                                 className="border rounded px-2 py-1 text-sm"
-                                maxLength={15}
+                                maxLength={ 15 }
                             />
                             <button
                                 onClick={ handleSave }
@@ -109,18 +134,17 @@ export default function UserItem( { name, email, onAliasSave }: UserItemProps )
                                 <X className="w-4 h-4 text-black" />
                             </button>
                         </div>
-                    ) : (
-                        alias && (
-                            <p className="text-sm text-gray-500">
-                                alias: { alias }
-                            </p>
-                        )
+                    ) }
+
+                    {/* Alias biasa */ }
+                    { !addingAlias && alias && !showAliasAsName && (
+                        <span className="text-sm text-gray-500">alias: { alias }</span>
                     ) }
                 </div>
             </div>
 
             {/* Action button */ }
-            { !addingAlias && (
+            { !addingAlias && !readOnly && !showAliasAsName && (
                 <button
                     onClick={ () => setAddingAlias( true ) }
                     className="p-2 rounded hover:bg-gray-100"

@@ -1,36 +1,29 @@
-import { useRef, useState, useEffect } from "react";
+// useScrollPosition.ts
+import { useRef, useEffect, useCallback } from "react";
+import { throttle } from "lodash";
 
 export function useScrollPositions<T extends string>( activeMenu: T )
 {
     const scrollRef = useRef<HTMLDivElement>( null );
-    const tipTimeoutRef = useRef<NodeJS.Timeout>();
-    const [showScrollTip, setShowScrollTip] = useState( false );
-    const [scrollPositions, setScrollPositions] = useState<Record<T, number>>(
-        {} as Record<T, number>
+    const scrollPositionsRef = useRef<Record<T, number>>( {} as Record<T, number> );
+
+    // simpan posisi scroll pakai ref supaya tidak trigger re-render
+    const handleScroll = useCallback(
+        throttle( () =>
+        {
+            if ( !scrollRef.current ) return;
+            scrollPositionsRef.current[activeMenu] = scrollRef.current.scrollTop;
+        }, 100 ), // hanya update setiap 100ms
+        [activeMenu]
     );
-
-    const handleScroll = () =>
-    {
-        if ( !scrollRef.current ) return;
-
-        setScrollPositions( ( prev ) => ( {
-            ...prev,
-            [activeMenu]: scrollRef.current!.scrollTop,
-        } ) );
-
-        if ( !showScrollTip ) setShowScrollTip( true );
-
-        if ( tipTimeoutRef.current ) clearTimeout( tipTimeoutRef.current );
-        tipTimeoutRef.current = setTimeout( () => setShowScrollTip( false ), 1000 );
-    };
 
     useEffect( () =>
     {
         if ( scrollRef.current )
         {
-            scrollRef.current.scrollTop = scrollPositions[activeMenu] || 0;
+            scrollRef.current.scrollTop = scrollPositionsRef.current[activeMenu] || 0;
         }
-    }, [activeMenu, scrollPositions] );
+    }, [activeMenu] );
 
-    return { scrollRef, handleScroll, showScrollTip };
+    return { scrollRef, handleScroll };
 }

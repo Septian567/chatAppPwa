@@ -11,6 +11,7 @@ interface ChatTextMessageProps
     onEditClick?: () => void;
     onDeleteClick?: () => void;
     onSoftDeleteClick?: () => void;
+    onToggleMenu?: ( isOpen: boolean ) => void; // ➕ untuk ChatBody tahu
     align?: "left" | "right"; // ➕ posisi bubble
 }
 
@@ -20,6 +21,7 @@ export default function ChatTextMessage( {
     onEditClick,
     onDeleteClick,
     onSoftDeleteClick,
+    onToggleMenu,
     align = "right", // default kanan (hijau)
 }: ChatTextMessageProps )
 {
@@ -40,17 +42,14 @@ export default function ChatTextMessage( {
         {
             setIsMultiLine( false );
         }
-    }, [text, isSoftDeleted] ); // selalu 2 item, konsisten
+    }, [text, isSoftDeleted] );
 
-
-    // Tentukan layout utama
     const layoutClass = isSoftDeleted
         ? "flex-row items-end gap-2"
         : isMultiLine
             ? "flex-col"
             : "flex-row items-end gap-2";
 
-    // Posisi waktu
     const timePositionClass = isSoftDeleted
         ? ""
         : isMultiLine
@@ -89,6 +88,7 @@ export default function ChatTextMessage( {
                             onSoftDeleteClick={ onSoftDeleteClick }
                             onDeleteClick={ onDeleteClick }
                             align={ align }   // ✅ kirim align ke MessageMenu
+                            onToggle={ onToggleMenu } // 🔔 kirim ke MessageMenu
                         />
                     ) }
                 </div>

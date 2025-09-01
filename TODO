@@ -118,8 +118,12 @@ TODO 30 Agustus 2025
 4. saat di reload, langsung tampilkan user dan kontak di sidebar -- SUCCESS
 5. pada sidebar, scrol berlaku setelah menu horizontal "user", "contacts", dan "menu" -- SUCCESS
 6. aktifkan searchbox -- SUCCESS
-7. pastikan searchbox bisa cari alias dari user
-8. di menu chat, patikan saat di klik morevertikal, tidak bisa di scroll
+
+1 September 2025
+1. pastikan searchbox bisa cari alias dari user (07:09 - 07:25)  -- SUCCESS
+2. di menu chat, patikan saat di klik morevertikal, tidak bisa di scroll (07:26 - 08:13) -- SUCCESS
+3. saat menu kontak di klik, langsung pindah ke menu chat menggantikan bento (default)  (13.27 -)
+4. saat menu kontak di sidebar di klik, langsung pindah ke menu chat menggantikan bento (default)
 
 
 

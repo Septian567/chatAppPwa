@@ -69,15 +69,22 @@ export default function Sidebar( { onMainMenuClick, width }: SidebarProps )
   };
 
   // Filter hasil pencarian
+  // Filter hasil pencarian
   const filteredUsers = useMemo( () =>
   {
     if ( !searchQuery.trim() ) return users;
-    return users.filter(
-      ( u ) =>
+
+    return users.filter( ( u ) =>
+    {
+      const contact = contacts.find( ( c ) => c.email === u.email );
+      const aliasToCheck = contact?.alias || u.alias || "";
+      return (
         u.name.toLowerCase().includes( searchQuery.toLowerCase() ) ||
-        u.email.toLowerCase().includes( searchQuery.toLowerCase() )
-    );
-  }, [users, searchQuery] );
+        u.email.toLowerCase().includes( searchQuery.toLowerCase() ) ||
+        aliasToCheck.toLowerCase().includes( searchQuery.toLowerCase() )
+      );
+    } );
+  }, [users, contacts, searchQuery] );
 
   const filteredContacts = useMemo( () =>
   {
@@ -86,6 +93,7 @@ export default function Sidebar( { onMainMenuClick, width }: SidebarProps )
       ( c.alias || "" ).toLowerCase().includes( searchQuery.toLowerCase() )
     );
   }, [contacts, searchQuery] );
+
 
   const isDesktop = typeof width === "number";
 

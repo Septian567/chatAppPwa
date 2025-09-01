@@ -10,6 +10,7 @@ interface MessageMenuProps
     onEditClick?: () => void;
     onSoftDeleteClick?: () => void;
     onDeleteClick?: () => void;
+    onToggle?: ( isOpen: boolean ) => void;
 }
 
 export function MessageMenu( {
@@ -18,6 +19,7 @@ export function MessageMenu( {
     onEditClick,
     onSoftDeleteClick,
     onDeleteClick,
+    onToggle,
 }: MessageMenuProps )
 {
     const { isOpen, setIsOpen, menuRef } = useMenu();
@@ -28,7 +30,20 @@ export function MessageMenu( {
     {
         if ( callback ) callback();
         setIsOpen( false );
+        onToggle?.( false ); // 🔔 saat menu ditutup karena pilih item
     };
+
+    const handleToggleButton = () =>
+    {
+        setIsOpen( prev => !prev ); // hanya update lokal
+    };
+
+    // 🔔 Beritahu parent setiap kali isOpen berubah
+    useEffect( () =>
+    {
+        onToggle?.( isOpen );
+    }, [isOpen, onToggle] );
+
 
     useEffect( () =>
     {
@@ -70,9 +85,6 @@ export function MessageMenu( {
             window.removeEventListener( "scroll", updatePosition );
         };
     }, [isOpen, align] );
-
-
-
 
     const menu = (
         <div
@@ -126,7 +138,7 @@ export function MessageMenu( {
                 type="button"
                 ref={ buttonRef }
                 className="p-1 text-gray-500 hover:text-gray-700"
-                onClick={ () => setIsOpen( ( prev ) => !prev ) }
+                onClick={ handleToggleButton }
             >
                 <MoreVertical size={ 16 } />
             </button>

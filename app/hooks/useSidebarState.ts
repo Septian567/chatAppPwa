@@ -9,7 +9,7 @@ import
         HorizontalSubMenu,
         HORIZONTAL_MENU_LABELS,
     } from "../states/sidebarSlice";
-import { RootState } from "../store";
+import { RootState } from "../states";
 
 export function useSidebarState()
 {

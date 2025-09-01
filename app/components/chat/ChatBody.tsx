@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import ChatTextMessage from "./ChatTextMessage";
 import ChatAudioMessage from "./ChatAudioMessage";
 import ChatFileMessage from "./ChatFileMessage";
@@ -41,7 +41,30 @@ export default function ChatBody( {
 
     const bottomRef = useRef<HTMLDivElement | null>( null );
     const prevMessageCount = useRef( messages.length );
+    const [isMenuOpen, setIsMenuOpen] = useState( false );
+    const chatBodyRef = useRef<HTMLDivElement | null>( null );
+    const scrollPos = useRef( 0 );
 
+    // 🔒 Kunci scroll hanya di ChatBody
+    useEffect( () =>
+    {
+        const el = chatBodyRef.current;
+        if ( !el ) return;
+
+        if ( isMenuOpen )
+        {
+            scrollPos.current = el.scrollTop;
+            el.style.overflowY = "scroll"; // scrollbar tetap ada
+            el.style.pointerEvents = "none"; // cegah interaksi
+        } else
+        {
+            el.style.overflowY = "auto";
+            el.style.pointerEvents = "auto";
+            el.scrollTop = scrollPos.current; // balikin posisi
+        }
+    }, [isMenuOpen] );
+
+    // ⬇️ auto scroll kalau ada pesan baru
     useEffect( () =>
     {
         if ( messages.length > prevMessageCount.current )
@@ -60,18 +83,16 @@ export default function ChatBody( {
     }, [messages] );
 
     return (
-        <div className="flex-1 py-6 overflow-auto w-full responsive-padding">
+        <div
+            ref={ chatBodyRef }
+            className="flex-1 py-6 w-full responsive-padding overflow-y-auto"
+        >
             <ChatStaticMessages />
 
             { messages.map( ( msg, index ) =>
             {
-                // ✅ Tentukan align secara eksplisit
                 const align: "left" | "right" =
-                    msg.side === "kiri"
-                        ? "left"
-                        : msg.side === "kanan"
-                            ? "right"
-                            : "right"; // fallback
+                    msg.side === "kiri" ? "left" : msg.side === "kanan" ? "right" : "right";
 
                 // TEXT MESSAGE
                 if ( msg.text )
@@ -95,6 +116,7 @@ export default function ChatBody( {
                                     : undefined
                             }
                             onDeleteClick={ () => onDeleteTextMessage?.( index ) }
+                            onToggleMenu={ setIsMenuOpen } // 🔔 kasih tahu kalau menu toggle
                         />
                     );
                 }
@@ -112,9 +134,7 @@ export default function ChatBody( {
                             textStatus={ msg.text }
                             align={ align }
                             onSoftDeleteClick={
-                                !msg.isSoftDeleted
-                                    ? () => onSoftDeleteAudioMessage?.( index )
-                                    : undefined
+                                !msg.isSoftDeleted ? () => onSoftDeleteAudioMessage?.( index ) : undefined
                             }
                             onDeleteClick={ () => onDeleteAudioMessage?.( index ) }
                         />
@@ -126,16 +146,6 @@ export default function ChatBody( {
                 {
                     const isSoftDeleted = isSoftDeletedMessage( msg.caption );
 
-                    // ✅ TAMBAHKAN CONSOLE LOG UNTUK DEBUGGING
-                    console.log( "File Message:", {
-                        index,
-                        side: msg.side,
-                        align: align,
-                        fileUrl: msg.fileUrl,
-                        caption: msg.caption
-                    } );
-
-
                     return (
                         <ChatFileMessage
                             key={ index }
@@ -143,14 +153,12 @@ export default function ChatBody( {
                             fileName={ msg.fileName }
                             caption={ msg.caption || "" }
                             time={ msg.time }
-                            align={ align } // ✅ sekarang aman
+                            align={ align }
                             onEditClick={
                                 !isSoftDeleted ? () => onEditFileMessage?.( index ) : undefined
                             }
                             onSoftDeleteClick={
-                                !isSoftDeleted
-                                    ? () => onSoftDeleteFileMessage?.( index )
-                                    : undefined
+                                !isSoftDeleted ? () => onSoftDeleteFileMessage?.( index ) : undefined
                             }
                             onDeleteClick={ () => onDeleteFileMessage?.( index ) }
                         />

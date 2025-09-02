@@ -10,11 +10,13 @@ export interface Contact
 interface ContactsState
 {
     list: Contact[];
+    activeContact: Contact | null; // Tambahan: menyimpan kontak yang sedang dipilih
 }
 
 const CONTACTS_KEY = "contacts_data";
+const ACTIVE_CONTACT_KEY = "active_contact"; // Tambahan
 
-// Langsung ambil data dari localStorage saat inisialisasi Redux
+// Ambil data awal dari localStorage
 const initialContacts: Contact[] = ( () =>
 {
     try
@@ -27,8 +29,22 @@ const initialContacts: Contact[] = ( () =>
     }
 } )();
 
+// Ambil kontak aktif terakhir
+const initialActiveContact: Contact | null = ( () =>
+{
+    try
+    {
+        const saved = localStorage.getItem( ACTIVE_CONTACT_KEY );
+        return saved ? JSON.parse( saved ) : null;
+    } catch
+    {
+        return null;
+    }
+} )();
+
 const initialState: ContactsState = {
     list: initialContacts,
+    activeContact: initialActiveContact, // Tambahan
 };
 
 const contactsSlice = createSlice( {
@@ -73,9 +89,27 @@ const contactsSlice = createSlice( {
             state.list = state.list.filter( c => c.email !== action.payload );
             localStorage.setItem( CONTACTS_KEY, JSON.stringify( state.list ) );
         },
+        // 🔹 Tambahan: set kontak aktif
+        setActiveContact: ( state, action: PayloadAction<Contact | null> ) =>
+        {
+            state.activeContact = action.payload;
+            if ( action.payload )
+            {
+                localStorage.setItem( ACTIVE_CONTACT_KEY, JSON.stringify( action.payload ) );
+            } else
+            {
+                localStorage.removeItem( ACTIVE_CONTACT_KEY );
+            }
+        },
     },
 } );
 
-export const { setContacts, addContact, updateContactAlias, deleteContact } =
-    contactsSlice.actions;
+export const {
+    setContacts,
+    addContact,
+    updateContactAlias,
+    deleteContact,
+    setActiveContact, // 🔹 ekspor action baru
+} = contactsSlice.actions;
+
 export default contactsSlice.reducer;

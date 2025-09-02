@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Sidebar from "./components/sidebar/Sidebar";
 import { useSidebarLayout } from "./hooks/useSidebarLayout";
+import { useSidebarNavigation } from "./hooks/useSidebarNavigation";
 import ChatPage from "./components/chat/ChatPage";
 import ContactsPage from "./components/contacts/ContactsPage";
 import ProfilePage from "./components/profile/ProfilePage";
@@ -12,10 +14,14 @@ export default function Home()
     mainContent,
     isMobile,
     showSidebarOnMobile,
-    handleMainMenuClick,
     computeSidebarWidth,
     setShowSidebarOnMobile,
   } = useSidebarLayout();
+
+  const { handleMainMenuClick } = useSidebarNavigation( isMobile );
+
+  // Tambahan: simpan alias/nama kontak yang dipilih
+  const [selectedContact, setSelectedContact] = useState<string | null>( null );
 
   const renderMainContent = () =>
   {
@@ -27,12 +33,24 @@ export default function Home()
     switch ( mainContent )
     {
       case "chat":
-        return <ChatPage
-          { ...commonProps }
-          sidebarWidth={ isMobile ? 0 : computeSidebarWidth() }
-        />
+        return (
+          <ChatPage
+            { ...commonProps }
+            sidebarWidth={ isMobile ? 0 : computeSidebarWidth() }
+            contactName={ selectedContact || "Bento" } // default Bento
+          />
+        );
       case "contacts":
-        return <ContactsPage { ...commonProps } />;
+        return (
+          <ContactsPage
+            { ...commonProps }
+            onContactClick={ ( aliasOrName: string ) =>
+            {
+              setSelectedContact( aliasOrName ); // simpan alias kontak
+              handleMainMenuClick( "chat" ); // langsung pindah ke chat
+            } }
+          />
+        );
       case "profile":
         return <ProfilePage { ...commonProps } />;
       default:

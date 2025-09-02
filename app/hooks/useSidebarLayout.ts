@@ -4,14 +4,14 @@ import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import
     {
-        setMainContent,
         setSidebarWidth,
         setIsMobile,
         setShowSidebarOnMobile,
         loadLayoutFromStorage,
     } from "../states/layoutSlice";
-import { RootState } from "../store";
+import { RootState } from "../states";
 import { BREAKPOINTS, MAX_SIDEBAR_WIDTH, MIN_SIDEBAR_WIDTH } from "../lib/constants";
+import { useSidebarNavigation } from "./useSidebarNavigation";
 
 export function useSidebarLayout()
 {
@@ -24,15 +24,15 @@ export function useSidebarLayout()
         showSidebarOnMobile,
     } = useSelector( ( state: RootState ) => state.layout );
 
+    const { handleMainMenuClick } = useSidebarNavigation( isMobile );
+
     const [hasMounted, setHasMounted] = useState( false );
 
-    // Mark component as mounted to avoid hydration issues
     useEffect( () =>
     {
         setHasMounted( true );
     }, [] );
 
-    // Load initial values from localStorage
     useEffect( () =>
     {
         if ( hasMounted )
@@ -41,7 +41,6 @@ export function useSidebarLayout()
         }
     }, [dispatch, hasMounted] );
 
-    // Set isMobile on resize
     useEffect( () =>
     {
         if ( !hasMounted ) return;
@@ -56,7 +55,6 @@ export function useSidebarLayout()
         return () => window.removeEventListener( "resize", updateIsMobile );
     }, [dispatch, hasMounted] );
 
-    // Sidebar resizing
     useEffect( () =>
     {
         if ( !hasMounted ) return;
@@ -103,17 +101,6 @@ export function useSidebarLayout()
         };
     }, [dispatch, hasMounted] );
 
-    const handleMainMenuClick = useCallback( ( menu: string ) =>
-    {
-        const validMenus = ["chat", "contacts", "profile"];
-        dispatch( setMainContent( validMenus.includes( menu ) ? menu : "" ) );
-
-        if ( isMobile )
-        {
-            dispatch( setShowSidebarOnMobile( false ) );
-        }
-    }, [dispatch, isMobile] );
-
     const computeSidebarWidth = useCallback( () =>
     {
         if ( !hasMounted ) return sidebarWidth;
@@ -128,7 +115,6 @@ export function useSidebarLayout()
 
     if ( !hasMounted )
     {
-        // Optional: safe fallback to prevent mismatches during SSR
         return {
             mainContent: "",
             sidebarWidth: 260,

@@ -12,12 +12,14 @@ interface ContactListProps
     contacts: Contact[];
     onDelete: ( email: string ) => void;
     onUpdate: ( email: string, alias: string ) => void;
+    onSelect?: ( email: string ) => void; // Tambahan
 }
 
 export default function ContactList( {
     contacts,
     onDelete,
     onUpdate,
+    onSelect, // Tambahan
 }: ContactListProps )
 {
     return (
@@ -33,6 +35,7 @@ export default function ContactList( {
                     alias={ c.alias }
                     onDelete={ onDelete }
                     onUpdate={ onUpdate }
+                    onSelect={ onSelect } // Tambahan
                 />
             ) ) }
         </div>

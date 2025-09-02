@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "../../states";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "../messageInput/MessageInput";
 import ChatBody from "./ChatBody";
 import
-{
-    useMessageState,
-    useMessageEditing,
-    useMessageDeletion,
-} from "../../hooks/chats";
+    {
+        useMessageState,
+        useMessageEditing,
+        useMessageDeletion,
+    } from "../../hooks/chats";
 import { ChatMessage } from "../../hooks/useChatMessageActions";
 
 interface ChatPageProps
@@ -19,10 +21,22 @@ interface ChatPageProps
     sidebarWidth?: number | string;
 }
 
-export default function ChatPage( { isMobile, onBack }: ChatPageProps )
+export default function ChatPage( {
+    isMobile,
+    onBack,
+    sidebarWidth,
+}: ChatPageProps )
 {
-    const { messages, setMessages } = useMessageState();
+    // 🔹 Ambil kontak aktif dari Redux
+    const activeContact = useSelector(
+        ( state: RootState ) => state.contacts.activeContact
+    );
 
+    // Gunakan alias jika ada, jika tidak gunakan name, jika keduanya tidak ada fallback ke "Bento"
+    const contactName =
+        activeContact?.alias || activeContact?.name || "Bento";
+
+    const { messages, setMessages } = useMessageState();
     const {
         editingIndex,
         editType,
@@ -48,7 +62,6 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
         ( t ) => handleEditTypeChange( t )
     );
 
-    // 🔹 state untuk posisi pesan
     const [chatSide, setChatSide] = useState<"kiri" | "kanan">( "kanan" );
 
     function handleEditIndexChange( i: number | null )
@@ -60,12 +73,14 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
         ( editType as any ) = t;
     }
 
-    // 🔹 Fungsi lokal untuk mengirim pesan (tanpa useMessageSending hook)
     const handleSendMessage = ( message: string ) =>
     {
         const newMessage: ChatMessage = {
             text: message,
-            time: new Date().toLocaleTimeString( [], { hour: "2-digit", minute: "2-digit" } ),
+            time: new Date().toLocaleTimeString( [], {
+                hour: "2-digit",
+                minute: "2-digit",
+            } ),
             side: chatSide,
         };
         setMessages( ( prev ) => [...prev, newMessage] );
@@ -76,7 +91,10 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
         const audioUrl = URL.createObjectURL( audioBlob );
         const newMessage: ChatMessage = {
             audioUrl,
-            time: new Date().toLocaleTimeString( [], { hour: "2-digit", minute: "2-digit" } ),
+            time: new Date().toLocaleTimeString( [], {
+                hour: "2-digit",
+                minute: "2-digit",
+            } ),
             side: chatSide,
         };
         setMessages( ( prev ) => [...prev, newMessage] );
@@ -89,7 +107,10 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
             fileUrl,
             fileName: file.name,
             caption: caption?.trim() || undefined,
-            time: new Date().toLocaleTimeString( [], { hour: "2-digit", minute: "2-digit" } ),
+            time: new Date().toLocaleTimeString( [], {
+                hour: "2-digit",
+                minute: "2-digit",
+            } ),
             side: chatSide,
         };
         setMessages( ( prev ) => [...prev, newMessage] );
@@ -100,6 +121,7 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
             <ChatHeader
                 isMobile={ isMobile }
                 onBack={ onBack }
+                contactName={ contactName } // 🔹 Alias atau nama kontak sekarang dinamis
                 onChatKiri={ () => setChatSide( "kiri" ) }
                 onChatKanan={ () => setChatSide( "kanan" ) }
             />

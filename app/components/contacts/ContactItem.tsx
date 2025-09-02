@@ -7,9 +7,10 @@ interface ContactItemProps
     email: string;
     onDelete?: ( email: string ) => void;
     onUpdate?: ( email: string, newAlias: string ) => void;
+    onSelect?: ( email: string ) => void; // Tambahan
 }
 
-export default function ContactItem( { name, email, onDelete, onUpdate }: ContactItemProps )
+export default function ContactItem( { name, email, onDelete, onUpdate, onSelect }: ContactItemProps )
 {
     const [alias, setAlias] = useState( "" );
     const [editing, setEditing] = useState( false );
@@ -37,17 +38,14 @@ export default function ContactItem( { name, email, onDelete, onUpdate }: Contac
 
     const handleSave = () =>
     {
-        const trimmed = alias.trim().slice( 0, 15 ); // pastikan tetap maksimal 12
+        const trimmed = alias.trim().slice( 0, 12 ); // Diperbaiki jadi 12
         if ( trimmed )
         {
             localStorage.setItem( storageKey, trimmed );
             setAlias( trimmed );
             setEditing( false );
 
-            if ( onUpdate )
-            {
-                onUpdate( email, trimmed );
-            }
+            onUpdate?.( email, trimmed );
         }
     };
 
@@ -61,16 +59,14 @@ export default function ContactItem( { name, email, onDelete, onUpdate }: Contac
         }
     };
 
-    const handleDelete = () =>
+    const handleDelete = ( e: React.MouseEvent ) =>
     {
+        e.stopPropagation(); // supaya tidak memicu onSelect
         localStorage.removeItem( storageKey );
         setAlias( "" );
         setEditing( false );
 
-        if ( onDelete )
-        {
-            onDelete( email );
-        }
+        onDelete?.( email );
     };
 
     const handleKeyDown = ( e: React.KeyboardEvent<HTMLInputElement> ) =>
@@ -88,8 +84,10 @@ export default function ContactItem( { name, email, onDelete, onUpdate }: Contac
     };
 
     return (
-        <div className="flex items-start justify-between p-4 border-b">
-            {/* Left: Avatar + Info */ }
+        <div
+            className="flex items-start justify-between p-4 border-b cursor-pointer hover:bg-gray-50"
+            onClick={ () => !editing && onSelect?.( email ) } // navigasi saat kontak di klik
+        >
             <div className="flex gap-3">
                 <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
                     <User className="w-6 h-6 text-gray-500" />
@@ -104,7 +102,7 @@ export default function ContactItem( { name, email, onDelete, onUpdate }: Contac
                                 value={ alias }
                                 onChange={ ( e ) =>
                                 {
-                                    if ( e.target.value.length <= 15 )
+                                    if ( e.target.value.length <= 12 )
                                     {
                                         setAlias( e.target.value );
                                     }
@@ -114,13 +112,13 @@ export default function ContactItem( { name, email, onDelete, onUpdate }: Contac
                                 className="border rounded px-2 py-1 text-sm"
                             />
                             <button
-                                onClick={ handleSave }
+                                onClick={ ( e ) => { e.stopPropagation(); handleSave(); } }
                                 className="p-1 rounded hover:bg-gray-200"
                             >
                                 <Check className="w-4 h-4 text-black" />
                             </button>
                             <button
-                                onClick={ handleCancel }
+                                onClick={ ( e ) => { e.stopPropagation(); handleCancel(); } }
                                 className="p-1 rounded hover:bg-gray-200"
                             >
                                 <X className="w-4 h-4 text-black" />
@@ -135,11 +133,10 @@ export default function ContactItem( { name, email, onDelete, onUpdate }: Contac
                 </div>
             </div>
 
-            {/* Right: Action buttons */ }
             { !editing && (
                 <div className="flex gap-2">
                     <button
-                        onClick={ () => setEditing( true ) }
+                        onClick={ ( e ) => { e.stopPropagation(); setEditing( true ); } }
                         className="p-2 rounded hover:bg-gray-100"
                     >
                         <Pencil className="w-5 h-5 text-gray-600" />

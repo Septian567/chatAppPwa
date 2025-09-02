@@ -4,6 +4,7 @@ import layoutReducer from "./layoutSlice";
 import usersReducer from "./usersSlice";
 import contactsReducer from "./contactsSlice";
 import sidebarSearchReducer from "./sidebarSearchSlice";
+import activeChatReducer from "./activeChatSlice";
 
 export const store = configureStore( {
     reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore( {
         users: usersReducer,
         contacts: contactsReducer,
         sidebarSearch: sidebarSearchReducer,
+        activeChat: activeChatReducer,
     },
 } );
 

@@ -10,8 +10,9 @@ import { useSearchFilter } from "../../hooks/contacts/useSearchFilter";
 import { useDispatch } from "react-redux";
 import { RootState } from "../../states";
 import { addUser } from "../../states/usersSlice";
-import { setContacts } from "../../states/contactsSlice";
+import { setContacts, setActiveContact } from "../../states/contactsSlice";
 import { useContactsPage } from "../../hooks/contacts/useContactsPage";
+import { useSidebarNavigation } from "../../hooks/useSidebarNavigation";
 import { useEffect } from "react";
 
 interface ContactsPageProps
@@ -23,8 +24,9 @@ interface ContactsPageProps
 export default function ContactsPage( { isMobile, onBack }: ContactsPageProps )
 {
     const dispatch = useDispatch();
+    const { handleMainMenuClick } = useSidebarNavigation( isMobile );
 
-    // 🔹 ambil semua state & handler dari hook
+    // Ambil semua state & handler dari hook
     const {
         activeMenu,
         setActiveMenu,
@@ -43,13 +45,13 @@ export default function ContactsPage( { isMobile, onBack }: ContactsPageProps )
         handleUpdateContact,
     } = useContactsPage();
 
-    // 🔹 sinkronkan contacts ke Redux
+    // Sinkronkan contacts ke Redux
     useEffect( () =>
     {
         dispatch( setContacts( contacts ) );
     }, [contacts, dispatch] );
 
-    // 🔹 kalau butuh sync users → tambahkan ke store
+    // Sinkronkan users ke Redux
     useEffect( () =>
     {
         users.forEach( ( u ) =>
@@ -59,7 +61,6 @@ export default function ContactsPage( { isMobile, onBack }: ContactsPageProps )
     }, [users, dispatch] );
 
     const { scrollRef, handleScroll } = useScrollPositions( activeMenu );
-
     const { searchQuery, setSearchQuery, filteredUsers, filteredContacts } =
         useSearchFilter( users, contacts );
 
@@ -100,6 +101,26 @@ export default function ContactsPage( { isMobile, onBack }: ContactsPageProps )
                         contacts={ filteredContacts }
                         onDelete={ handleDeleteContact }
                         onUpdate={ handleUpdateContact }
+                        onSelect={ ( email ) =>
+                        {
+                            const selectedContact = contacts.find(
+                                ( c ) => c.email === email
+                            );
+                            if ( selectedContact )
+                            {
+                                // Pastikan alias diambil jika ada, jika tidak gunakan name
+                                dispatch(
+                                    setActiveContact( {
+                                        ...selectedContact,
+                                        alias:
+                                            selectedContact.alias ||
+                                            selectedContact.name ||
+                                            "Bento",
+                                    } )
+                                );
+                            }
+                            handleMainMenuClick( "chat" );
+                        } }
                     />
                 ) }
             </div>

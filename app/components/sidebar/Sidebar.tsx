@@ -11,7 +11,12 @@ import { useSidebarState } from "../../hooks/useSidebarState";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../states";
 import { updateAlias, setUsers } from "../../states/usersSlice";
-import { updateContactAlias, setContacts } from "../../states/contactsSlice";
+import
+  {
+    updateContactAlias,
+    setContacts,
+    setActiveContact, // Tambahan
+  } from "../../states/contactsSlice";
 import UserItem from "../contacts/UserItem";
 
 interface SidebarProps
@@ -43,7 +48,7 @@ export default function Sidebar( { onMainMenuClick, width }: SidebarProps )
 
   const [searchQuery, setSearchQuery] = useState( "" );
 
-  // Load dari localStorage saat pertama kali
+  // Load data awal dari localStorage
   useEffect( () =>
   {
     const savedUsers = JSON.parse( localStorage.getItem( "users" ) || "[]" );
@@ -68,8 +73,7 @@ export default function Sidebar( { onMainMenuClick, width }: SidebarProps )
     localStorage.setItem( "contacts", JSON.stringify( updatedContacts ) );
   };
 
-  // Filter hasil pencarian
-  // Filter hasil pencarian
+  // Filter hasil pencarian (user)
   const filteredUsers = useMemo( () =>
   {
     if ( !searchQuery.trim() ) return users;
@@ -86,14 +90,16 @@ export default function Sidebar( { onMainMenuClick, width }: SidebarProps )
     } );
   }, [users, contacts, searchQuery] );
 
+  // Filter hasil pencarian (contact)
   const filteredContacts = useMemo( () =>
   {
     if ( !searchQuery.trim() ) return contacts;
     return contacts.filter( ( c ) =>
-      ( c.alias || "" ).toLowerCase().includes( searchQuery.toLowerCase() )
+      ( c.alias || c.name || "" )
+        .toLowerCase()
+        .includes( searchQuery.toLowerCase() )
     );
   }, [contacts, searchQuery] );
-
 
   const isDesktop = typeof width === "number";
 
@@ -148,15 +154,24 @@ export default function Sidebar( { onMainMenuClick, width }: SidebarProps )
           <div className="space-y-0 -ml-2">
             { filteredContacts.length > 0 ? (
               filteredContacts.map( ( c ) => (
-                <UserItem
+                <div
                   key={ `contact-${ c.email }` }
-                  name={ c.alias || c.name }
-                  email={ c.email }
-                  alias={ c.alias }
-                  readOnly
-                  compact
-                  showAliasAsName
-                />
+                  onClick={ () =>
+                  {
+                    dispatch( setActiveContact( c ) ); // Simpan kontak yang dipilih
+                    onMainMenuClick( "chat" ); // Pindah ke halaman chat
+                  } }
+                  className="cursor-pointer hover:bg-gray-100 rounded-lg"
+                >
+                  <UserItem
+                    name={ c.alias || c.name }
+                    email={ c.email }
+                    alias={ c.alias }
+                    readOnly
+                    compact
+                    showAliasAsName
+                  />
+                </div>
               ) )
             ) : (
               <p className="text-gray-500 text-sm">No contacts found</p>

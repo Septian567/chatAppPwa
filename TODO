@@ -122,8 +122,13 @@ TODO 30 Agustus 2025
 1 September 2025
 1. pastikan searchbox bisa cari alias dari user (07:09 - 07:25)  -- SUCCESS
 2. di menu chat, patikan saat di klik morevertikal, tidak bisa di scroll (07:26 - 08:13) -- SUCCESS
-3. saat menu kontak di klik, langsung pindah ke menu chat menggantikan bento (default)  (13.27 -)
-4. saat menu kontak di sidebar di klik, langsung pindah ke menu chat menggantikan bento (default)
+3. saat menu kontak di klik, langsung pindah ke menu chat menggantikan bento (default)  (13.27 - 15.20)  -- uncomplete
+4. saat menu kontak di klik, langsung pindah ke menu chat menggantikan bento (default)  (20.02 - 21.24 )  -- SUCCESS
+
+2 September 2025
+1. saat menu kontak di sidebar di klik, langsung pindah ke menu chat menggantikan bento (default)  (05.15 - 08.34) -- SUCCESS
+2. perbaiki fitur edit alias agar bisa langsung update otomatis (08.35 -09.30 )  -- UNCOMPLETE
+3. perbaiki fitur edit alias agar bisa langsung update otomatis (08.35 -09.30 )  -- UNCOMPLETE
 
 
 

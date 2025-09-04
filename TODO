@@ -127,9 +127,19 @@ TODO 30 Agustus 2025
 
 2 September 2025
 1. saat menu kontak di sidebar di klik, langsung pindah ke menu chat menggantikan bento (default)  (05.15 - 08.34) -- SUCCESS
-2. perbaiki fitur edit alias agar bisa langsung update otomatis (08.35 -09.30 )  -- UNCOMPLETE
-3. perbaiki fitur edit alias agar bisa langsung update otomatis (08.35 -09.30 )  -- UNCOMPLETE
 
+3 September 2025
+1. perbaiki tampilan kontak mobile  (14.17 - 15.43 ) -- SUCCESS
+
+4 September 2025
+1. perbaiki tampilan user dan kontak sidebar -- SUCCESS
+2. perbaiki tampilan chat morevertical saat chat masih sedikit  -- SUCCESS
+3. buat agar chat kiri hanya bisa hapus untuk saya -- SUCCESS
+4. buat chat tampil sesuai dengan nama kontak, simpan di localstorage agar tampilan kontak bisa sesuai
+
+username harus dibatasi
+alias harus dibatasi
+email harus dibatasi
 
 
 

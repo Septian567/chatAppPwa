@@ -8,3 +8,6 @@ tulis kode yang manusiawi dan clean code
 
 jangan buru-buru dan tergesa-gesa, pelan-pelan saja yang penting rampung dan prosesnya dinikmati
 alurnya jelas dan dimengerti
+
+
+saat hendak membuat kode, buat analisis dulu, kira-kira kode mana yang diterapkan lebih dari satu tempat, agar penulisan kode bisa lebih mudah

@@ -30,49 +30,59 @@ export function MessageMenu( {
     {
         if ( callback ) callback();
         setIsOpen( false );
-        onToggle?.( false ); // 🔔 saat menu ditutup karena pilih item
+        onToggle?.( false );
+    };
+
+    const calculatePosition = () =>
+    {
+        if ( buttonRef.current )
+        {
+            const rect = buttonRef.current.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+
+            let left: number;
+            const menuWidth = menuRef.current?.offsetWidth ?? 176; // fallback default w-44
+
+            if ( align === "right" )
+            {
+                left = rect.right + window.scrollX - menuWidth;
+            } else
+            {
+                left = rect.left + window.scrollX;
+                if ( left + menuWidth > viewportWidth - 15 )
+                {
+                    left = viewportWidth - menuWidth - 15;
+                }
+            }
+
+            setPosition( {
+                top: rect.bottom + window.scrollY + 4,
+                left,
+            } );
+        }
     };
 
     const handleToggleButton = () =>
     {
-        setIsOpen( prev => !prev ); // hanya update lokal
+        if ( !isOpen )
+        {
+            calculatePosition(); // ✅ hitung posisi sebelum buka
+        }
+        setIsOpen( prev => !prev );
     };
 
-    // 🔔 Beritahu parent setiap kali isOpen berubah
     useEffect( () =>
     {
         onToggle?.( isOpen );
     }, [isOpen, onToggle] );
 
-
     useEffect( () =>
     {
+        if ( !isOpen ) return;
+
         function updatePosition()
         {
-            if ( isOpen && buttonRef.current && menuRef.current )
-            {
-                const rect = buttonRef.current.getBoundingClientRect();
-                const menuWidth = menuRef.current.offsetWidth;
-                const viewportWidth = window.innerWidth;
-
-                let left: number;
-                if ( align === "right" )
-                {
-                    left = rect.right + window.scrollX - menuWidth;
-                } else
-                {
-                    left = rect.left + window.scrollX;
-                    if ( left + menuWidth > viewportWidth - 15 )
-                    {
-                        left = viewportWidth - menuWidth - 15;
-                    }
-                }
-
-                setPosition( {
-                    top: rect.bottom + window.scrollY + 4,
-                    left,
-                } );
-            }
+            calculatePosition();
         }
 
         updatePosition();
@@ -92,7 +102,15 @@ export function MessageMenu( {
             className="absolute w-44 bg-white border rounded shadow text-sm z-[9999]"
             style={ { top: position.top, left: position.left, position: "absolute" } }
         >
-            { !isSoftDeleted ? (
+            { align === "left" ? (
+                <button
+                    type="button"
+                    className="flex items-center gap-2 w-full text-left px-3 py-1 hover:bg-gray-100"
+                    onClick={ () => handleClick( onDeleteClick ) }
+                >
+                    <Trash2 size={ 14 } /> Hapus untuk saya
+                </button>
+            ) : !isSoftDeleted ? (
                 <>
                     { onEditClick && (
                         <button

@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
 import ChatTextMessage from "./ChatTextMessage";
 import ChatAudioMessage from "./ChatAudioMessage";
 import ChatFileMessage from "./ChatFileMessage";
 import ChatStaticMessages from "./ChatStaticMessages";
 import { useChatMessageActions, ChatMessage } from "../../hooks/useChatMessageActions";
 import { isSoftDeletedMessage } from "./deletedMessage";
+import { useChatBody } from "../../hooks/useChatBody"; // ✅ import hook baru
 
 interface ChatBodyProps
 {
@@ -39,54 +39,11 @@ export default function ChatBody( {
     const { handleSoftDeleteFileMessage, handleSoftDeleteTextMessage } =
         useChatMessageActions( setMessages );
 
-    const bottomRef = useRef<HTMLDivElement | null>( null );
-    const prevMessageCount = useRef( messages.length );
-    const [isMenuOpen, setIsMenuOpen] = useState( false );
-    const chatBodyRef = useRef<HTMLDivElement | null>( null );
-    const scrollPos = useRef( 0 );
-
-    // 🔒 Kunci scroll hanya di ChatBody
-    useEffect( () =>
-    {
-        const el = chatBodyRef.current;
-        if ( !el ) return;
-
-        if ( isMenuOpen )
-        {
-            scrollPos.current = el.scrollTop;
-            el.style.overflowY = "scroll"; // scrollbar tetap ada
-            el.style.pointerEvents = "none"; // cegah interaksi
-        } else
-        {
-            el.style.overflowY = "auto";
-            el.style.pointerEvents = "auto";
-            el.scrollTop = scrollPos.current; // balikin posisi
-        }
-    }, [isMenuOpen] );
-
-    // ⬇️ auto scroll kalau ada pesan baru
-    useEffect( () =>
-    {
-        if ( messages.length > prevMessageCount.current )
-        {
-            bottomRef.current?.scrollIntoView( { behavior: "smooth" } );
-            const mediaElements = document.querySelectorAll( "img, video" );
-            mediaElements.forEach( ( el ) =>
-            {
-                el.addEventListener( "load", () =>
-                {
-                    bottomRef.current?.scrollIntoView( { behavior: "smooth" } );
-                } );
-            } );
-        }
-        prevMessageCount.current = messages.length;
-    }, [messages] );
+    const { bottomRef, chatBodyRef, isMenuOpen, setIsMenuOpen } =
+        useChatBody( messages ); // ✅ pakai custom hook
 
     return (
-        <div
-            ref={ chatBodyRef }
-            className="flex-1 py-6 w-full responsive-padding overflow-y-auto"
-        >
+        <div ref={ chatBodyRef } className="flex-1 py-6 w-full responsive-padding overflow-y-auto">
             <ChatStaticMessages />
 
             { messages.map( ( msg, index ) =>
@@ -94,7 +51,6 @@ export default function ChatBody( {
                 const align: "left" | "right" =
                     msg.side === "kiri" ? "left" : msg.side === "kanan" ? "right" : "right";
 
-                // TEXT MESSAGE
                 if ( msg.text )
                 {
                     const isDeleted = isSoftDeletedMessage( msg.text );
@@ -104,9 +60,7 @@ export default function ChatBody( {
                             text={ msg.text }
                             time={ msg.time }
                             align={ align }
-                            onEditClick={
-                                !isDeleted ? () => onEditTextMessage?.( index ) : undefined
-                            }
+                            onEditClick={ !isDeleted ? () => onEditTextMessage?.( index ) : undefined }
                             onSoftDeleteClick={
                                 !isDeleted
                                     ? () =>
@@ -116,12 +70,11 @@ export default function ChatBody( {
                                     : undefined
                             }
                             onDeleteClick={ () => onDeleteTextMessage?.( index ) }
-                            onToggleMenu={ setIsMenuOpen } // 🔔 kasih tahu kalau menu toggle
+                            onToggleMenu={ setIsMenuOpen }
                         />
                     );
                 }
 
-                // AUDIO MESSAGE
                 if ( msg.audioUrl || isSoftDeletedMessage( msg.text ) )
                 {
                     return (
@@ -137,15 +90,14 @@ export default function ChatBody( {
                                 !msg.isSoftDeleted ? () => onSoftDeleteAudioMessage?.( index ) : undefined
                             }
                             onDeleteClick={ () => onDeleteAudioMessage?.( index ) }
+                            onToggleMenu={ setIsMenuOpen }
                         />
                     );
                 }
 
-                // FILE MESSAGE
                 if ( msg.fileUrl || msg.caption )
                 {
                     const isSoftDeleted = isSoftDeletedMessage( msg.caption );
-
                     return (
                         <ChatFileMessage
                             key={ index }
@@ -154,13 +106,10 @@ export default function ChatBody( {
                             caption={ msg.caption || "" }
                             time={ msg.time }
                             align={ align }
-                            onEditClick={
-                                !isSoftDeleted ? () => onEditFileMessage?.( index ) : undefined
-                            }
-                            onSoftDeleteClick={
-                                !isSoftDeleted ? () => onSoftDeleteFileMessage?.( index ) : undefined
-                            }
+                            onEditClick={ !isSoftDeleted ? () => onEditFileMessage?.( index ) : undefined }
+                            onSoftDeleteClick={ !isSoftDeleted ? () => onSoftDeleteFileMessage?.( index ) : undefined }
                             onDeleteClick={ () => onDeleteFileMessage?.( index ) }
+                            onToggleMenu={ setIsMenuOpen }
                         />
                     );
                 }

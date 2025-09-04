@@ -13,6 +13,7 @@ interface ChatAudioMessageProps
     align?: "left" | "right";
     onSoftDeleteClick?: () => void;
     onDeleteClick?: () => void;
+    onToggleMenu?: ( isOpen: boolean ) => void; // 🔹 indikator toggle menu
 }
 
 export default function ChatAudioMessage( {
@@ -24,6 +25,7 @@ export default function ChatAudioMessage( {
     align = "right", // default kanan
     onSoftDeleteClick,
     onDeleteClick,
+    onToggleMenu, // 🔹 diterima
 }: ChatAudioMessageProps )
 {
     return (
@@ -49,6 +51,8 @@ export default function ChatAudioMessage( {
                             isSoftDeleted={ !!isSoftDeleted }
                             onSoftDeleteClick={ onSoftDeleteClick }
                             onDeleteClick={ onDeleteClick }
+                            align={ align }
+                            onToggle={ onToggleMenu } // 🔹 diteruskan ke MessageMenu
                         />
                     ) }
                 </div>

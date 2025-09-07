@@ -1,15 +1,13 @@
 import ChatTextMessage from "./ChatTextMessage";
 import ChatAudioMessage from "./ChatAudioMessage";
 import ChatFileMessage from "./ChatFileMessage";
-import ChatStaticMessages from "./ChatStaticMessages";
-import { useChatMessageActions, ChatMessage } from "../../hooks/useChatMessageActions";
+import { ChatMessage } from "../../hooks/useChatMessageActions";
 import { isSoftDeletedMessage } from "./deletedMessage";
-import { useChatBody } from "../../hooks/useChatBody"; // ✅ import hook baru
+import { useChatBody } from "../../hooks/useChatBody";
 
 interface ChatBodyProps
 {
     messages: ChatMessage[];
-    setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 
     onEditTextMessage?: ( index: number ) => void;
     onDeleteTextMessage?: ( index: number ) => void;
@@ -25,7 +23,6 @@ interface ChatBodyProps
 
 export default function ChatBody( {
     messages,
-    setMessages,
     onEditTextMessage,
     onDeleteTextMessage,
     onSoftDeleteTextMessage,
@@ -36,20 +33,18 @@ export default function ChatBody( {
     onSoftDeleteAudioMessage,
 }: ChatBodyProps )
 {
-    const { handleSoftDeleteFileMessage, handleSoftDeleteTextMessage } =
-        useChatMessageActions( setMessages );
-
     const { bottomRef, chatBodyRef, isMenuOpen, setIsMenuOpen } =
-        useChatBody( messages ); // ✅ pakai custom hook
+        useChatBody( messages );
 
     return (
-        <div ref={ chatBodyRef } className="flex-1 py-6 w-full responsive-padding overflow-y-auto">
-            <ChatStaticMessages />
-
+        <div
+            ref={ chatBodyRef }
+            className="flex-1 py-6 w-full responsive-padding overflow-y-auto"
+        >
             { messages.map( ( msg, index ) =>
             {
                 const align: "left" | "right" =
-                    msg.side === "kiri" ? "left" : msg.side === "kanan" ? "right" : "right";
+                    msg.side === "kiri" ? "left" : "right";
 
                 if ( msg.text )
                 {
@@ -60,14 +55,11 @@ export default function ChatBody( {
                             text={ msg.text }
                             time={ msg.time }
                             align={ align }
-                            onEditClick={ !isDeleted ? () => onEditTextMessage?.( index ) : undefined }
+                            onEditClick={
+                                !isDeleted ? () => onEditTextMessage?.( index ) : undefined
+                            }
                             onSoftDeleteClick={
-                                !isDeleted
-                                    ? () =>
-                                        onSoftDeleteTextMessage
-                                            ? onSoftDeleteTextMessage( index )
-                                            : handleSoftDeleteTextMessage( index )
-                                    : undefined
+                                !isDeleted ? () => onSoftDeleteTextMessage?.( index ) : undefined
                             }
                             onDeleteClick={ () => onDeleteTextMessage?.( index ) }
                             onToggleMenu={ setIsMenuOpen }
@@ -106,8 +98,12 @@ export default function ChatBody( {
                             caption={ msg.caption || "" }
                             time={ msg.time }
                             align={ align }
-                            onEditClick={ !isSoftDeleted ? () => onEditFileMessage?.( index ) : undefined }
-                            onSoftDeleteClick={ !isSoftDeleted ? () => onSoftDeleteFileMessage?.( index ) : undefined }
+                            onEditClick={
+                                !isSoftDeleted ? () => onEditFileMessage?.( index ) : undefined
+                            }
+                            onSoftDeleteClick={
+                                !isSoftDeleted ? () => onSoftDeleteFileMessage?.( index ) : undefined
+                            }
                             onDeleteClick={ () => onDeleteFileMessage?.( index ) }
                             onToggleMenu={ setIsMenuOpen }
                         />

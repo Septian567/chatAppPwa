@@ -3,7 +3,7 @@ import { ChatMessage } from "./useMessageState";
 
 export function useMessageEditing(
     messages: ChatMessage[],
-    setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>
+    onUpdate: ( newMessages: ChatMessage[] ) => void
 )
 {
     const [editingIndex, setEditingIndex] = useState<number | null>( null );
@@ -24,26 +24,25 @@ export function useMessageEditing(
     const handleSubmitEdit = ( newValue: string ) =>
     {
         if ( editingIndex === null || !editType ) return;
-        setMessages( ( prev ) =>
+
+        const updated = [...messages];
+        if ( editType === "text" )
         {
-            const updated = [...prev];
-            if ( editType === "text" )
-            {
-                updated[editingIndex] = {
-                    ...updated[editingIndex],
-                    text: newValue,
-                    isSoftDeleted: false,
-                };
-            } else if ( editType === "file" )
-            {
-                updated[editingIndex] = {
-                    ...updated[editingIndex],
-                    caption: newValue,
-                    isSoftDeleted: false,
-                };
-            }
-            return updated;
-        } );
+            updated[editingIndex] = {
+                ...updated[editingIndex],
+                text: newValue,
+                isSoftDeleted: false,
+            };
+        } else if ( editType === "file" )
+        {
+            updated[editingIndex] = {
+                ...updated[editingIndex],
+                caption: newValue,
+                isSoftDeleted: false,
+            };
+        }
+
+        onUpdate( updated );
         setEditingIndex( null );
         setEditType( null );
     };

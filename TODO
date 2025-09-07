@@ -135,11 +135,18 @@ TODO 30 Agustus 2025
 1. perbaiki tampilan user dan kontak sidebar -- SUCCESS
 2. perbaiki tampilan chat morevertical saat chat masih sedikit  -- SUCCESS
 3. buat agar chat kiri hanya bisa hapus untuk saya -- SUCCESS
-4. buat chat tampil sesuai dengan nama kontak, simpan di localstorage agar tampilan kontak bisa sesuai
 
-username harus dibatasi
-alias harus dibatasi
-email harus dibatasi
+
+5 September 2025
+1. buat chat tampil sesuai dengan nama kontak, simpan di localstorage agar tampilan kontak bisa sesuai
+- hapus static message -- SUCCESS
+
+7 September 2025
+1. pastikan saat menu chat dibuka, langsung ke bawah
+2. saat mengrim pesan, pastikan kata tidak terpotong ke bawah, biarkan kata utuh
+3. simpan chat terakhir di localstorage dan tampilkan di sidebar
+
+
 
 
 

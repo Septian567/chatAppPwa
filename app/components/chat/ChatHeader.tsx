@@ -36,7 +36,8 @@ export default function ChatHeader( {
 
     return (
         <div className="border-b border-black">
-            <div className="flex items-center justify-between pl-6 pr-4 py-3 w-full">
+            {/* jadikan header sebagai group */ }
+            <div className="group flex items-center justify-between pl-6 pr-4 py-3 w-full">
                 {/* Tombol kembali (khusus mobile) */ }
                 <div className="flex items-center gap-3">
                     { isMobile && (
@@ -55,8 +56,8 @@ export default function ChatHeader( {
                     </div>
                 </div>
 
-                {/* Tombol kiri & kanan */ }
-                <div className="flex items-center gap-2">
+                {/* Tombol kiri & kanan hanya muncul saat hover */ }
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                         onClick={ () => handleClick( "kiri" ) }
                         className={ `px-3 py-1 border border-black rounded-lg text-sm font-medium transition 

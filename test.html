@@ -2,134 +2,142 @@
 <html lang="id">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Klik Dua Detik</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Daftar 200 Angka (Scrollable)</title>
   <style>
-    body { font-family: system-ui, sans-serif; display: grid; place-items: center; min-height: 100dvh; margin: 0; }
-    #target {
-      padding: 16px 20px; border: 2px solid #ddd; border-radius: 12px; cursor: pointer;
-      user-select: none;
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #f4f6f8;
+      color: #111;
     }
-    /* Menu */
-    .menu {
-      position: fixed; inset: auto auto 0 0; transform: translate(-9999px,-9999px);
-      background: #fff; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.12);
-      min-width: 180px; padding: 6px; z-index: 9999;
+
+    .card {
+      width: min(420px, 95%);
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      padding: 16px;
     }
-    .menu.show { transform: none; }
-    .menu button {
-      width: 100%; background: transparent; border: 0; text-align: left; padding: 10px 12px; border-radius: 10px; font-size: 14px;
+
+    h1 {
+      font-size: 18px;
+      margin: 0 0 12px 0;
+      text-align: center;
     }
-    .menu button:hover, .menu button:focus { background: #f2f2f2; outline: none; }
-    .backdrop {
-      position: fixed; inset: 0; background: transparent; display: none; z-index: 9998;
+
+    /* Kotak scrollable */
+    .scroll-box {
+      height: 360px;             /* ubah sesuai kebutuhan */
+      overflow-y: auto;
+      border: 1px solid #e6edf3;
+      border-radius: 8px;
+      padding: 8px;
+      background: linear-gradient(180deg, #fff, #fbfdff);
     }
-    .backdrop.show { display: block; }
+
+    ul.number-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    ul.number-list li {
+      padding: 8px 10px;
+      border-bottom: 1px dashed #eef5fb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 15px;
+    }
+
+    ul.number-list li:nth-child(odd) {
+      background: rgba(240, 248, 255, 0.6);
+    }
+
+    .index {
+      font-weight: 600;
+    }
+
+    /* Simple custom scrollbar for modern browsers */
+    .scroll-box::-webkit-scrollbar { width: 10px; }
+    .scroll-box::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg,#cbdaf0,#9fb3de);
+      border-radius: 8px;
+    }
+    .scroll-box::-webkit-scrollbar-track { background: transparent; }
+
+    /* responsive small tweak */
+    @media (max-width: 420px) {
+      .card { padding: 12px; }
+      .scroll-box { height: 320px; }
+    }
+
+    /* tombol kecil untuk contoh kontrol */
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      justify-content: center;
+    }
+    .btn {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #d6e3f4;
+      background: #fff;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn:active { transform: translateY(1px); }
   </style>
 </head>
 <body>
-  <div id="target" tabindex="0">klik dua detik</div>
+  <div class="card" role="region" aria-label="Daftar angka 1 sampai 200">
+    <h1>Daftar Angka 1–200 (Scrollable)</h1>
 
-  <div class="menu" id="menu" role="menu" aria-hidden="true">
-    <button id="editBtn" role="menuitem">✏️ Edit tulisan</button>
-    <button id="deleteBtn" role="menuitem">🗑️ Hapus</button>
+    <div class="scroll-box" id="scrollBox">
+      <ul class="number-list" id="numberList">
+        <!-- isi akan di-generate oleh JS -->
+      </ul>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="topBtn" title="Ke atas">Ke atas</button>
+      <button class="btn" id="middleBtn" title="Ke tengah">Ke tengah (100)</button>
+      <button class="btn" id="bottomBtn" title="Ke bawah">Ke bawah</button>
+    </div>
   </div>
-  <div class="backdrop" id="backdrop" aria-hidden="true"></div>
 
   <script>
-    (function () {
-      const target = document.getElementById('target');
-      const menu = document.getElementById('menu');
-      const backdrop = document.getElementById('backdrop');
-      const editBtn = document.getElementById('editBtn');
-      const deleteBtn = document.getElementById('deleteBtn');
+    // generate list 1..200
+    const list = document.getElementById('numberList');
+    for (let i = 1; i <= 200; i++) {
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="index">' + i + '</span><span>angka</span>';
+      list.appendChild(li);
+    }
 
-      let pressTimer = null;
-      let startPoint = { x: 0, y: 0 };
-      const holdMs = 1000;
-
-      // Helper: show/hide menu
-      function showMenu(x, y) {
-        // pastikan menu tidak keluar layar
-        const padding = 8;
-        const mw = 200, mh = 100;
-        let left = Math.min(Math.max(x, padding), window.innerWidth - mw - padding);
-        let top  = Math.min(Math.max(y, padding), window.innerHeight - mh - padding);
-
-        menu.style.left = left + 'px';
-        menu.style.top = top + 'px';
-        menu.classList.add('show');
-        backdrop.classList.add('show');
-        menu.setAttribute('aria-hidden', 'false');
+    // contoh tombol kontrol scroll: top, middle, bottom
+    const scrollBox = document.getElementById('scrollBox');
+    document.getElementById('topBtn').addEventListener('click', () => {
+      scrollBox.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    document.getElementById('bottomBtn').addEventListener('click', () => {
+      scrollBox.scrollTo({ top: scrollBox.scrollHeight, behavior: 'smooth' });
+    });
+    document.getElementById('middleBtn').addEventListener('click', () => {
+      // scroll ke list item 100 (index 99)
+      const target = list.children[99];
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-      function hideMenu() {
-        menu.classList.remove('show');
-        backdrop.classList.remove('show');
-        menu.setAttribute('aria-hidden', 'true');
-      }
+    });
 
-      // Long-press handlers (mouse & touch)
-      function startPress(x, y) {
-        clearTimeout(pressTimer);
-        startPoint = { x, y };
-        pressTimer = setTimeout(() => showMenu(x, y), holdMs);
-      }
-      function cancelPress() {
-        clearTimeout(pressTimer);
-        pressTimer = null;
-      }
-
-      // Mouse
-      target.addEventListener('mousedown', e => {
-        if (e.button !== 0) return; // hanya klik kiri
-        startPress(e.clientX, e.clientY);
-      });
-      document.addEventListener('mouseup', cancelPress);
-      target.addEventListener('mouseleave', cancelPress);
-      target.addEventListener('mousemove', e => {
-        // jika bergerak jauh, batalkan
-        if (!pressTimer) return;
-        const dx = e.clientX - startPoint.x, dy = e.clientY - startPoint.y;
-        if (Math.hypot(dx, dy) > 8) cancelPress();
-      });
-
-      // Touch
-      target.addEventListener('touchstart', e => {
-        const t = e.touches[0];
-        startPress(t.clientX, t.clientY);
-      }, { passive: true });
-      target.addEventListener('touchmove', e => {
-        if (!pressTimer) return;
-        const t = e.touches[0];
-        const dx = t.clientX - startPoint.x, dy = t.clientY - startPoint.y;
-        if (Math.hypot(dx, dy) > 12) cancelPress();
-      }, { passive: true });
-      target.addEventListener('touchend', cancelPress);
-      target.addEventListener('touchcancel', cancelPress);
-
-      // Optional: cegah menu klik kanan default agar tidak mengganggu
-      target.addEventListener('contextmenu', e => e.preventDefault());
-
-      // Actions
-      editBtn.addEventListener('click', () => {
-        const current = target.textContent.trim();
-        const baru = prompt('Ubah tulisan:', current);
-        if (baru !== null) target.textContent = baru || '';
-        hideMenu();
-      });
-
-      deleteBtn.addEventListener('click', () => {
-        if (confirm('Yakin hapus tulisannya?')) {
-          target.remove();
-        }
-        hideMenu();
-      });
-
-      // Tutup menu saat klik di luar
-      backdrop.addEventListener('click', hideMenu);
-      window.addEventListener('resize', hideMenu);
-      window.addEventListener('scroll', hideMenu);
-    })();
+     scrollBox.scrollTop = scrollBox.scrollHeight;
   </script>
 </body>
 </html>

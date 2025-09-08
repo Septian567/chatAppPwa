@@ -141,10 +141,17 @@ TODO 30 Agustus 2025
 1. buat chat tampil sesuai dengan nama kontak, simpan di localstorage agar tampilan kontak bisa sesuai
 - hapus static message -- SUCCESS
 
+
 7 September 2025
-1. pastikan saat menu chat dibuka, langsung ke bawah
-2. saat mengrim pesan, pastikan kata tidak terpotong ke bawah, biarkan kata utuh
-3. simpan chat terakhir di localstorage dan tampilkan di sidebar
+1. pastikan saat menu chat dibuka, langsung ke bawah (pakai localstorage posisi bawah supaya ga drop mendadak) -- SUCCESS
+
+8 September 2025
+1. saat edit, hapus, dan hapus untuk saya, jangan pindahkan chat ke bawah -- SUCCESS
+2. hilangkan glitch untuk pesan panjang lebar
+3. pastikan gambar yang di kirim langsung ke scroll ke bawah
+3. di menu kontak sidebar, saat diganti chat tiap kontak, tidak scroll dari atas ke bawah, tapi posisi langsung di bawah
+4. saat mengrim pesan, pastikan kata tidak terpotong ke bawah, biarkan kata utuh
+5. simpan chat terakhir di localstorage dan tampilkan di sidebar
 
 
 

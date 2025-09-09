@@ -1,17 +1,15 @@
-import { useLayoutEffect, useRef } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "../../states";
-
 import ChatTextMessage from "./ChatTextMessage";
 import ChatAudioMessage from "./ChatAudioMessage";
 import ChatFileMessage from "./ChatFileMessage";
-import { ChatMessage } from "../../hooks/useChatMessageActions";
+import ChatStaticMessages from "./ChatStaticMessages";
+import { useChatMessageActions, ChatMessage } from "../../hooks/useChatMessageActions";
 import { isSoftDeletedMessage } from "./deletedMessage";
-import { useChatBody } from "../../hooks/chatBody/useChatBody";
+import { useChatBody } from "../../hooks/useChatBody"; // ✅ import hook baru
 
 interface ChatBodyProps
 {
     messages: ChatMessage[];
+    setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 
     onEditTextMessage?: ( index: number ) => void;
     onDeleteTextMessage?: ( index: number ) => void;
@@ -27,6 +25,7 @@ interface ChatBodyProps
 
 export default function ChatBody( {
     messages,
+    setMessages,
     onEditTextMessage,
     onDeleteTextMessage,
     onSoftDeleteTextMessage,
@@ -37,31 +36,20 @@ export default function ChatBody( {
     onSoftDeleteAudioMessage,
 }: ChatBodyProps )
 {
-    const { bottomRef, chatBodyRef, isMenuOpen, setIsMenuOpen } = useChatBody( messages );
+    const { handleSoftDeleteFileMessage, handleSoftDeleteTextMessage } =
+        useChatMessageActions( setMessages );
 
-    const activeContact = useSelector( ( state: RootState ) => state.contacts.activeContact );
-
-    // tandai render pertama
-    const firstRender = useRef( true );
-
-    // scroll ke bawah saat ganti kontak (langsung, tanpa glitch)
-    useLayoutEffect( () =>
-    {
-        if ( bottomRef.current )
-        {
-            bottomRef.current.scrollIntoView( { behavior: "auto" } );
-        }
-        firstRender.current = false;
-    }, [activeContact] );
+    const { bottomRef, chatBodyRef, isMenuOpen, setIsMenuOpen } =
+        useChatBody( messages ); // ✅ pakai custom hook
 
     return (
-        <div
-            ref={ chatBodyRef }
-            className="flex-1 py-6 w-full responsive-padding overflow-y-auto"
-        >
+        <div ref={ chatBodyRef } className="flex-1 py-6 w-full responsive-padding overflow-y-auto">
+            <ChatStaticMessages />
+
             { messages.map( ( msg, index ) =>
             {
-                const align: "left" | "right" = msg.side === "kiri" ? "left" : "right";
+                const align: "left" | "right" =
+                    msg.side === "kiri" ? "left" : msg.side === "kanan" ? "right" : "right";
 
                 if ( msg.text )
                 {
@@ -73,7 +61,14 @@ export default function ChatBody( {
                             time={ msg.time }
                             align={ align }
                             onEditClick={ !isDeleted ? () => onEditTextMessage?.( index ) : undefined }
-                            onSoftDeleteClick={ !isDeleted ? () => onSoftDeleteTextMessage?.( index ) : undefined }
+                            onSoftDeleteClick={
+                                !isDeleted
+                                    ? () =>
+                                        onSoftDeleteTextMessage
+                                            ? onSoftDeleteTextMessage( index )
+                                            : handleSoftDeleteTextMessage( index )
+                                    : undefined
+                            }
                             onDeleteClick={ () => onDeleteTextMessage?.( index ) }
                             onToggleMenu={ setIsMenuOpen }
                         />
@@ -91,7 +86,9 @@ export default function ChatBody( {
                             isSoftDeleted={ msg.isSoftDeleted }
                             textStatus={ msg.text }
                             align={ align }
-                            onSoftDeleteClick={ !msg.isSoftDeleted ? () => onSoftDeleteAudioMessage?.( index ) : undefined }
+                            onSoftDeleteClick={
+                                !msg.isSoftDeleted ? () => onSoftDeleteAudioMessage?.( index ) : undefined
+                            }
                             onDeleteClick={ () => onDeleteAudioMessage?.( index ) }
                             onToggleMenu={ setIsMenuOpen }
                         />

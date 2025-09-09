@@ -15,11 +15,6 @@ interface ChatTextMessageProps
     align?: "left" | "right";
 }
 
-function hasLongWord( text: string, maxLength: number = 20 )
-{
-    return text.split( /\s+/ ).some( word => word.length > maxLength );
-}
-
 export default function ChatTextMessage( {
     text,
     time,
@@ -35,6 +30,7 @@ export default function ChatTextMessage( {
     const textRef = useRef<HTMLSpanElement | null>( null );
     const [isMultiLine, setIsMultiLine] = useState( false );
 
+    // ✅ gunakan useLayoutEffect agar posisi dihitung sebelum repaint
     useLayoutEffect( () =>
     {
         if ( !isSoftDeleted && textRef.current )
@@ -61,9 +57,6 @@ export default function ChatTextMessage( {
             ? "justify-end mt-1 self-end"
             : "translate-y-[2px]";
 
-    // Tentukan kelas break word
-    const breakClass = hasLongWord( text ) ? "break-all" : "break-words";
-
     return (
         <ChatBubble fixedWidth={ isSoftDeleted ? "cm" : undefined } align={ align }>
             <div className={ `flex ${ layoutClass }` }>
@@ -76,7 +69,7 @@ export default function ChatTextMessage( {
                     ) : (
                         <span
                             ref={ textRef }
-                            className={ `whitespace-pre-wrap ${ breakClass } text-black block` }
+                            className="whitespace-pre-wrap break-all text-black block"
                         >
                             { text }
                         </span>

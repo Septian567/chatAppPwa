@@ -147,11 +147,16 @@ TODO 30 Agustus 2025
 
 8 September 2025
 1. saat edit, hapus, dan hapus untuk saya, jangan pindahkan chat ke bawah -- SUCCESS
-2. hilangkan glitch untuk pesan panjang lebar
-3. pastikan gambar yang di kirim langsung ke scroll ke bawah
-3. di menu kontak sidebar, saat diganti chat tiap kontak, tidak scroll dari atas ke bawah, tapi posisi langsung di bawah
-4. saat mengrim pesan, pastikan kata tidak terpotong ke bawah, biarkan kata utuh
-5. simpan chat terakhir di localstorage dan tampilkan di sidebar
+2. hilangkan glitch untuk pesan panjang lebar -- SUCCESS
+3. hilangkan glitch untuk "pesan telah dihapus" -- SUCCESS
+4. pastikan gambar yang di kirim langsung ke scroll ke bawah  -- SUCCESS
+5. saat mengrim pesan, pastikan kata tidak terpotong ke bawah, biarkan kata utuh -- SUCCESS
+
+9 September 2025
+1. pastikan render video selesai sebelum ditampilkan sehingga tidak glitch
+2. perbaiki tampilan file pemutar lagu pada tampilan mobile -- SUCCESS
+3. di menu kontak sidebar, saat diganti chat tiap kontak, tidak scroll dari atas ke bawah, tapi posisi langsung di bawah  -- SUCCESS
+4. simpan chat terakhir di localstorage dan tampilkan di sidebar
 
 
 

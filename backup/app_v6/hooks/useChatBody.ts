@@ -18,7 +18,7 @@ export function useChatBody( messages: ChatMessage[] )
         setIsScrollable( el.scrollHeight > el.clientHeight + 1 );
     }, [] );
 
-    // Scroll otomatis pertama kali saat semua content siap
+    // Scroll otomatis pertama kali saat semua content sudah siap
     useEffect( () =>
     {
         const el = chatBodyRef.current;
@@ -42,43 +42,43 @@ export function useChatBody( messages: ChatMessage[] )
     // Auto scroll saat ada pesan baru
     useEffect( () =>
     {
-        if ( !bottomRef.current || !chatBodyRef.current ) return;
+        if ( !bottomRef.current ) return;
 
+        // scroll smooth hanya jika ada pesan baru
         if ( messages.length > prevMessageCount.current )
         {
-            const medias = chatBodyRef.current.querySelectorAll( "img, video" );
+            // tunggu gambar/file selesai load
+            const imgs = chatBodyRef.current?.querySelectorAll( "img" );
             let loadedCount = 0;
 
-            if ( medias.length > 0 )
+            if ( imgs && imgs.length > 0 )
             {
-                medias.forEach( ( media ) =>
+                imgs.forEach( ( img ) =>
                 {
-                    const isReady =
-                        ( media.tagName === "IMG" && ( media as HTMLImageElement ).complete ) ||
-                        ( media.tagName === "VIDEO" && ( media as HTMLVideoElement ).readyState >= 1 );
-
-                    if ( isReady )
+                    if ( img.complete )
                     {
                         loadedCount++;
                     } else
                     {
-                        const loadEvent = media.tagName === "IMG" ? "load" : "loadedmetadata";
-
-                        const onLoaded = () =>
+                        img.addEventListener( "load", () =>
                         {
                             loadedCount++;
-                            if ( loadedCount === medias.length )
+                            if ( loadedCount === imgs.length )
                             {
                                 bottomRef.current?.scrollIntoView( { behavior: "smooth" } );
                             }
-                        };
-
-                        media.addEventListener( loadEvent, onLoaded, { once: true } );
-                        media.addEventListener( "error", onLoaded, { once: true } );
+                        } );
+                        img.addEventListener( "error", () =>
+                        {
+                            loadedCount++;
+                            if ( loadedCount === imgs.length )
+                            {
+                                bottomRef.current?.scrollIntoView( { behavior: "smooth" } );
+                            }
+                        } );
                     }
                 } );
-
-                if ( loadedCount === medias.length )
+                if ( loadedCount === imgs.length )
                 {
                     bottomRef.current.scrollIntoView( { behavior: "smooth" } );
                 }

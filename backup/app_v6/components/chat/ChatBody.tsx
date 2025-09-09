@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../states";
 
@@ -7,7 +7,7 @@ import ChatAudioMessage from "./ChatAudioMessage";
 import ChatFileMessage from "./ChatFileMessage";
 import { ChatMessage } from "../../hooks/useChatMessageActions";
 import { isSoftDeletedMessage } from "./deletedMessage";
-import { useChatBody } from "../../hooks/chatBody/useChatBody";
+import { useChatBody } from "../../hooks/useChatBody";
 
 interface ChatBodyProps
 {
@@ -44,14 +44,17 @@ export default function ChatBody( {
     // tandai render pertama
     const firstRender = useRef( true );
 
-    // scroll ke bawah saat ganti kontak (langsung, tanpa glitch)
-    useLayoutEffect( () =>
+    // scroll ke bawah saat ganti kontak
+    useEffect( () =>
     {
-        if ( bottomRef.current )
+        const id = setTimeout( () =>
         {
-            bottomRef.current.scrollIntoView( { behavior: "auto" } );
-        }
-        firstRender.current = false;
+            bottomRef.current?.scrollIntoView( {
+                behavior: firstRender.current ? "auto" : "smooth",
+            } );
+            firstRender.current = false;
+        }, 50 );
+        return () => clearTimeout( id );
     }, [activeContact] );
 
     return (

@@ -5,10 +5,10 @@ interface AudioPreviewProps
 {
     fileUrl: string;
     fileName: string;
-    align?: "left" | "right";
+    align?: "left" | "right"; // ➕ TAMBAHKAN PROP ALIGN
 }
 
-export default function AudioPreview( { fileUrl, fileName, align = "right" }: AudioPreviewProps )
+export default function AudioPreview( { fileUrl, fileName, align = "right" }: AudioPreviewProps ) // ➕ DEFAULT VALUE
 {
     const {
         audioRef,
@@ -31,8 +31,8 @@ export default function AudioPreview( { fileUrl, fileName, align = "right" }: Au
                 onLoadedMetadata={ handleLoadedMetadata }
                 className="hidden"
             />
-            <div className="flex items-center gap-2 w-full min-w-0">
-                <button onClick={ togglePlay } className="p-2 text-black shrink-0">
+            <div className="flex items-center gap-2">
+                <button onClick={ togglePlay } className="p-2 text-black">
                     { isPlaying ? <Pause size={ 20 } /> : <Play size={ 20 } /> }
                 </button>
                 <input
@@ -42,14 +42,13 @@ export default function AudioPreview( { fileUrl, fileName, align = "right" }: Au
                     value={ currentTime }
                     onChange={ handleSeek }
                     step="0.1"
-                    className="flex-1 h-1 bg-gray-300 rounded-lg accent-green-600 min-w-0"
+                    className="flex-1 h-1 bg-gray-300 rounded-lg accent-green-600"
                 />
-                <span className="text-xs text-gray-700 shrink-0">
+                <span className="text-xs text-gray-700">
                     { formatTime( currentTime ) } / { formatTime( duration ) }
                 </span>
             </div>
-            <p className="text-sm mt-1 truncate w-full">{ fileName }</p>
+            <p className="text-sm mt-1 truncate">{ fileName }</p>
         </div>
-
     );
 }

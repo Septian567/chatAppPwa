@@ -15,13 +15,17 @@ export function useChatPage()
 {
     const dispatch = useDispatch();
 
-    // Ambil kontak aktif dari redux
-    const activeContact = useSelector( ( state: RootState ) => state.contacts.activeContact );
-    const contactName = activeContact?.alias || activeContact?.name || "Bento";
-
-    // Ambil pesan dari Redux
-    const messages = useSelector( ( state: RootState ) => state.chat[contactName] || [] );
+    // Ambil kontak aktif
+    const activeContact = useSelector(
+        ( state: RootState ) => state.contacts.activeContact
+    );
+    const contactEmail = activeContact?.email || "default"; // default jika null
     const [chatSide, setChatSide] = useState<"kiri" | "kanan">( "kanan" );
+
+    // Ambil pesan berdasarkan email
+    const messages = useSelector(
+        ( state: RootState ) => state.chat[contactEmail] || []
+    );
 
     // --- Hook untuk edit pesan ---
     const {
@@ -36,11 +40,10 @@ export function useChatPage()
         setEditType,
     } = useMessageEditing( messages, ( newMessages: ChatMessage[] ) =>
     {
-        // Update messages di Redux setelah edit
-        dispatch( setMessagesForContact( { contact: contactName, messages: newMessages } ) );
+        dispatch( setMessagesForContact( { email: contactEmail, messages: newMessages } ) );
     } );
 
-    // --- Hook untuk hapus / soft delete pesan ---
+    // --- Hook untuk hapus / soft delete ---
     const {
         handleDeleteTextMessage,
         handleSoftDeleteTextMessage,
@@ -52,7 +55,7 @@ export function useChatPage()
         messages,
         ( newMessages: ChatMessage[] ) =>
         {
-            dispatch( setMessagesForContact( { contact: contactName, messages: newMessages } ) );
+            dispatch( setMessagesForContact( { email: contactEmail, messages: newMessages } ) );
         },
         editingIndex,
         setEditingIndex,
@@ -67,7 +70,7 @@ export function useChatPage()
             time: new Date().toLocaleTimeString( [], { hour: "2-digit", minute: "2-digit" } ),
             side: chatSide,
         };
-        dispatch( addMessageToContact( { contact: contactName, message: newMessage } ) );
+        dispatch( addMessageToContact( { email: contactEmail, message: newMessage } ) );
     };
 
     const handleSendAudio = ( audioBlob: Blob ) =>
@@ -78,7 +81,7 @@ export function useChatPage()
             time: new Date().toLocaleTimeString( [], { hour: "2-digit", minute: "2-digit" } ),
             side: chatSide,
         };
-        dispatch( addMessageToContact( { contact: contactName, message: newMessage } ) );
+        dispatch( addMessageToContact( { email: contactEmail, message: newMessage } ) );
     };
 
     const handleSendFile = ( file: File, caption?: string ) =>
@@ -87,11 +90,12 @@ export function useChatPage()
         const newMessage: ChatMessage = {
             fileUrl,
             fileName: file.name,
+            fileType: file.type,
             caption: caption?.trim() || undefined,
             time: new Date().toLocaleTimeString( [], { hour: "2-digit", minute: "2-digit" } ),
             side: chatSide,
         };
-        dispatch( addMessageToContact( { contact: contactName, message: newMessage } ) );
+        dispatch( addMessageToContact( { email: contactEmail, message: newMessage } ) );
     };
 
     return {

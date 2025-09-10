@@ -156,7 +156,23 @@ TODO 30 Agustus 2025
 1. pastikan render video selesai sebelum ditampilkan sehingga tidak glitch
 2. perbaiki tampilan file pemutar lagu pada tampilan mobile -- SUCCESS
 3. di menu kontak sidebar, saat diganti chat tiap kontak, tidak scroll dari atas ke bawah, tapi posisi langsung di bawah  -- SUCCESS
+
+
+
 4. simpan chat terakhir di localstorage dan tampilkan di sidebar
+- buat tampilan statis di sidebar  -- SUCCESS
+- tampilkan semua kontak dengan pesan dummy -- SUCCESS
+- hanya tampilkan kontak yang memiliki pesan dengan pesan dummy  -- SUCCESS
+- perbaiki tampilannya -- SUCCESS
+- sesuaikan pesan dengan pesan akhir di menu chat -- SUCCESS
+- sesuaikan isi chat dengan pesan akhir -- SUCECSS
+
+
+TODO 10 September 2025
+1. tambah pesan telah dihapus pada pesan file di lastchat sidebar -- SUCCESS
+2. tambah menu hapus percakapan di morevertical
+3. pada tampilan awal tambah logo ChatApp dan tombol ke menu dalam tampilan mobile
+
 
 
 

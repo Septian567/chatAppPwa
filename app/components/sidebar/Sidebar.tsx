@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Phone, Mail, User, LogOut } from "react-feather";
 import HorizontalMenu from "./HorizontalMenu";
 import MainMenu from "./MainMenu";
@@ -8,7 +9,7 @@ import Header from "./Header";
 import SearchBox from "./SearchBox";
 import { useSidebarState } from "../../hooks/useSidebarState";
 import { useSidebarData } from "../../hooks/useSidebarData";
-import UserItem from "../contacts/UserItem";
+import HorizontalMenuContent from "./HorizontalMenuContent";
 
 interface SidebarProps
 {
@@ -44,10 +45,26 @@ export default function Sidebar( { onMainMenuClick, width }: SidebarProps )
 
   const isDesktop = typeof width === "number";
 
+  // --- FIX HYDRATION ---
+  const [isClient, setIsClient] = useState( false );
+  useEffect( () => setIsClient( true ), [] );
+
+  if ( !isClient )
+  {
+    return (
+      <aside
+        className="bg-transparent text-black h-screen p-4 flex flex-col relative shrink-0 border-r border-gray-300 overflow-x-hidden"
+        style={ { width: typeof width === "number" ? `${ width }px` : width } }
+      >
+        <div className="text-gray-400 text-sm p-4">Loading...</div>
+      </aside>
+    );
+  }
+
   return (
     <aside
       className="bg-transparent text-black h-screen p-4 flex flex-col relative shrink-0 border-r border-gray-300 overflow-x-hidden"
-      style={ { width } }
+      style={ { width: typeof width === "number" ? `${ width }px` : width } }
     >
       { isDesktop && <Resizer /> }
 
@@ -67,62 +84,15 @@ export default function Sidebar( { onMainMenuClick, width }: SidebarProps )
 
       {/* Bagian Bawah */ }
       <div className="flex-1 overflow-y-auto overflow-x-hidden mt-2 p-2 text-sm">
-        { activeHorizontalMenu === "user" && (
-          <div className="space-y-0 ml-2">
-            { filteredUsers.length > 0 ? (
-              filteredUsers.map( ( u ) =>
-              {
-                const contact = contacts.find( ( c ) => c.email === u.email );
-                return (
-                  <UserItem
-                    key={ `user-${ u.email }` }
-                    name={ u.name }
-                    email={ u.email }
-                    alias={ contact?.alias || u.alias }
-                    onAliasSave={ handleAliasSave }
-                    readOnly
-                    compact
-                  />
-                );
-              } )
-            ) : (
-              <p className="text-gray-500 text-sm">No users found</p>
-            ) }
-          </div>
-        ) }
-
-        { activeHorizontalMenu === "contact" && (
-          <div className="space-y-0 ml-2">
-            { filteredContacts.length > 0 ? (
-              filteredContacts.map( ( c ) => (
-                <div
-                  key={ `contact-${ c.email }` }
-                  onClick={ () =>
-                  {
-                    setActiveContact( c );
-                    onMainMenuClick( "chat" );
-                  } }
-                  className="cursor-pointer hover:bg-gray-100 rounded-lg"
-                >
-                  <UserItem
-                    name={ c.alias || c.name }
-                    email={ c.email }
-                    alias={ c.alias }
-                    readOnly
-                    compact
-                    showAliasAsName
-                  />
-                </div>
-              ) )
-            ) : (
-              <p className="text-gray-500 text-sm">No contacts found</p>
-            ) }
-          </div>
-        ) }
-
-        { activeHorizontalMenu === "chat" && (
-          <p className="text-gray-600">Sidebar says: recent sidebar chats.</p>
-        ) }
+        <HorizontalMenuContent
+          activeMenu={ activeHorizontalMenu }
+          contacts={ contacts }
+          filteredUsers={ filteredUsers }
+          filteredContacts={ filteredContacts }
+          handleAliasSave={ handleAliasSave }
+          setActiveContact={ setActiveContact }
+          onMainMenuClick={ onMainMenuClick }
+        />
       </div>
     </aside>
   );

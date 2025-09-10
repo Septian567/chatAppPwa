@@ -5,15 +5,17 @@ export interface ChatMessage
     text?: string;
     fileUrl?: string;
     fileName?: string;
+    fileType?: string;        // ✅ MIME type file (image/png, video/mp4, dll.)
     caption?: string;
     audioUrl?: string;
     time: string;
     side: "kiri" | "kanan";
+    isSoftDeleted?: boolean;  // ✅ flag soft delete
 }
 
 interface ChatState
 {
-    [contactName: string]: ChatMessage[];
+    [email: string]: ChatMessage[];
 }
 
 const initialState: ChatState = {};
@@ -24,25 +26,25 @@ const chatSlice = createSlice( {
     reducers: {
         setMessagesForContact: (
             state,
-            action: PayloadAction<{ contact: string; messages: ChatMessage[] }>
+            action: PayloadAction<{ email: string; messages: ChatMessage[] }>
         ) =>
         {
-            state[action.payload.contact] = action.payload.messages;
+            state[action.payload.email] = action.payload.messages;
         },
         addMessageToContact: (
             state,
-            action: PayloadAction<{ contact: string; message: ChatMessage }>
+            action: PayloadAction<{ email: string; message: ChatMessage }>
         ) =>
         {
-            if ( !state[action.payload.contact] ) state[action.payload.contact] = [];
-            state[action.payload.contact].push( action.payload.message );
+            if ( !state[action.payload.email] ) state[action.payload.email] = [];
+            state[action.payload.email].push( action.payload.message );
         },
         deleteMessageForContact: (
             state,
-            action: PayloadAction<{ contact: string; index: number }>
+            action: PayloadAction<{ email: string; index: number }>
         ) =>
         {
-            state[action.payload.contact]?.splice( action.payload.index, 1 );
+            state[action.payload.email]?.splice( action.payload.index, 1 );
         },
     },
 } );

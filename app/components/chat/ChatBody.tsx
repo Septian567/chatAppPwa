@@ -109,11 +109,13 @@ export default function ChatBody( {
                             caption={ msg.caption || "" }
                             time={ msg.time }
                             align={ align }
+                            isActive={ true } // 🔹 bisa disesuaikan berdasarkan kontak aktif
                             onEditClick={ !isSoftDeleted ? () => onEditFileMessage?.( index ) : undefined }
                             onSoftDeleteClick={ !isSoftDeleted ? () => onSoftDeleteFileMessage?.( index ) : undefined }
                             onDeleteClick={ () => onDeleteFileMessage?.( index ) }
                             onToggleMenu={ setIsMenuOpen }
                         />
+
                     );
                 }
 

@@ -15,7 +15,8 @@ interface ChatFileMessageProps
     onEditClick?: () => void;
     onSoftDeleteClick?: () => void;
     onDeleteClick?: () => void;
-    onToggleMenu?: ( isOpen: boolean ) => void; // 🔹 indikator toggle menu
+    onToggleMenu?: ( isOpen: boolean ) => void; // indikator toggle menu
+    isActive?: boolean; // 🔹 kontrol visibility untuk persistent media
 }
 
 export default function ChatFileMessage( {
@@ -27,7 +28,8 @@ export default function ChatFileMessage( {
     onEditClick,
     onSoftDeleteClick,
     onDeleteClick,
-    onToggleMenu, // 🔹 diterima
+    onToggleMenu,
+    isActive = true, // default aktif
 }: ChatFileMessageProps )
 {
     const {
@@ -42,7 +44,7 @@ export default function ChatFileMessage( {
     const isSoftDeleted = isSoftDeletedMessage( caption );
     const displayCaption = isSoftDeleted ? DEFAULT_FILE_DELETED_TEXT : caption || "";
 
-    // 🔹 Komponen kecil untuk time + menu
+    // Komponen kecil untuk time + menu
     const TimeAndMenu = (
         <div className="flex items-center gap-1 ml-auto">
             <span className="text-xs text-gray-700 whitespace-nowrap">{ time }</span>
@@ -52,7 +54,7 @@ export default function ChatFileMessage( {
                 onSoftDeleteClick={ onSoftDeleteClick }
                 onDeleteClick={ onDeleteClick }
                 align={ align }
-                onToggle={ onToggleMenu } // 🔹 diteruskan ke MessageMenu
+                onToggle={ onToggleMenu }
             />
         </div>
     );
@@ -61,12 +63,11 @@ export default function ChatFileMessage( {
         <ChatBubble
             variant="media"
             align={ align }
-            fixedWidth={ isSoftDeleted ? "5cm" : undefined } // hanya soft-deleted
+            fixedWidth={ isSoftDeleted ? "5cm" : undefined }
         >
             <div className="flex flex-col gap-1">
                 { !isSoftDeleted ? (
-                    // 📎 Default file message
-                    <div className="flex flex-col gap-1 w-full max-w-full">
+                    <div className={ `flex flex-col gap-1 w-full max-w-full ${ !isActive ? "hidden" : "" }` }>
                         <ChatFilePreview
                             fileUrl={ fileUrl }
                             fileName={ fileName }
@@ -76,9 +77,10 @@ export default function ChatFileMessage( {
                             isAudio={ isAudio }
                             fileIcon={ fileIcon }
                             handleDownload={ handleDownload }
-                            duration="0:00"
+                            duration={ isVideo || isAudio ? "0:00" : undefined }
                             isSoftDeleted={ isSoftDeleted }
                             align={ align }
+                            isActive={ isActive } // 🔹 video/audio tetap siap
                         />
                         { displayCaption && (
                             <span className="whitespace-pre-wrap break-words text-black">
@@ -94,7 +96,6 @@ export default function ChatFileMessage( {
                         ) }
                     </div>
                 ) : (
-                    // ✅ Tampilan saat soft deleted sejajar dengan time & menu
                     <div className="flex items-center gap-1 min-h-[1.9rem]">
                         <div className="mr-[2.5px]">
                             <SoftDeletedMessage text={ displayCaption } />

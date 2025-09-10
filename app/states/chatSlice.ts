@@ -46,10 +46,18 @@ const chatSlice = createSlice( {
         {
             state[action.payload.email]?.splice( action.payload.index, 1 );
         },
+        clearMessagesForContact: (
+            state,
+            action: PayloadAction<{ email: string }>
+        ) =>
+        {
+            state[action.payload.email] = [];
+        },
+
     },
 } );
 
-export const { setMessagesForContact, addMessageToContact, deleteMessageForContact } =
+export const { setMessagesForContact, addMessageToContact, deleteMessageForContact, clearMessagesForContact } =
     chatSlice.actions;
 
 export default chatSlice.reducer;

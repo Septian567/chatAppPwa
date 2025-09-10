@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowLeft } from "lucide-react";
+
 import Sidebar from "./components/sidebar/Sidebar";
 import { useSidebarLayout } from "./hooks/useSidebarLayout";
 import { useSidebarNavigation } from "./hooks/useSidebarNavigation";
@@ -20,7 +22,6 @@ export default function Home()
 
   const { handleMainMenuClick } = useSidebarNavigation( isMobile );
 
-  // Tambahan: simpan alias/nama kontak yang dipilih
   const [selectedContact, setSelectedContact] = useState<string | null>( null );
 
   const renderMainContent = () =>
@@ -37,7 +38,7 @@ export default function Home()
           <ChatPage
             { ...commonProps }
             sidebarWidth={ isMobile ? 0 : computeSidebarWidth() }
-            contactName={ selectedContact || "Bento" } // default Bento
+            contactName={ selectedContact || "Bento" }
           />
         );
       case "contacts":
@@ -46,8 +47,8 @@ export default function Home()
             { ...commonProps }
             onContactClick={ ( aliasOrName: string ) =>
             {
-              setSelectedContact( aliasOrName ); // simpan alias kontak
-              handleMainMenuClick( "chat" ); // langsung pindah ke chat
+              setSelectedContact( aliasOrName );
+              handleMainMenuClick( "chat" );
             } }
           />
         );
@@ -55,8 +56,34 @@ export default function Home()
         return <ProfilePage { ...commonProps } />;
       default:
         return (
-          <main className="flex-1 p-6 overflow-auto bg-white">
-            <p className="text-gray-700">Silakan pilih menu dari sidebar.</p>
+          <main className="flex-1 flex flex-col items-center justify-center bg-white relative">
+            {/* Tombol mobile: ArrowLeft + "menu" */ }
+            { isMobile && (
+              <button
+                onClick={ () => setShowSidebarOnMobile( true ) }
+                className="absolute top-4 left-4 flex items-center text-gray-700 font-medium"
+              >
+                <ArrowLeft className="w-5 h-5 mr-1" />
+                <span>menu</span>
+              </button>
+            ) }
+
+            {/* Bubble Chat Hijau */ }
+            <div className="w-24 h-24 mb-4 flex items-center justify-center rounded-full bg-green-500 text-white shadow-lg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-12 h-12"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M20 2H4a2 2 0 00-2 2v14l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2z" />
+              </svg>
+            </div>
+
+            {/* Tagline */ }
+            <p className="text-gray-700 text-center text-lg mt-2">
+              Tempat ngobrol cadangan, selalu siap dipakai.
+            </p>
           </main>
         );
     }

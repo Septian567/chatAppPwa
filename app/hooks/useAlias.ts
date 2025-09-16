@@ -3,36 +3,45 @@ import { useEffect, useRef, useState } from "react";
 export function useAlias( email: string, initialAlias: string )
 {
     const [alias, setAlias] = useState( initialAlias );
-    const [addingAlias, setAddingAlias] = useState( false );
+    const [isEditing, setIsEditing] = useState( false );
     const inputRef = useRef<HTMLInputElement>( null );
 
+    // Sinkronisasi alias dari props/API
     useEffect( () =>
     {
         setAlias( initialAlias );
     }, [initialAlias] );
 
+    // Fokus otomatis saat mulai edit, cursor di akhir teks
     useEffect( () =>
     {
-        if ( addingAlias && inputRef.current )
+        if ( isEditing && inputRef.current )
         {
-            inputRef.current.focus();
-            inputRef.current.select();
+            const input = inputRef.current;
+            input.focus();
+            const length = input.value.length;
+            input.setSelectionRange( length, length ); // cursor di ujung
         }
-    }, [addingAlias] );
+    }, [isEditing] );
 
-    const handleSave = ( onAliasSave?: ( username: string, email: string, alias: string ) => void, username?: string ) =>
+    const startEditing = () => setIsEditing( true );
+
+    const saveAlias = (
+        onAliasSave?: ( username: string, email: string, alias: string ) => void,
+        username?: string
+    ) =>
     {
-        if ( alias.trim() )
-        {
-            setAddingAlias( false );
-            if ( onAliasSave && username ) onAliasSave( username, email, alias );
-        }
+        const trimmed = alias.trim();
+        if ( !trimmed ) return;
+
+        setIsEditing( false );
+        if ( onAliasSave && username ) onAliasSave( username, email, trimmed );
     };
 
-    const handleCancel = () =>
+    const cancelEditing = () =>
     {
-        setAddingAlias( false );
-        setAlias( initialAlias ); // kembalikan ke alias dari API
+        setIsEditing( false );
+        setAlias( initialAlias );
     };
 
     const handleKeyDown = (
@@ -44,23 +53,22 @@ export function useAlias( email: string, initialAlias: string )
         if ( e.key === "Enter" )
         {
             e.preventDefault();
-            handleSave( onAliasSave, username );
-        }
-        if ( e.key === "Escape" )
+            saveAlias( onAliasSave, username );
+        } else if ( e.key === "Escape" )
         {
             e.preventDefault();
-            handleCancel();
+            cancelEditing();
         }
     };
 
     return {
         alias,
         setAlias,
-        addingAlias,
-        setAddingAlias,
+        isEditing,
+        startEditing,
         inputRef,
-        handleSave,
-        handleCancel,
+        saveAlias,
+        cancelEditing,
         handleKeyDown,
     };
 }

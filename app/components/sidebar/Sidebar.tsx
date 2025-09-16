@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Phone, Mail, User, LogOut } from "react-feather";
 import HorizontalMenu from "./HorizontalMenu";
 import MainMenu from "./MainMenu";
@@ -15,6 +15,8 @@ interface SidebarProps
 {
   onMainMenuClick: ( menu: string ) => void;
   width: number | string;
+  onResize?: ( newWidth: number ) => void;
+  isResizable?: boolean;
 }
 
 const MAIN_MENU_ITEMS = [
@@ -24,7 +26,12 @@ const MAIN_MENU_ITEMS = [
   { label: "Logout", icon: <LogOut size={ 18 } />, key: null },
 ];
 
-export default function Sidebar( { onMainMenuClick, width }: SidebarProps )
+export default function Sidebar( {
+  onMainMenuClick,
+  width,
+  onResize,
+  isResizable = true
+}: SidebarProps )
 {
   const {
     isMainMenuVisible,
@@ -44,6 +51,7 @@ export default function Sidebar( { onMainMenuClick, width }: SidebarProps )
   } = useSidebarData();
 
   const isDesktop = typeof width === "number";
+  const sidebarRef = useRef<HTMLDivElement>( null );
 
   // --- FIX HYDRATION ---
   const [isClient, setIsClient] = useState( false );
@@ -63,10 +71,17 @@ export default function Sidebar( { onMainMenuClick, width }: SidebarProps )
 
   return (
     <aside
+      ref={ sidebarRef }
       className="bg-transparent text-black h-screen p-4 flex flex-col relative shrink-0 border-r border-gray-300 overflow-x-hidden"
-      style={ { width: typeof width === "number" ? `${ width }px` : width } }
+      style={ {
+        width: typeof width === "number" ? `${ width }px` : width,
+        zIndex: 40 // Pastikan lebih rendah dari resizer
+      } }
     >
-      { isDesktop && <Resizer /> }
+      {/* Konten sidebar */ }
+      { isDesktop && isResizable && (
+        <Resizer onResize={ onResize } />
+      ) }
 
       {/* Bagian Atas */ }
       <div className="flex flex-col gap-2">

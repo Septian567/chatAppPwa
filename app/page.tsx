@@ -15,7 +15,7 @@ import ProfilePage from "./components/profile/ProfilePage";
 export default function Home()
 {
   const router = useRouter();
-  const [loading, setLoading] = useState( true ); // Untuk cek token
+  const [loading, setLoading] = useState( true );
 
   const {
     mainContent,
@@ -23,6 +23,8 @@ export default function Home()
     showSidebarOnMobile,
     computeSidebarWidth,
     setShowSidebarOnMobile,
+    sidebarWidth,
+    handleResize,
   } = useSidebarLayout();
 
   const { handleMainMenuClick } = useSidebarNavigation( isMobile );
@@ -36,7 +38,6 @@ export default function Home()
     commonProps,
   } = useHomePage( isMobile, setShowSidebarOnMobile );
 
-  // --- Proteksi halaman, redirect ke login jika token tidak ada
   useEffect( () =>
   {
     const token = localStorage.getItem( "token" );
@@ -122,7 +123,9 @@ export default function Home()
       { ( !isMobile || showSidebarOnMobile ) && (
         <Sidebar
           onMainMenuClick={ handleMenuClick }
-          width={ isMobile ? "100%" : computeSidebarWidth() }
+          width={ isMobile ? "100%" : sidebarWidth }
+          onResize={ isMobile ? undefined : handleResize }
+          isResizable={ !isMobile }
         />
       ) }
       <div className="flex-1 flex">{ renderContent() }</div>

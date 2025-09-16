@@ -29,10 +29,11 @@ export default function UserItem( {
     const {
         alias,
         setAlias,
-        addingAlias,
-        setAddingAlias,
+        isEditing,
+        startEditing,
         inputRef,
-        handleCancel,
+        saveAlias,
+        cancelEditing,
         handleKeyDown,
     } = useAlias( email, propAlias );
 
@@ -40,11 +41,8 @@ export default function UserItem( {
     {
         if ( alias.trim() )
         {
-            if ( onAliasSave )
-            {
-                onAliasSave( username, email, alias );
-            }
-            setAddingAlias( false );
+            onAliasSave?.( username, email, alias );
+            saveAlias();
         }
     };
 
@@ -94,49 +92,37 @@ export default function UserItem( {
                     ) }
 
                     {/* Input alias */ }
-                    { addingAlias && !showAliasAsName && (
-                        <div
-                            className={ `flex items-center ${ compact ? "mt-1 gap-1" : "mt-2 gap-2"
-                                }` }
-                        >
+                    { isEditing && !showAliasAsName && (
+                        <div className={ `flex items-center ${ compact ? "mt-1 gap-1" : "mt-2 gap-2" }` }>
                             <input
                                 ref={ inputRef }
                                 type="text"
                                 value={ alias }
                                 onChange={ ( e ) => setAlias( e.target.value ) }
-                                onKeyDown={ ( e ) => handleKeyDown( e, () => handleSave(), username ) }
+                                onKeyDown={ ( e ) => handleKeyDown( e, onAliasSave, username ) }
                                 placeholder="alias..."
                                 className="border rounded px-2 py-1 text-sm"
                                 maxLength={ 15 }
                             />
-                            <button
-                                onClick={ handleSave }
-                                className="p-1 rounded hover:bg-gray-200"
-                            >
+                            <button onClick={ handleSave } className="p-1 rounded hover:bg-gray-200">
                                 <Check className="w-4 h-4 text-black" />
                             </button>
-                            <button
-                                onClick={ handleCancel }
-                                className="p-1 rounded hover:bg-gray-200"
-                            >
+                            <button onClick={ cancelEditing } className="p-1 rounded hover:bg-gray-200">
                                 <X className="w-4 h-4 text-black" />
                             </button>
                         </div>
                     ) }
 
                     {/* Display alias */ }
-                    { !addingAlias && alias && !showAliasAsName && (
+                    { !isEditing && alias && !showAliasAsName && (
                         <span className="text-sm text-gray-500">alias: { alias }</span>
                     ) }
                 </div>
             </div>
 
             {/* Tombol edit alias */ }
-            { !addingAlias && !readOnly && !showAliasAsName && (
-                <button
-                    onClick={ () => setAddingAlias( true ) }
-                    className="p-2 rounded hover:bg-gray-100"
-                >
+            { !isEditing && !readOnly && !showAliasAsName && (
+                <button onClick={ startEditing } className="p-2 rounded hover:bg-gray-100">
                     { alias ? (
                         <Pencil className="w-5 h-5 text-gray-600" />
                     ) : (

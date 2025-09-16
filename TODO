@@ -225,10 +225,34 @@ TODO 16 September 2025
 
 
 2. perbaiki UI yang rusak
-- resizer sidebar
-- pencarian user
-- edit kontak langsung fokus
-- data user di sidebar harus menampilkan username
+- resizer sidebar -- SUCCESS
+- pencarian user -- SUCCESS
+- edit kontak langsung fokus -- SUCCESS
+- data user di sidebar harus menampilkan username -- SUCCESS
+- data user di sidebar harus punya foto profil -- SUCCESS
 
+
+3. hubungkan fitur chat
+- kirim pesan lewat API
+- cek login pakai dua user
+- sesuaikan chat kiri kanan
+
+4. buat error handling
+- login
+- rgister
+- menu kontak
+- menu pesan
+
+
+5. fitur loading bar
+6. buat agar saat ganti akun, data user sebelumnya tidak terlihat
+7. singkronkan data profil dengan data user agar saat profil diganti, user langsung berubah
+8. sesuaikan kode api untuk ganti avatar
+9. periksa bucket di S3
+10. refactoring API yang perlu
+11. optimasi aplikasi
+12. fitur ganti bahasa dan ganti tema
+13. fitur telepon dan video call
+14. buat tampilan chat pembuka saat belum ada chat/kontak
 
 

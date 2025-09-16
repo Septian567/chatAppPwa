@@ -1,6 +1,8 @@
 "use client";
 
 import UserItem from "../contacts/UserItem";
+import { useSelector } from "react-redux";
+import { RootState } from "../../states";
 
 interface ContactMenuProps
 {
@@ -11,6 +13,15 @@ interface ContactMenuProps
 
 export default function ContactMenu( { filteredContacts, setActiveContact, onMainMenuClick }: ContactMenuProps )
 {
+    // Ambil map avatar dari Redux
+    const avatarMap = useSelector( ( state: RootState ) =>
+        state.users.list.reduce( ( acc, u ) =>
+        {
+            acc[u.email] = u.avatar_url;
+            return acc;
+        }, {} as Record<string, string> )
+    );
+
     return (
         <div className="space-y-0 ml-2">
             { filteredContacts.length > 0 ? (
@@ -25,9 +36,10 @@ export default function ContactMenu( { filteredContacts, setActiveContact, onMai
                         className="cursor-pointer hover:bg-gray-100 rounded-lg"
                     >
                         <UserItem
-                            name={ c.alias || c.name }
+                            name={ c.alias || c.name || "-" }
                             email={ c.email }
                             alias={ c.alias }
+                            avatar_url={ avatarMap[c.email] || undefined } // pakai avatar dari API
                             readOnly
                             compact
                             showAliasAsName

@@ -4,7 +4,7 @@ import { User, Pencil, Trash2, Check, X } from "lucide-react";
 interface ContactItemProps
 {
     email: string;
-    alias: string; // alias dari props / Redux slice
+    alias: string;
     contact_id?: string;
     avatar_url?: string;
     onDelete?: ( email: string ) => void;
@@ -26,11 +26,27 @@ export default function ContactItem( {
     const [editing, setEditing] = useState( false );
     const inputRef = useRef<HTMLInputElement>( null );
 
-    // 🔹 Sinkronisasi alias dari props ke state saat props berubah
+    // Sinkronisasi alias dari props
     useEffect( () =>
     {
         setAlias( propAlias );
     }, [propAlias] );
+
+    // Fokus otomatis saat mulai edit
+    useEffect( () =>
+    {
+        if ( editing )
+        {
+            const input = inputRef.current;
+            if ( input )
+            {
+                input.focus();
+                const length = input.value.length;
+                // taruh cursor di akhir teks
+                input.setSelectionRange( length, length );
+            }
+        }
+    }, [editing] );
 
     const handleSave = () =>
     {
@@ -43,13 +59,13 @@ export default function ContactItem( {
     const handleCancel = () =>
     {
         setEditing( false );
-        setAlias( propAlias ); // reset ke props terbaru
+        setAlias( propAlias );
     };
 
     const handleDelete = ( e: React.MouseEvent ) =>
     {
         e.stopPropagation();
-        setAlias( "" ); // kosongkan
+        setAlias( "" );
         setEditing( false );
         onDelete?.( email );
     };
@@ -89,22 +105,43 @@ export default function ContactItem( {
                                 ref={ inputRef }
                                 type="text"
                                 value={ alias }
-                                onChange={ ( e ) => { if ( e.target.value.length <= 12 ) setAlias( e.target.value ); } }
+                                onChange={ ( e ) =>
+                                {
+                                    if ( e.target.value.length <= 12 ) setAlias( e.target.value );
+                                } }
                                 onKeyDown={ handleKeyDown }
                                 placeholder="alias..."
                                 className="border rounded px-2 py-1 text-sm"
                             />
-                            <button onClick={ ( e ) => { e.stopPropagation(); handleSave(); } } className="p-1 rounded hover:bg-gray-200">
+                            <button
+                                onClick={ ( e ) =>
+                                {
+                                    e.stopPropagation();
+                                    handleSave();
+                                } }
+                                className="p-1 rounded hover:bg-gray-200"
+                            >
                                 <Check className="w-4 h-4 text-black" />
                             </button>
-                            <button onClick={ ( e ) => { e.stopPropagation(); handleCancel(); } } className="p-1 rounded hover:bg-gray-200">
+                            <button
+                                onClick={ ( e ) =>
+                                {
+                                    e.stopPropagation();
+                                    handleCancel();
+                                } }
+                                className="p-1 rounded hover:bg-gray-200"
+                            >
                                 <X className="w-4 h-4 text-black" />
                             </button>
                         </div>
                     ) : (
                         <>
-                            <p className="font-semibold text-sm truncate" title={ alias || "-" }>{ alias || "-" }</p>
-                            <p className="text-sm text-gray-600 truncate" title={ email }>{ email }</p>
+                            <p className="font-semibold text-sm truncate" title={ alias || "-" }>
+                                { alias || "-" }
+                            </p>
+                            <p className="text-sm text-gray-600 truncate" title={ email }>
+                                { email }
+                            </p>
                         </>
                     ) }
                 </div>
@@ -112,7 +149,14 @@ export default function ContactItem( {
 
             { !editing && (
                 <div className="flex gap-2">
-                    <button onClick={ ( e ) => { e.stopPropagation(); setEditing( true ); } } className="p-2 rounded hover:bg-gray-100">
+                    <button
+                        onClick={ ( e ) =>
+                        {
+                            e.stopPropagation();
+                            setEditing( true );
+                        } }
+                        className="p-2 rounded hover:bg-gray-100"
+                    >
                         <Pencil className="w-5 h-5 text-gray-600" />
                     </button>
                     { alias && (

@@ -2,14 +2,15 @@ import { useState, useMemo } from "react";
 
 interface User
 {
-    name: string;
     email: string;
+    username: string;
+    alias?: string;
 }
 
 interface Contact
 {
-    name: string;
     email: string;
+    username?: string;
     alias?: string;
 }
 
@@ -21,8 +22,9 @@ export function useSearchFilter( users: User[], contacts: Contact[] )
         () =>
             users.filter(
                 ( u ) =>
-                    u.name.toLowerCase().includes( searchQuery.toLowerCase() ) ||
-                    u.email.toLowerCase().includes( searchQuery.toLowerCase() )
+                    ( u.username || "" ).toLowerCase().includes( searchQuery.toLowerCase() ) ||
+                    ( u.email || "" ).toLowerCase().includes( searchQuery.toLowerCase() ) ||
+                    ( u.alias || "" ).toLowerCase().includes( searchQuery.toLowerCase() )
             ),
         [users, searchQuery]
     );
@@ -31,8 +33,8 @@ export function useSearchFilter( users: User[], contacts: Contact[] )
         () =>
             contacts.filter(
                 ( c ) =>
-                    ( c.alias || c.name ).toLowerCase().includes( searchQuery.toLowerCase() ) ||
-                    c.email.toLowerCase().includes( searchQuery.toLowerCase() )
+                    ( c.alias || c.username || "" ).toLowerCase().includes( searchQuery.toLowerCase() ) ||
+                    ( c.email || "" ).toLowerCase().includes( searchQuery.toLowerCase() )
             ),
         [contacts, searchQuery]
     );

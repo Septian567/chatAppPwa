@@ -1,191 +1,244 @@
+// hooks/contacts/useContactsPage.ts
 import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../states";
+import
+    {
+        setContacts,
+        updateContactAlias,
+        deleteContact as deleteContactRedux,
+    } from "../../states/contactsSlice";
+import { getContacts } from "../../utils/contactApiUtils";
+import
+    {
+        createContact,
+    } from "../../utils/createContactApi";
+import { updateContact as updateContactApi } from "../../utils/updateContactApi";
+import { deleteContact as deleteContactApi } from "../../utils/deleteContactApi"; 
 
-export function useContactsPage()
+interface User
 {
+    email: string;
+    username?: string;
+    alias?: string;
+    avatar_url?: string;
+    userId: string;
+}
+
+interface Contact
+{
+    email: string;
+    alias: string;
+    avatar_url?: string;
+    contact_id?: string;
+}
+
+export function useContactsPage( token?: string )
+{
+    const dispatch = useDispatch();
+    const contacts = useSelector( ( state: RootState ) => state.contacts.list as Contact[] );
+
     const [activeMenu, setActiveMenu] = useState<"user" | "contact">( "contact" );
+    const [users, setUsers] = useState<User[]>( [] );
+    const [loading, setLoading] = useState( true );
+    const [error, setError] = useState<string | null>( null );
 
-    const USERS_KEY = "users_data";
-    const CONTACTS_KEY = "contacts_data";
+    const currentUserToken = token || localStorage.getItem( "token" ) || "";
 
-    const [users, setUsers] = useState<{ name: string; email: string }[]>( [] );
-    const [contacts, setContacts] = useState<
-        { name: string; email: string; alias?: string }[]
-    >( [] );
-
-    const [addingUser, setAddingUser] = useState( false );
-    const [newUserName, setNewUserName] = useState( "" );
-    const [newUserEmail, setNewUserEmail] = useState( "" );
-
-    // 🔹 Load users & contacts dari localStorage saat pertama kali mount
+    // Fetch users dari localStorage / default
     useEffect( () =>
     {
-        // Load users
-        const savedUsers = localStorage.getItem( USERS_KEY );
-        let initialUsers = [];
+        const savedUsers = localStorage.getItem( "users_data" );
         if ( savedUsers )
         {
-            initialUsers = JSON.parse( savedUsers );
-            setUsers( initialUsers );
+            const parsed: User[] = JSON.parse( savedUsers ).map( ( u ) => ( {
+                ...u,
+                userId: u.userId || crypto.randomUUID(),
+            } ) );
+            setUsers( parsed );
         } else
         {
-            initialUsers = [
-                { name: "Steven", email: "Steven@gmail.com" },
-                { name: "Septian", email: "Septian@gmail.com" },
+            const defaultUsers: User[] = [
+                { email: "steven@gmail.com", userId: "1" },
+                { email: "septian@gmail.com", userId: "2" },
             ];
-            setUsers( initialUsers );
-            localStorage.setItem( USERS_KEY, JSON.stringify( initialUsers ) );
+            setUsers( defaultUsers );
         }
-
-        // Load contacts
-        const savedContacts = localStorage.getItem( CONTACTS_KEY );
-        let initialContacts = savedContacts ? JSON.parse( savedContacts ) : [];
-
-        // 🔹 Sinkronisasi alias user ke contacts
-        initialUsers.forEach( u =>
-        {
-            const alias = localStorage.getItem( `alias_${ u.email }` );
-            if ( alias )
-            {
-                const exists = initialContacts.find( c => c.email === u.email );
-                if ( !exists )
-                {
-                    initialContacts.push( { name: alias, email: u.email, alias } );
-                }
-            }
-        } );
-
-        setContacts( initialContacts );
-        localStorage.setItem( CONTACTS_KEY, JSON.stringify( initialContacts ) );
     }, [] );
 
-
-    // 🔹 Sync users ke localStorage setiap kali berubah
+    // Fetch contacts dari backend
     useEffect( () =>
     {
-        if ( users.length > 0 )
+        const fetchContacts = async () =>
         {
-            localStorage.setItem( USERS_KEY, JSON.stringify( users ) );
-        }
-    }, [users] );
-
-    // 🔹 Sync contacts ke localStorage setiap kali berubah
-    useEffect( () =>
-    {
-        localStorage.setItem( CONTACTS_KEY, JSON.stringify( contacts ) );
-    }, [contacts] );
-
-    const isValidEmail = ( email: string ) =>
-    {
-        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return regex.test( email );
-    };
-
-    const handleAddUser = () =>
-    {
-        const emailTrimmed = newUserEmail.trim().toLowerCase();
-        const nameTrimmed = newUserName.trim();
-
-        if ( !nameTrimmed || !emailTrimmed ) return;
-
-        // 🔹 Cek email valid
-        if ( !isValidEmail( emailTrimmed ) )
-        {
-            alert( "Email tidak valid!" );
-            return;
-        }
-
-        // 🔹 Cek apakah email sudah ada
-        const emailExists = users.some( u => u.email.toLowerCase() === emailTrimmed );
-        if ( emailExists )
-        {
-            alert( "Email sudah terdaftar!" );
-            return;
-        }
-
-        const newUser = { name: nameTrimmed, email: emailTrimmed };
-
-        setUsers( ( prev ) =>
-        {
-            const updated = [...prev, newUser];
-            localStorage.setItem( USERS_KEY, JSON.stringify( updated ) );
-            return updated;
-        } );
-
-        setNewUserName( "" );
-        setNewUserEmail( "" );
-        setAddingUser( false );
-    };
-
-
-
-    const handleCancelUser = () =>
-    {
-        setNewUserName( "" );
-        setNewUserEmail( "" );
-        setAddingUser( false );
-    };
-
-    // 🔹 Simpan alias → update atau tambahkan contact
-    const handleAliasSave = ( name: string, email: string, alias: string ) =>
-    {
-        setContacts( ( prev ) =>
-        {
-            const exists = prev.find( ( c ) => c.email === email );
-            let updated;
-            if ( exists )
+            setLoading( true );
+            try
             {
-                // update alias tanpa mengubah email
-                updated = prev.map( ( c ) =>
-                    c.email === email ? { ...c, alias } : c
+                const data = await getContacts( currentUserToken );
+                const mapped = data.map( ( c: any ) => ( {
+                    email: c.email,
+                    alias: c.alias?.trim() || "",
+                    avatar_url: c.avatar_url || "",
+                    contact_id: c.contact_id || c.contactId || c.id,
+                } ) );
+                dispatch( setContacts( mapped ) );
+            } catch ( err: any )
+            {
+                setError( err.message || "Failed to fetch contacts" );
+            } finally
+            {
+                setLoading( false );
+            }
+        };
+        fetchContacts();
+    }, [dispatch, currentUserToken] );
+
+    // ================================
+    // Fungsi update alias kontak/user
+    // ================================
+    const handleUpdateContact = async ( email: string, alias: string ) =>
+    {
+        if ( !email ) return alert( "Email tidak valid" );
+
+        const normalizedEmail = email.toLowerCase();
+
+        // Cari user
+        let user = users.find( u => u.email.toLowerCase() === normalizedEmail );
+
+        // Jika user tidak ada, fallback ke contact
+        if ( !user )
+        {
+            const contact = contacts.find( c => c.email.toLowerCase() === normalizedEmail );
+            if ( !contact ) return alert( "User tidak ditemukan" );
+
+            user = {
+                email: contact.email,
+                userId: contact.contact_id || crypto.randomUUID(),
+                username: contact.alias || "",
+                alias: contact.alias || "",
+                avatar_url: contact.avatar_url,
+            };
+            setUsers( prev => [...prev, user] );
+        }
+
+        // Cari kontak
+        let contact = contacts.find( c => c.email.toLowerCase() === normalizedEmail );
+
+        try
+        {
+            if ( contact && contact.contact_id )
+            {
+                // Update alias ke backend
+                const result = await updateContactApi( contact.contact_id, { alias } );
+                if ( !result.success || !result.data )
+                    throw new Error( result.message || "Gagal update kontak" );
+
+                // 🔹 Update contacts slice langsung agar ContactList re-render
+                dispatch( updateContactAlias( { email: contact.email, alias: result.data.alias } ) );
+
+                // 🔹 Update users state
+                setUsers( prev =>
+                    prev.map( u => u.email.toLowerCase() === normalizedEmail
+                        ? { ...u, alias: result.data.alias }
+                        : u
+                    )
                 );
+
             } else
             {
-                updated = [...prev, { name, email, alias }];
+                // Buat kontak baru
+                const newContact = await createContact( { contactId: user.userId, alias }, currentUserToken );
+
+                contact = {
+                    email: user.email,
+                    alias: newContact.alias,
+                    avatar_url: user.avatar_url,
+                    contact_id: newContact.contact_id || newContact.contactId || newContact.id,
+                };
+
+                // 🔹 Tambahkan ke contacts slice
+                dispatch( setContacts( [...contacts.filter( c => c.email.toLowerCase() !== normalizedEmail ), contact] ) );
+
+                // 🔹 Update users state
+                setUsers( prev =>
+                    prev.map( u => u.email.toLowerCase() === normalizedEmail
+                        ? { ...u, alias: newContact.alias }
+                        : u
+                    )
+                );
             }
-            localStorage.setItem( CONTACTS_KEY, JSON.stringify( updated ) );
-            return updated;
-        } );
+        } catch ( err: any )
+        {
+            console.error( "Update contact error:", err.message || err );
+            alert( `Gagal update kontak: ${ err.message || "Unknown error" }` );
+        }
     };
 
-    const handleDeleteContact = ( email: string ) =>
+
+    // 🔹 Fungsi tunggal untuk UserItem
+    const handleUpdateAliasFromUser = async ( username: string, email: string, alias: string ) =>
     {
-        setContacts( ( prev ) =>
-        {
-            const updated = prev.filter( ( c ) => c.email !== email );
-            localStorage.setItem( CONTACTS_KEY, JSON.stringify( updated ) );
-            return updated;
-        } );
+        await handleUpdateContact( email, alias );
     };
 
-    const handleUpdateContact = ( email: string, newAlias: string ) =>
+    // ================================
+    // Hapus kontak
+    // ================================
+    const handleDeleteContact = async ( email: string ) =>
     {
-        setContacts( ( prev ) =>
+        const contact = contacts.find( ( c ) => c.email === email );
+        if ( !contact?.contact_id ) return alert( "contact_id tidak ditemukan." );
+
+        try
         {
-            const updated = prev.map( ( c ) =>
-                c.email === email ? { ...c, alias: newAlias } : c
+            // 1️⃣ Panggil API deleteContact
+            const result = await deleteContactApi( contact.contact_id );
+
+            if ( !result.success )
+            {
+                throw new Error( result.message || "Gagal menghapus kontak" );
+            }
+
+            // 2️⃣ Update Redux slice
+            dispatch( deleteContactRedux( email ) );
+
+            // 3️⃣ Update users state (kosongkan alias)
+            setUsers( ( prev ) =>
+                prev.map( ( u ) => ( u.email === email ? { ...u, alias: "" } : u ) )
             );
-            localStorage.setItem( CONTACTS_KEY, JSON.stringify( updated ) );
-            return updated;
-        } );
+
+            // Optional: tampilkan notifikasi sukses
+            console.log( "Kontak berhasil dihapus:", email );
+
+        } catch ( err: any )
+        {
+            console.error( "Delete contact API error:", err.message || err );
+            alert( `Gagal menghapus kontak: ${ err.message || "Unknown error" }` );
+        }
     };
+
+    // ================================
+    // usersWithAlias untuk UserList
+    // ================================
+    const usersWithAlias = users.map( ( u ) =>
+    {
+        const contact = contacts.find( ( c ) => c.email === u.email );
+        return {
+            ...u,
+            alias: contact?.alias || u.alias || "",
+            contact_id: contact?.contact_id,
+        };
+    } );
 
     return {
         activeMenu,
         setActiveMenu,
-        users,
-        setUsers,
+        users: usersWithAlias,
         contacts,
-        setContacts,
-        addingUser,
-        setAddingUser,
-        newUserName,
-        setNewUserName,
-        newUserEmail,
-        setNewUserEmail,
-        handleAddUser,
-        handleCancelUser,
-        handleAliasSave,
-        handleDeleteContact,
         handleUpdateContact,
+        handleUpdateAliasFromUser, // tunggal, aman dipanggil dari UserItem
+        handleDeleteContact,
+        loading,
+        error,
     };
 }

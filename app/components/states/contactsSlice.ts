@@ -2,21 +2,21 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface Contact
 {
+    name: string;
     email: string;
-    alias: string;
-    avatar_url?: string;
-    contact_id?: string;
+    alias?: string;
 }
 
 interface ContactsState
 {
     list: Contact[];
-    activeContact: Contact | null;
+    activeContact: Contact | null; // Tambahan: menyimpan kontak yang sedang dipilih
 }
 
 const CONTACTS_KEY = "contacts_data";
-const ACTIVE_CONTACT_KEY = "active_contact";
+const ACTIVE_CONTACT_KEY = "active_contact"; // Tambahan
 
+// Ambil data awal dari localStorage
 const initialContacts: Contact[] = ( () =>
 {
     try
@@ -29,6 +29,7 @@ const initialContacts: Contact[] = ( () =>
     }
 } )();
 
+// Ambil kontak aktif terakhir
 const initialActiveContact: Contact | null = ( () =>
 {
     try
@@ -43,7 +44,7 @@ const initialActiveContact: Contact | null = ( () =>
 
 const initialState: ContactsState = {
     list: initialContacts,
-    activeContact: initialActiveContact,
+    activeContact: initialActiveContact, // Tambahan
 };
 
 const contactsSlice = createSlice( {
@@ -73,6 +74,13 @@ const contactsSlice = createSlice( {
             if ( contact )
             {
                 contact.alias = action.payload.alias;
+            } else
+            {
+                state.list.push( {
+                    name: action.payload.alias,
+                    email: action.payload.email,
+                    alias: action.payload.alias,
+                } );
             }
             localStorage.setItem( CONTACTS_KEY, JSON.stringify( state.list ) );
         },
@@ -81,6 +89,7 @@ const contactsSlice = createSlice( {
             state.list = state.list.filter( c => c.email !== action.payload );
             localStorage.setItem( CONTACTS_KEY, JSON.stringify( state.list ) );
         },
+        // 🔹 Tambahan: set kontak aktif
         setActiveContact: ( state, action: PayloadAction<Contact | null> ) =>
         {
             state.activeContact = action.payload;
@@ -100,7 +109,7 @@ export const {
     addContact,
     updateContactAlias,
     deleteContact,
-    setActiveContact,
+    setActiveContact, // 🔹 ekspor action baru
 } = contactsSlice.actions;
 
 export default contactsSlice.reducer;

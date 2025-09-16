@@ -1,85 +1,126 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { getAllUsers } from "../utils/apiUsers";
+import { updateContact as updateContactApi } from "../utils/updateContactApi";
+import { createContact, ContactCreateBody } from "../utils/createContactApi";
+import { RootState } from "./index";
 
-interface User
+export interface User
 {
-    name: string;
     email: string;
+    username: string;
     alias?: string;
+    avatar_url?: string;
+    userId: string; // id user dari backend
 }
 
 interface UsersState
 {
     list: User[];
+    loading: boolean;
+    error: string | null;
 }
 
-const USERS_KEY = "users_data";
-
-// Ambil data awal dari localStorage (jika ada)
 const initialState: UsersState = {
-    list: ( () =>
-    {
-        try
-        {
-            const saved = localStorage.getItem( USERS_KEY );
-            return saved ? JSON.parse( saved ) : [];
-        } catch
-        {
-            return [];
-        }
-    } )(),
+    list: [],
+    loading: false,
+    error: null,
 };
+
+// 🔹 Fetch semua users dari API
+export const fetchUsers = createAsyncThunk( "users/fetchUsers", async () =>
+{
+    const res = await getAllUsers();
+    if ( !res.success || !res.data ) throw new Error( res.message || "Failed to fetch users" );
+    return res.data; // diasumsikan API return { id, email, username, avatar_url }
+} );
+
+// 🔹 Update alias user → ke API contacts
+export const updateUserAlias = createAsyncThunk<
+    { email: string; alias: string }, // return
+    { email: string; alias: string }, // args
+    { state: RootState }
+>(
+    "users/updateUserAlias",
+    async ( { email, alias }, { getState } ) =>
+    {
+        const state = getState();
+        const contacts = state.contacts.list;
+        const users = state.users.list;
+        const token = localStorage.getItem( "token" ) || "";
+
+        const user = users.find( ( u ) => u.email === email );
+        if ( !user ) throw new Error( "User tidak ditemukan" );
+
+        const contact = contacts.find( ( c ) => c.email === email );
+
+        if ( contact && contact.contact_id )
+        {
+            // kontak sudah ada → update alias
+            const result = await updateContactApi( contact.contact_id, { alias } );
+            if ( !result.success || !result.data ) throw new Error( result.message || "Gagal update kontak" );
+            return { email, alias: result.data.alias };
+        } else
+        {
+            // kontak baru → create
+            const body: ContactCreateBody = { contactId: user.userId, alias };
+            const newContact = await createContact( body, token );
+            return { email, alias: newContact.alias };
+        }
+    }
+);
 
 const usersSlice = createSlice( {
     name: "users",
     initialState,
     reducers: {
-        setUsers: ( state, action: PayloadAction<User[]> ) =>
+        addUser: ( state, action: PayloadAction<User> ) =>
         {
-            // Hilangkan duplikat berdasarkan email
-            const uniqueUsers: User[] = [];
-            const emails = new Set<string>();
-
-            action.payload.forEach( u =>
-            {
-                if ( !emails.has( u.email ) )
-                {
-                    uniqueUsers.push( u );
-                    emails.add( u.email );
-                }
-            } );
-
-            state.list = uniqueUsers;
-            localStorage.setItem( USERS_KEY, JSON.stringify( state.list ) );
-        },
-        addUser: ( state, action: PayloadAction<{ name: string; email: string; alias?: string }> ) =>
-        {
-            const exists = state.list.some( u => u.email === action.payload.email );
+            const exists = state.list.some( ( u ) => u.email === action.payload.email );
             if ( !exists )
             {
                 state.list.push( action.payload );
-                localStorage.setItem( USERS_KEY, JSON.stringify( state.list ) );
+                localStorage.setItem( "users_data", JSON.stringify( state.list ) );
             }
         },
-        updateAlias: ( state, action: PayloadAction<{ email: string; alias: string }> ) =>
-        {
-            const { email, alias } = action.payload;
-            const user = state.list.find( u => u.email === email );
-            if ( user )
+        // ❌ Tidak perlu updateAlias manual lagi
+    },
+    extraReducers: ( builder ) =>
+    {
+        builder
+            .addCase( fetchUsers.pending, ( state ) =>
             {
-                user.alias = alias;
-            } else
+                state.loading = true;
+                state.error = null;
+            } )
+            .addCase( fetchUsers.fulfilled, ( state, action ) =>
             {
-                // Jika belum ada, tambahkan user baru dengan alias sebagai name
-                state.list.push( {
-                    name: alias,
-                    email,
-                    alias,
-                } );
-            }
-            localStorage.setItem( USERS_KEY, JSON.stringify( state.list ) );
-        },
+                state.loading = false;
+                state.list = action.payload.map( ( u: any ) => ( {
+                    email: u.email,
+                    username: u.username || "",
+                    alias: u.alias || "",
+                    avatar_url: u.avatar_url || "",
+                    userId: u.id,
+                } ) );
+                localStorage.setItem( "users_data", JSON.stringify( state.list ) );
+            } )
+            .addCase( fetchUsers.rejected, ( state, action ) =>
+            {
+                state.loading = false;
+                state.error = action.error.message || "Failed to fetch users";
+            } )
+            .addCase( updateUserAlias.fulfilled, ( state, action ) =>
+            {
+                const { email, alias } = action.payload;
+                const user = state.list.find( ( u ) => u.email === email );
+                if ( user )
+                {
+                    user.alias = alias;
+                }
+                localStorage.setItem( "users_data", JSON.stringify( state.list ) );
+            } );
     },
 } );
 
-export const { setUsers, addUser, updateAlias } = usersSlice.actions;
+export const { addUser } = usersSlice.actions;
 export default usersSlice.reducer;

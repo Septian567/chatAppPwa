@@ -1,17 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import Sidebar from "./components/sidebar/Sidebar";
 import { useSidebarLayout } from "./hooks/useSidebarLayout";
 import { useSidebarNavigation } from "./hooks/useSidebarNavigation";
+import { useHomePage } from "./hooks/useHomePage";
 import ChatPage from "./components/chat/ChatPage";
 import ContactsPage from "./components/contacts/ContactsPage";
 import ProfilePage from "./components/profile/ProfilePage";
 
 export default function Home()
 {
+  const router = useRouter();
+  const [loading, setLoading] = useState( true ); // Untuk cek token
+
   const {
     mainContent,
     isMobile,
@@ -22,32 +27,29 @@ export default function Home()
 
   const { handleMainMenuClick } = useSidebarNavigation( isMobile );
 
-  const [selectedContact, setSelectedContact] = useState<string | null>( null );
-  const [isClient, setIsClient] = useState( false );
-  const [hydrated, setHydrated] = useState( false ); // <- new
+  const {
+    selectedContact,
+    setSelectedContact,
+    hydrated,
+    showHomePage,
+    setShowHomePage,
+    commonProps,
+  } = useHomePage( isMobile, setShowSidebarOnMobile );
 
-  const [showHomePage, setShowHomePage] = useState( true );
-
+  // --- Proteksi halaman, redirect ke login jika token tidak ada
   useEffect( () =>
   {
-    setIsClient( true );
-  }, [] );
-
-  // Delay render sampai semua state siap
-  useEffect( () =>
-  {
-    if ( isClient && isMobile !== undefined )
+    const token = localStorage.getItem( "token" );
+    if ( !token )
     {
-      setHydrated( true );
+      router.push( "/login" );
+    } else
+    {
+      setLoading( false );
     }
-  }, [isClient, isMobile] );
+  }, [router] );
 
-  if ( !hydrated ) return null; // <- jangan render sebelum siap
-
-  const commonProps = {
-    isMobile,
-    onBack: () => setShowSidebarOnMobile( true ),
-  };
+  if ( !hydrated || loading ) return null;
 
   const handleMenuClick = ( menu: string ) =>
   {
@@ -117,15 +119,12 @@ export default function Home()
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Sidebar */ }
       { ( !isMobile || showSidebarOnMobile ) && (
         <Sidebar
           onMainMenuClick={ handleMenuClick }
           width={ isMobile ? "100%" : computeSidebarWidth() }
         />
       ) }
-
-      {/* Konten utama */ }
       <div className="flex-1 flex">{ renderContent() }</div>
     </div>
   );

@@ -8,12 +8,11 @@ import ContactList from "./ContactList";
 import { useScrollPositions } from "../../hooks/contacts/useScrollPosition";
 import { useSearchFilter } from "../../hooks/contacts/useSearchFilter";
 import { useDispatch } from "react-redux";
-import { RootState } from "../../states";
 import { addUser } from "../../states/usersSlice";
 import { setContacts, setActiveContact } from "../../states/contactsSlice";
 import { useContactsPage } from "../../hooks/contacts/useContactsPage";
 import { useSidebarNavigation } from "../../hooks/useSidebarNavigation";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 interface ContactsPageProps
 {
@@ -40,10 +39,27 @@ export default function ContactsPage( { isMobile, onBack }: ContactsPageProps )
         setNewUserEmail,
         handleAddUser,
         handleCancelUser,
-        handleAliasSave,
+        handleUpdateAliasFromUser,
         handleDeleteContact,
         handleUpdateContact,
     } = useContactsPage();
+
+    const { scrollRef, handleScroll } = useScrollPositions( activeMenu );
+    const { searchQuery, setSearchQuery, filteredUsers, filteredContacts } =
+        useSearchFilter( users, contacts );
+
+    // Buat usersWithAlias untuk UserList (alias dari contacts)
+    const usersWithAlias = useMemo( () =>
+    {
+        return users.map( ( u ) =>
+        {
+            const contact = contacts.find( ( c ) => c.email === u.email );
+            return {
+                ...u,
+                alias: contact?.alias || "", // default kosong, bukan "-"
+            };
+        } );
+    }, [users, contacts] );
 
     // Sinkronkan contacts ke Redux
     useEffect( () =>
@@ -51,18 +67,20 @@ export default function ContactsPage( { isMobile, onBack }: ContactsPageProps )
         dispatch( setContacts( contacts ) );
     }, [contacts, dispatch] );
 
-    // Sinkronkan users ke Redux
+    // Sinkronkan users ke Redux (dispatch addUser) — lakukan hanya sekali per user
     useEffect( () =>
     {
-        users.forEach( ( u ) =>
+        usersWithAlias.forEach( ( u ) =>
         {
-            dispatch( addUser( { name: u.name, email: u.email } ) );
+            dispatch(
+                addUser( {
+                    username: u.username,
+                    email: u.email,
+                    alias: u.alias,
+                } )
+            );
         } );
-    }, [users, dispatch] );
-
-    const { scrollRef, handleScroll } = useScrollPositions( activeMenu );
-    const { searchQuery, setSearchQuery, filteredUsers, filteredContacts } =
-        useSearchFilter( users, contacts );
+    }, [usersWithAlias, dispatch] );
 
     return (
         <main className="flex-1 flex flex-col bg-white h-screen">
@@ -85,8 +103,8 @@ export default function ContactsPage( { isMobile, onBack }: ContactsPageProps )
             >
                 { activeMenu === "user" ? (
                     <UserList
-                        users={ filteredUsers }
-                        onAliasSave={ handleAliasSave }
+                        users={ usersWithAlias } // gunakan usersWithAlias
+                        onAliasSave={ ( username, email, alias ) => handleUpdateAliasFromUser( username, email, alias ) }
                         addingUser={ addingUser }
                         newUserName={ newUserName }
                         newUserEmail={ newUserEmail }
@@ -97,31 +115,32 @@ export default function ContactsPage( { isMobile, onBack }: ContactsPageProps )
                         onOpen={ () => setAddingUser( true ) }
                     />
                 ) : (
-                    <ContactList
-                        contacts={ filteredContacts }
-                        onDelete={ handleDeleteContact }
-                        onUpdate={ handleUpdateContact }
-                        onSelect={ ( email ) =>
-                        {
-                            const selectedContact = contacts.find(
-                                ( c ) => c.email === email
-                            );
-                            if ( selectedContact )
+                        <ContactList
+                            contacts={ filteredContacts.map( c =>
                             {
-                                // Pastikan alias diambil jika ada, jika tidak gunakan name
-                                dispatch(
-                                    setActiveContact( {
+                                // Sinkronisasi alias terbaru dari users
+                                const user = users.find( u => u.email === c.email );
+                                return {
+                                    ...c,
+                                    alias: user?.alias || c.alias || "",
+                                };
+                            } ) }
+                            onDelete={ handleDeleteContact }
+                            onUpdate={ handleUpdateContact }
+                            onSelect={ ( email ) =>
+                            {
+                                const selectedContact = contacts.find( c => c.email === email );
+                                if ( selectedContact )
+                                {
+                                    dispatch( setActiveContact( {
                                         ...selectedContact,
-                                        alias:
-                                            selectedContact.alias ||
-                                            selectedContact.name ||
-                                            "Bento",
-                                    } )
-                                );
-                            }
-                            handleMainMenuClick( "chat" );
-                        } }
-                    />
+                                        alias: selectedContact.alias || selectedContact.username || "",
+                                    } ) );
+                                }
+                                handleMainMenuClick( "chat" );
+                            } }
+                        />
+
                 ) }
             </div>
         </main>

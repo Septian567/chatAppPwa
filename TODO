@@ -175,10 +175,60 @@ TODO 10 September 2025
 4. hilangkan glitch video -- SUCCESS
 
 
+https://documenter.getpostman.com/view/19977783/2sB3HooK1S
 
 
 
+
+https://documenter.getpostman.com/view/19977783/2sB3HooK1S
 
 
 2. lakukan simulasi aplikasi chat tanpa api sampai proses pengiriman pesan
 3. tambahkan fitur ganti bahasa (inggris dan indonesia) dan ganti tema
+
+
+TODO 13 September 2025
+1. hubungkan data user ke api -- SUCCESS
+
+TODO 14 September 2025
+1. hubungkan data contact ke api
+- pada saat tambah alias, hubungkan ke api -- Failed
+
+
+TODO 15 September 2025
+1. pastikan getAllContact bekerja -- SUCCESS
+- buat halaman login dan get kontak baru
+- coba hubungkan api
+
+2. pastikan dihalaman kontak tampil alias dan email dari api -- SUCCESS
+3. tampilkan alias dari getAllContacts (api) di daftar user -- SUCCESS
+- buat alias:-
+- isi alias dari getAllContact
+
+4. tampilkan foto profil dari api
+- user -- SUCCESS
+- kontak -- SUCCESS
+
+
+5. hubungkan fitur tambah kontak ke api (Dummy)  -- SUCCESS
+- login
+- getAllUser
+- form tambah alias
+- masuk ke kontak
+- getAllContact berisi kontak baru
+
+6. hubungkan fitur edit kontak -- SUCCESS
+
+TODO 16 September 2025
+1. hubungkan fitur hapus kontak ke api -- SUCCESS
+
+
+
+2. perbaiki UI yang rusak
+- resizer sidebar
+- pencarian user
+- edit kontak langsung fokus
+- data user di sidebar harus menampilkan username
+
+
+

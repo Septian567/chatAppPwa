@@ -1,4 +1,3 @@
-// hooks/useAlias.ts
 import { useEffect, useRef, useState } from "react";
 
 export function useAlias( email: string, initialAlias: string )
@@ -6,18 +5,11 @@ export function useAlias( email: string, initialAlias: string )
     const [alias, setAlias] = useState( initialAlias );
     const [addingAlias, setAddingAlias] = useState( false );
     const inputRef = useRef<HTMLInputElement>( null );
-    const storageKey = `alias_${ email }`;
 
     useEffect( () =>
     {
         setAlias( initialAlias );
     }, [initialAlias] );
-
-    useEffect( () =>
-    {
-        const savedAlias = localStorage.getItem( storageKey );
-        if ( savedAlias ) setAlias( savedAlias );
-    }, [storageKey] );
 
     useEffect( () =>
     {
@@ -28,28 +20,31 @@ export function useAlias( email: string, initialAlias: string )
         }
     }, [addingAlias] );
 
-    const handleSave = ( onAliasSave?: ( name: string, email: string, alias: string ) => void, name?: string ) =>
+    const handleSave = ( onAliasSave?: ( username: string, email: string, alias: string ) => void, username?: string ) =>
     {
         if ( alias.trim() )
         {
-            localStorage.setItem( storageKey, alias );
             setAddingAlias( false );
-            if ( onAliasSave && name ) onAliasSave( name, email, alias );
+            if ( onAliasSave && username ) onAliasSave( username, email, alias );
         }
     };
 
     const handleCancel = () =>
     {
         setAddingAlias( false );
-        if ( !localStorage.getItem( storageKey ) ) setAlias( "" );
+        setAlias( initialAlias ); // kembalikan ke alias dari API
     };
 
-    const handleKeyDown = ( e: React.KeyboardEvent<HTMLInputElement>, onAliasSave?: ( name: string, email: string, alias: string ) => void, name?: string ) =>
+    const handleKeyDown = (
+        e: React.KeyboardEvent<HTMLInputElement>,
+        onAliasSave?: ( username: string, email: string, alias: string ) => void,
+        username?: string
+    ) =>
     {
         if ( e.key === "Enter" )
         {
             e.preventDefault();
-            handleSave( onAliasSave, name );
+            handleSave( onAliasSave, username );
         }
         if ( e.key === "Escape" )
         {

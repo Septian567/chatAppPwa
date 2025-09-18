@@ -13,7 +13,7 @@ interface ChatAudioMessageProps
     align?: "left" | "right";
     onSoftDeleteClick?: () => void;
     onDeleteClick?: () => void;
-    onToggleMenu?: ( isOpen: boolean ) => void; // 🔹 indikator toggle menu
+    onToggleMenu?: ( isOpen: boolean ) => void;
 }
 
 export default function ChatAudioMessage( {
@@ -22,16 +22,16 @@ export default function ChatAudioMessage( {
     duration,
     isSoftDeleted,
     textStatus,
-    align = "right", // default kanan
+    align = "right",
     onSoftDeleteClick,
     onDeleteClick,
-    onToggleMenu, // 🔹 diterima
+    onToggleMenu,
 }: ChatAudioMessageProps )
 {
     return (
         <ChatBubble variant="media" align={ align }>
             <div className="flex flex-col gap-1 w-full max-w-xs">
-                {/* Baris utama: play, wave, waktu, menu */ }
+                {/* Baris utama: audio player, waktu, menu */ }
                 <div className="flex items-center justify-between gap-3">
                     { isSoftDeleted ? (
                         <span className="text-sm text-gray-500 italic">
@@ -39,7 +39,10 @@ export default function ChatAudioMessage( {
                         </span>
                     ) : (
                         <div className="flex items-center gap-3 flex-1">
-                            <CustomAudioPlayer src={ audioUrl } manualDuration={ duration } />
+                            <CustomAudioPlayer
+                                src={ audioUrl }
+                                manualDuration={ duration }
+                            />
                             <span className="text-xs text-gray-700 whitespace-nowrap">
                                 { time }
                             </span>
@@ -52,24 +55,10 @@ export default function ChatAudioMessage( {
                             onSoftDeleteClick={ onSoftDeleteClick }
                             onDeleteClick={ onDeleteClick }
                             align={ align }
-                            onToggle={ onToggleMenu } // 🔹 diteruskan ke MessageMenu
+                            onToggle={ onToggleMenu }
                         />
                     ) }
                 </div>
-
-                {/* Indikator waktu di bawah */ }
-                { !isSoftDeleted && (
-                    <div className="flex justify-between text-[11px] text-gray-500 pl-7">
-                        <span>0:00</span>
-                        <span>
-                            { duration
-                                ? `${ Math.floor( duration / 60 ) }:${ String(
-                                    Math.floor( duration % 60 )
-                                ).padStart( 2, "0" ) }`
-                                : "--:--" }
-                        </span>
-                    </div>
-                ) }
             </div>
         </ChatBubble>
     );

@@ -2,10 +2,10 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface Contact
 {
+    contact_id: string;  // wajib untuk API
     email: string;
     alias: string;
     avatar_url?: string;
-    contact_id?: string;
 }
 
 interface ContactsState
@@ -57,7 +57,12 @@ const contactsSlice = createSlice( {
         },
         addContact: ( state, action: PayloadAction<Contact> ) =>
         {
-            const exists = state.list.some( c => c.email === action.payload.email );
+            if ( !action.payload.contact_id )
+            {
+                console.error( "Contact harus memiliki contact_id!" );
+                return;
+            }
+            const exists = state.list.some( c => c.contact_id === action.payload.contact_id );
             if ( !exists )
             {
                 state.list.push( action.payload );
@@ -66,10 +71,10 @@ const contactsSlice = createSlice( {
         },
         updateContactAlias: (
             state,
-            action: PayloadAction<{ email: string; alias: string }>
+            action: PayloadAction<{ contact_id: string; alias: string }>
         ) =>
         {
-            const contact = state.list.find( c => c.email === action.payload.email );
+            const contact = state.list.find( c => c.contact_id === action.payload.contact_id );
             if ( contact )
             {
                 contact.alias = action.payload.alias;
@@ -78,11 +83,16 @@ const contactsSlice = createSlice( {
         },
         deleteContact: ( state, action: PayloadAction<string> ) =>
         {
-            state.list = state.list.filter( c => c.email !== action.payload );
+            state.list = state.list.filter( c => c.contact_id !== action.payload );
             localStorage.setItem( CONTACTS_KEY, JSON.stringify( state.list ) );
         },
         setActiveContact: ( state, action: PayloadAction<Contact | null> ) =>
         {
+            if ( action.payload && !action.payload.contact_id )
+            {
+                console.error( "activeContact harus memiliki contact_id!" );
+                return;
+            }
             state.activeContact = action.payload;
             if ( action.payload )
             {

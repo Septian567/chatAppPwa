@@ -37,14 +37,15 @@ export default function ChatBody( {
     onSoftDeleteAudioMessage,
 }: ChatBodyProps )
 {
-    const { bottomRef, chatBodyRef, isMenuOpen, setIsMenuOpen } = useChatBody( messages );
+    const { bottomRef, chatBodyRef, setIsMenuOpen } = useChatBody( messages );
 
-    const activeContact = useSelector( ( state: RootState ) => state.contacts.activeContact );
+    const activeContact = useSelector(
+        ( state: RootState ) => state.contacts.activeContact
+    );
 
-    // tandai render pertama
     const firstRender = useRef( true );
 
-    // scroll ke bawah saat ganti kontak (langsung, tanpa glitch)
+    // scroll ke bawah saat ganti kontak
     useLayoutEffect( () =>
     {
         if ( bottomRef.current )
@@ -61,66 +62,90 @@ export default function ChatBody( {
         >
             { messages.map( ( msg, index ) =>
             {
-                const align: "left" | "right" = msg.side === "kiri" ? "left" : "right";
+                const align: "left" | "right" =
+                    msg.side === "kiri" ? "left" : "right";
 
-                if ( msg.text )
+                // 1️⃣ File dengan caption
+                if ( msg.fileUrl || msg.caption )
                 {
-                    const isDeleted = isSoftDeletedMessage( msg.text );
+                    const isSoftDeleted = isSoftDeletedMessage( msg.caption );
                     return (
-                        <ChatTextMessage
-                            key={ index }
-                            text={ msg.text }
+                        <ChatFileMessage
+                            key={ msg.id || index }
+                            fileUrl={ msg.fileUrl || "" }
+                            fileName={ msg.fileName }
+                            caption={ msg.caption } // ⬅️ caption dipastikan dikirim
                             time={ msg.time }
                             align={ align }
-                            onEditClick={ !isDeleted ? () => onEditTextMessage?.( index ) : undefined }
-                            onSoftDeleteClick={ !isDeleted ? () => onSoftDeleteTextMessage?.( index ) : undefined }
-                            onDeleteClick={ () => onDeleteTextMessage?.( index ) }
+                            isActive={ true }
+                            onEditClick={
+                                !isSoftDeleted
+                                    ? () => onEditFileMessage?.( index )
+                                    : undefined
+                            }
+                            onSoftDeleteClick={
+                                !isSoftDeleted
+                                    ? () => onSoftDeleteFileMessage?.( index )
+                                    : undefined
+                            }
+                            onDeleteClick={ () => onDeleteFileMessage?.( index ) }
                             onToggleMenu={ setIsMenuOpen }
                         />
                     );
                 }
 
+                // 2️⃣ Audio
                 if ( msg.audioUrl || isSoftDeletedMessage( msg.text ) )
                 {
                     return (
                         <ChatAudioMessage
-                            key={ index }
+                            key={ msg.id || index }
                             audioUrl={ msg.audioUrl }
                             time={ msg.time }
                             duration={ msg.duration }
                             isSoftDeleted={ msg.isSoftDeleted }
                             textStatus={ msg.text }
                             align={ align }
-                            onSoftDeleteClick={ !msg.isSoftDeleted ? () => onSoftDeleteAudioMessage?.( index ) : undefined }
+                            onSoftDeleteClick={
+                                !msg.isSoftDeleted
+                                    ? () => onSoftDeleteAudioMessage?.( index )
+                                    : undefined
+                            }
                             onDeleteClick={ () => onDeleteAudioMessage?.( index ) }
                             onToggleMenu={ setIsMenuOpen }
                         />
                     );
                 }
 
-                if ( msg.fileUrl || msg.caption )
+                // 3️⃣ Text
+                if ( msg.text )
                 {
-                    const isSoftDeleted = isSoftDeletedMessage( msg.caption );
+                    const isDeleted = isSoftDeletedMessage( msg.text );
                     return (
-                        <ChatFileMessage
-                            key={ index }
-                            fileUrl={ msg.fileUrl || "" }
-                            fileName={ msg.fileName }
-                            caption={ msg.caption || "" }
+                        <ChatTextMessage
+                            key={ msg.id || index }
+                            text={ msg.text }
                             time={ msg.time }
                             align={ align }
-                            isActive={ true } // 🔹 bisa disesuaikan berdasarkan kontak aktif
-                            onEditClick={ !isSoftDeleted ? () => onEditFileMessage?.( index ) : undefined }
-                            onSoftDeleteClick={ !isSoftDeleted ? () => onSoftDeleteFileMessage?.( index ) : undefined }
-                            onDeleteClick={ () => onDeleteFileMessage?.( index ) }
+                            onEditClick={
+                                !isDeleted
+                                    ? () => onEditTextMessage?.( index )
+                                    : undefined
+                            }
+                            onSoftDeleteClick={
+                                !isDeleted
+                                    ? () => onSoftDeleteTextMessage?.( index )
+                                    : undefined
+                            }
+                            onDeleteClick={ () => onDeleteTextMessage?.( index ) }
                             onToggleMenu={ setIsMenuOpen }
                         />
-
                     );
                 }
 
                 return null;
             } ) }
+
             <div ref={ bottomRef } />
         </div>
     );

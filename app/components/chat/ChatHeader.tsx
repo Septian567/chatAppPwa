@@ -10,6 +10,7 @@ interface ChatHeaderProps
     onChatKiri?: () => void;
     onChatKanan?: () => void;
     contactName?: string; // alias kontak
+    contactId?: string;   // <-- tambahkan contactId
 }
 
 export default function ChatHeader( {
@@ -18,6 +19,7 @@ export default function ChatHeader( {
     onChatKiri,
     onChatKanan,
     contactName,
+    contactId,
 }: ChatHeaderProps )
 {
     const [activeButton, setActiveButton] = useState<"kiri" | "kanan" | null>( null );
@@ -60,21 +62,15 @@ export default function ChatHeader( {
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                         onClick={ () => handleClick( "kiri" ) }
-                        className={ `px-3 py-1 border border-black rounded-lg text-sm font-medium transition 
-              ${ activeButton === "kiri"
-                                ? "bg-yellow-400 text-white"
-                                : "hover:bg-gray-100"
-                            }` }
+                        className={ `px-3 py-1 border border-black rounded-lg text-sm font-medium transition
+              ${ activeButton === "kiri" ? "bg-yellow-400 text-white" : "hover:bg-gray-100" }` }
                     >
                         kiri
                     </button>
                     <button
                         onClick={ () => handleClick( "kanan" ) }
-                        className={ `px-3 py-1 border border-black rounded-lg text-sm font-medium transition 
-              ${ activeButton === "kanan"
-                                ? "bg-yellow-400 text-white"
-                                : "hover:bg-gray-100"
-                            }` }
+                        className={ `px-3 py-1 border border-black rounded-lg text-sm font-medium transition
+              ${ activeButton === "kanan" ? "bg-yellow-400 text-white" : "hover:bg-gray-100" }` }
                     >
                         kanan
                     </button>

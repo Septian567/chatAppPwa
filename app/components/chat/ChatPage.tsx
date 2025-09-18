@@ -1,3 +1,4 @@
+// ChatPage.tsx
 "use client";
 
 import { useLayoutEffect } from "react";
@@ -7,6 +8,7 @@ import ChatHeader from "./ChatHeader";
 import MessageInput from "../messageInput/MessageInput";
 import ChatBody from "./ChatBody";
 import { useChatPage } from "../../hooks/useChatPage";
+import { useChatHistory } from "../../hooks/useChatHistory";
 
 interface ChatPageProps
 {
@@ -17,8 +19,24 @@ interface ChatPageProps
 
 export default function ChatPage( { isMobile, onBack }: ChatPageProps )
 {
-    const activeContact = useSelector( ( state: RootState ) => state.contacts.activeContact );
-    const contactName = activeContact?.alias || activeContact?.name || "Bento";
+    const activeContact = useSelector(
+        ( state: RootState ) => state.contacts.activeContact
+    );
+
+    if ( !activeContact )
+    {
+        return (
+            <main className="flex-1 flex items-center justify-center text-gray-500">
+                Pilih kontak untuk mulai chat
+            </main>
+        );
+    }
+
+    const contactId = activeContact.contact_id; // ⬅️ pakai contact_id
+    const contactName = activeContact.alias || activeContact.email || "Bento";
+
+    // ⬅️ Auto fetch chat history setiap kali contact aktif berubah
+    useChatHistory( contactId );
 
     const {
         messages,
@@ -42,15 +60,11 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
         handleSendFile,
     } = useChatPage();
 
-    // ⬇️ Auto scroll ke bawah saat pertama kali buka ChatPage atau ganti kontak
     useLayoutEffect( () =>
     {
         const el = document.getElementById( "chat-bottom" );
-        if ( el )
-        {
-            el.scrollIntoView( { behavior: "auto" } );
-        }
-    }, [activeContact] );
+        if ( el ) el.scrollIntoView( { behavior: "auto" } );
+    }, [activeContact, messages] );
 
     return (
         <main className="flex-1 flex flex-col bg-transparent text-black overflow-hidden">
@@ -58,9 +72,11 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
                 isMobile={ isMobile }
                 onBack={ onBack }
                 contactName={ contactName }
+                contactId={ contactId }
                 onChatKiri={ () => setChatSide( "kiri" ) }
                 onChatKanan={ () => setChatSide( "kanan" ) }
             />
+
             <ChatBody
                 messages={ messages }
                 onEditTextMessage={ handleEditTextMessage }

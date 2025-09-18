@@ -6,39 +6,90 @@ interface CustomAudioPlayerProps
 {
   src: string;
   manualDuration?: number;
+  sentAt?: string; // waktu pengiriman
+}
+
+interface PlayPauseButtonProps
+{
+  isPlaying: boolean;
+  onToggle: () => void;
+  disabled?: boolean;
 }
 
 function PlayPauseButton( {
   isPlaying,
   onToggle,
-}: {
-  isPlaying: boolean;
-  onToggle: () => void;
-} )
+  disabled = false,
+}: PlayPauseButtonProps )
 {
   return (
-    <button onClick={ onToggle } className="text-black">
+    <button
+      onClick={ onToggle }
+      disabled={ disabled }
+      className="text-black disabled:text-gray-400 disabled:cursor-not-allowed"
+      aria-label={ isPlaying ? "Pause audio" : "Play audio" }
+    >
       { isPlaying ? <Pause size={ 18 } /> : <Play size={ 18 } /> }
     </button>
   );
 }
 
-export default function CustomAudioPlayer( { src, manualDuration }: CustomAudioPlayerProps )
+export default function CustomAudioPlayer( {
+  src,
+  manualDuration,
+  sentAt,
+}: CustomAudioPlayerProps )
 {
   const {
     audioRef,
     isPlaying,
     currentTime,
     duration,
+    isLoading,
+    error,
     togglePlay,
     handleLoadedMetadata,
+    formatTime,
   } = useAudioPlayer( src );
 
+  const isDisabled = isLoading || error;
+  const displayDuration = duration > 0 ? duration : manualDuration || 0;
+
   return (
-    <div className="flex items-center gap-2 w-full">
-      <PlayPauseButton isPlaying={ isPlaying } onToggle={ togglePlay } />
-      {/* Animasi wave pengganti progress bar */ }
-      <WaveAnimation isPlaying={ isPlaying } />
+    <div className="flex items-start gap-3 w-full">
+      {/* Tombol Play sejajar dengan wave */ }
+      <div className="flex items-center h-[30px]">
+        <PlayPauseButton
+          isPlaying={ isPlaying }
+          onToggle={ togglePlay }
+          disabled={ isDisabled }
+        />
+      </div>
+
+      {/* Wave + sentAt sejajar (horizontal), durasi tetap di bawah */ }
+      <div className="flex flex-col flex-1 items-start">
+        <div className="flex items-center gap-2 w-full">
+          <WaveAnimation isPlaying={ isPlaying } />
+          { sentAt && (
+            <span className="text-[11px] text-gray-400 whitespace-nowrap">
+              { sentAt }
+            </span>
+          ) }
+        </div>
+
+        {/* Durasi tetap di bawah wave */ }
+        <span className="text-[12px] text-gray-500 -mt-1">
+          { formatTime( currentTime ) } / { formatTime( displayDuration ) }
+        </span>
+      </div>
+
+      {/* Loading & Error */ }
+      { isLoading && (
+        <div className="text-xs text-gray-500 whitespace-nowrap">Loading...</div>
+      ) }
+      { error && (
+        <div className="text-xs text-red-500 whitespace-nowrap">Error</div>
+      ) }
 
       {/* Audio element */ }
       <audio
@@ -46,6 +97,7 @@ export default function CustomAudioPlayer( { src, manualDuration }: CustomAudioP
         src={ src }
         preload="metadata"
         onLoadedMetadata={ handleLoadedMetadata }
+        onError={ ( e ) => console.error( "Audio loading error:", e ) }
       />
     </div>
   );

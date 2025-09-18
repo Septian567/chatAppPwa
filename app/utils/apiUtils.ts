@@ -84,8 +84,43 @@ export const loginUser = async (
     userData: LoginUserData
 ): Promise<ApiResponse<AuthApiResponse>> =>
 {
-    return postRequest( '/auth/login', userData );
+    try
+    {
+        const response = await fetch( `${ BASE_URL }/auth/login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify( userData ),
+        } );
+
+        const json = await response.json();
+
+        if ( !response.ok )
+        {
+            throw new Error( json.message || "Login failed" );
+        }
+
+        // ✅ simpan token dan user info ke localStorage
+        localStorage.setItem( "token", json.token );
+        localStorage.setItem( "userId", json.user.id );
+        localStorage.setItem( "user", JSON.stringify( json.user ) );
+
+        return {
+            success: true,
+            data: json,
+            message: json.message,
+        };
+    } catch ( error: any )
+    {
+        console.error( "Login Error:", error );
+        return {
+            success: false,
+            message: error.message,
+        };
+    }
 };
+
 
 export interface UserProfile
 {
@@ -147,7 +182,6 @@ export const logoutUser = async (): Promise<ApiResponse<{ message: string }>> =>
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                // Jika backend membutuhkan token di header Authorization
                 ...( token ? { Authorization: `Bearer ${ token }` } : {} ),
             },
         } );
@@ -159,8 +193,9 @@ export const logoutUser = async (): Promise<ApiResponse<{ message: string }>> =>
             throw new Error( json.message || "Logout failed" );
         }
 
-        // Hapus token dan user dari localStorage
+        // ✅ Bersihkan localStorage
         localStorage.removeItem( "token" );
+        localStorage.removeItem( "userId" );   // <-- tambahkan ini
         localStorage.removeItem( "user" );
 
         return {

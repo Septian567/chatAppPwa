@@ -5,12 +5,12 @@ export interface ChatMessage
     text?: string;
     fileUrl?: string;
     fileName?: string;
-    fileType?: string;        // ✅ MIME type file (image/png, video/mp4, dll.)
+    fileType?: string;        
     caption?: string;
     audioUrl?: string;
     time: string;
     side: "kiri" | "kanan";
-    isSoftDeleted?: boolean;  // ✅ flag soft delete
+    isSoftDeleted?: boolean;
 }
 
 interface ChatState

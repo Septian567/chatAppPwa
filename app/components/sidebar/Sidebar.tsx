@@ -30,7 +30,7 @@ export default function Sidebar( {
   onMainMenuClick,
   width,
   onResize,
-  isResizable = true
+  isResizable = true,
 }: SidebarProps )
 {
   const {
@@ -69,19 +69,25 @@ export default function Sidebar( {
     );
   }
 
+  // --- Fungsi klik kontak ---
+  const handleContactClick = ( contact: typeof contacts[0] ) =>
+  {
+    console.log( "DEBUG: Klik kontak:", contact );
+    setActiveContact( contact ); // set activeContact di Redux
+    onMainMenuClick( "chat" ); // optional: langsung buka tab chat
+  };
+
   return (
     <aside
       ref={ sidebarRef }
       className="bg-transparent text-black h-screen p-4 flex flex-col relative shrink-0 border-r border-gray-300 overflow-x-hidden"
       style={ {
         width: typeof width === "number" ? `${ width }px` : width,
-        zIndex: 40 // Pastikan lebih rendah dari resizer
+        zIndex: 40,
       } }
     >
       {/* Konten sidebar */ }
-      { isDesktop && isResizable && (
-        <Resizer onResize={ onResize } />
-      ) }
+      { isDesktop && isResizable && <Resizer onResize={ onResize } /> }
 
       {/* Bagian Atas */ }
       <div className="flex flex-col gap-2">
@@ -105,7 +111,7 @@ export default function Sidebar( {
           filteredUsers={ filteredUsers }
           filteredContacts={ filteredContacts }
           handleAliasSave={ handleAliasSave }
-          setActiveContact={ setActiveContact }
+          setActiveContact={ handleContactClick } // override agar otomatis set activeContact.contact_id
           onMainMenuClick={ onMainMenuClick }
         />
       </div>

@@ -232,10 +232,36 @@ TODO 16 September 2025
 - data user di sidebar harus punya foto profil -- SUCCESS
 
 
-3. hubungkan fitur chat
-- kirim pesan lewat API
-- cek login pakai dua user
+
+TODO 17 September 2025
+1. hubungkan fitur chat
+- kirim pesan lewat API -- SUCCESS
+- cek login pakai dua user -- SUCCESS
+- tapilkan pesan yang dikirim lewat api -- SUCCESS
+
+2. perbaiki pesan file agar tampil di getChatHistory
+- perbaiki tampilan mengirim audio -- SUCCESS
+- perbaiki tampilan mengirim file audio -- SUCCESS
+- perbaiki tampilan mengirim file dengan caption -- SUCCESS
+
+
+
+TODO 18 September 2025
+1. hubungkan fitur deleteCoversationApi
+- menggunakan userId dan ContactId
+- selaraskan dengan getChatHistory
+
+
+- aktifkan socket io (pesan realtime)
+- hubungkan fitur edit pesan lewat api
+- hubungkan fitur hapus pesan lewat api
+- habungkan fitur hapus pesan untuk saya lewat api
+- perbaiki responsive message input rekam suara minimal 340px terlihat
 - sesuaikan chat kiri kanan
+- perbaiki margin chat tampilan kecil (margin responsive)
+
+
+
 
 4. buat error handling
 - login

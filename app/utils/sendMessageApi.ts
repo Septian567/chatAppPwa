@@ -1,4 +1,3 @@
-// api.ts
 import axios, { AxiosResponse } from "axios";
 
 const API_BASE_URL = "http://localhost:5000";
@@ -17,7 +16,6 @@ export interface SendMessageResponse
     attachments: any[];
 }
 
-
 export const sendMessage = async (
     toUserId: string,
     messageText: string,
@@ -27,19 +25,22 @@ export const sendMessage = async (
     try
     {
         const token = localStorage.getItem( "token" );
-        if ( !token )
-        {
-            throw new Error( "Token tidak ditemukan. User belum login." );
-        }
+        console.log( "DEBUG: Token =", token );
+
+        if ( !token ) throw new Error( "Token tidak ditemukan. User belum login." );
+        if ( !toUserId ) throw new Error( "toUserId kosong!" );
 
         const formData = new FormData();
         formData.append( "toUserId", toUserId );
         formData.append( "messageText", messageText );
 
-        attachments.forEach( ( file ) =>
+        attachments.forEach( ( file ) => formData.append( "attachments", file ) );
+
+        console.log( "DEBUG: FormData entries:" );
+        for ( const pair of formData.entries() )
         {
-            formData.append( "attachments", file );
-        } );
+            console.log( pair[0], pair[1] );
+        }
 
         const response: AxiosResponse<SendMessageResponse> = await axios.post(
             `${ API_BASE_URL }/messages`,
@@ -47,15 +48,16 @@ export const sendMessage = async (
             {
                 headers: {
                     Authorization: `Bearer ${ token }`,
-                    // Jangan set Content-Type, Axios otomatis menanganinya untuk FormData
+                    // Jangan set Content-Type, biarkan Axios handle FormData
                 },
             }
         );
 
+        console.log( "DEBUG: API response:", response.data );
         return response.data;
     } catch ( error: any )
     {
-        console.error( "Error sending message:", error.message );
+        console.error( "DEBUG: Error sending message:", error.response?.data || error.message );
         throw error;
     }
 };

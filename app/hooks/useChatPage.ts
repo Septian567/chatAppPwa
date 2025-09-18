@@ -10,24 +10,24 @@ import
         setMessagesForContact,
     } from "../states/chatSlice";
 import { useMessageEditing, useMessageDeletion } from "./chats";
+import { sendMessage, SendMessageResponse } from "../utils/sendMessageApi";
 
 export function useChatPage()
 {
     const dispatch = useDispatch();
 
-    // Ambil kontak aktif
     const activeContact = useSelector(
         ( state: RootState ) => state.contacts.activeContact
     );
-    const contactEmail = activeContact?.email || "default"; // default jika null
+
+    const contactEmail = activeContact?.email || "default";
     const [chatSide, setChatSide] = useState<"kiri" | "kanan">( "kanan" );
 
-    // Ambil pesan berdasarkan email
     const messages = useSelector(
         ( state: RootState ) => state.chat[contactEmail] || []
     );
 
-    // --- Hook untuk edit pesan ---
+    // --- Hook edit pesan ---
     const {
         editingIndex,
         editType,
@@ -40,10 +40,12 @@ export function useChatPage()
         setEditType,
     } = useMessageEditing( messages, ( newMessages: ChatMessage[] ) =>
     {
-        dispatch( setMessagesForContact( { email: contactEmail, messages: newMessages } ) );
+        dispatch(
+            setMessagesForContact( { email: contactEmail, messages: newMessages } )
+        );
     } );
 
-    // --- Hook untuk hapus / soft delete ---
+    // --- Hook hapus / soft delete ---
     const {
         handleDeleteTextMessage,
         handleSoftDeleteTextMessage,
@@ -55,47 +57,152 @@ export function useChatPage()
         messages,
         ( newMessages: ChatMessage[] ) =>
         {
-            dispatch( setMessagesForContact( { email: contactEmail, messages: newMessages } ) );
+            dispatch(
+                setMessagesForContact( {
+                    email: contactEmail,
+                    messages: newMessages,
+                } )
+            );
         },
         editingIndex,
         setEditingIndex,
         setEditType
     );
 
-    // --- Fungsi kirim pesan ---
-    const handleSendMessage = ( message: string ) =>
+    // --- Handle kirim teks ---
+    const handleSendMessage = async ( message: string ) =>
     {
-        const newMessage: ChatMessage = {
-            text: message,
-            time: new Date().toLocaleTimeString( [], { hour: "2-digit", minute: "2-digit" } ),
-            side: chatSide,
-        };
-        dispatch( addMessageToContact( { email: contactEmail, message: newMessage } ) );
+        if ( !activeContact?.contact_id )
+        {
+            console.error(
+                "DEBUG: activeContact.contact_id kosong, pesan tidak dikirim"
+            );
+            return;
+        }
+
+        try
+        {
+            const apiResponse: SendMessageResponse = await sendMessage(
+                activeContact.contact_id,
+                message
+            );
+
+            const newMessage: ChatMessage = {
+                id: apiResponse.message_id,
+                text: apiResponse.message_text || "",
+                caption: "", // ⬅️ teks biasa tidak punya caption
+                time: new Date( apiResponse.created_at ).toLocaleTimeString( [], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                } ),
+                side: chatSide,
+                attachments: apiResponse.attachments || [],
+            };
+
+            dispatch(
+                addMessageToContact( { email: contactEmail, message: newMessage } )
+            );
+        } catch ( err: any )
+        {
+            console.error(
+                "DEBUG: Gagal mengirim pesan:",
+                err.response?.data || err.message
+            );
+        }
     };
 
-    const handleSendAudio = ( audioBlob: Blob ) =>
+    // --- Handle kirim file ---
+    const handleSendFile = async ( file: File, caption?: string ) =>
     {
-        const audioUrl = URL.createObjectURL( audioBlob );
-        const newMessage: ChatMessage = {
-            audioUrl,
-            time: new Date().toLocaleTimeString( [], { hour: "2-digit", minute: "2-digit" } ),
-            side: chatSide,
-        };
-        dispatch( addMessageToContact( { email: contactEmail, message: newMessage } ) );
+        if ( !activeContact?.contact_id )
+        {
+            console.error(
+                "DEBUG: activeContact.contact_id kosong, file tidak dikirim"
+            );
+            return;
+        }
+
+        try
+        {
+            const apiResponse: SendMessageResponse = await sendMessage(
+                activeContact.contact_id,
+                caption || "",
+                [file]
+            );
+
+            const newMessage: ChatMessage = {
+                id: apiResponse.message_id,
+                text: "", // ⬅️ file tidak pakai text
+                caption: caption || apiResponse.message_text || "", // ⬅️ caption masuk sini
+                fileUrl:
+                    apiResponse.attachments?.[0]?.media_url ||
+                    URL.createObjectURL( file ),
+                fileName:
+                    apiResponse.attachments?.[0]?.media_name || file.name,
+                fileType:
+                    apiResponse.attachments?.[0]?.media_type || file.type,
+                time: new Date( apiResponse.created_at ).toLocaleTimeString( [], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                } ),
+                side: chatSide,
+                attachments: apiResponse.attachments || [],
+            };
+
+            dispatch(
+                addMessageToContact( { email: contactEmail, message: newMessage } )
+            );
+        } catch ( err )
+        {
+            console.error( "DEBUG: Gagal mengirim file:", err );
+        }
     };
 
-    const handleSendFile = ( file: File, caption?: string ) =>
+    // --- Handle kirim audio ---
+    const handleSendAudio = async ( audioBlob: Blob, caption?: string ) =>
     {
-        const fileUrl = URL.createObjectURL( file );
-        const newMessage: ChatMessage = {
-            fileUrl,
-            fileName: file.name,
-            fileType: file.type,
-            caption: caption?.trim() || undefined,
-            time: new Date().toLocaleTimeString( [], { hour: "2-digit", minute: "2-digit" } ),
-            side: chatSide,
-        };
-        dispatch( addMessageToContact( { email: contactEmail, message: newMessage } ) );
+        if ( !activeContact?.contact_id )
+        {
+            console.error(
+                "DEBUG: activeContact.contact_id kosong, audio tidak dikirim"
+            );
+            return;
+        }
+
+        try
+        {
+            const file = new File( [audioBlob], `audio_${ Date.now() }.webm`, {
+                type: "audio/webm",
+            } );
+
+            const apiResponse: SendMessageResponse = await sendMessage(
+                activeContact.contact_id,
+                caption || "",
+                [file]
+            );
+
+            const audioUrl = URL.createObjectURL( audioBlob );
+
+            const newMessage: ChatMessage = {
+                id: apiResponse.message_id,
+                text: "", // ⬅️ audio tidak pakai text
+                caption: caption || apiResponse.message_text || "", // ⬅️ caption masuk sini
+                audioUrl,
+                time: new Date( apiResponse.created_at ).toLocaleTimeString( [], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                } ),
+                side: chatSide,
+                attachments: apiResponse.attachments || [],
+            };
+
+            dispatch(
+                addMessageToContact( { email: contactEmail, message: newMessage } )
+            );
+        } catch ( err )
+        {
+            console.error( "DEBUG: Gagal mengirim audio:", err );
+        }
     };
 
     return {

@@ -74,7 +74,7 @@ export default function ChatBody( {
                             key={ msg.id || index }
                             fileUrl={ msg.fileUrl || "" }
                             fileName={ msg.fileName }
-                            caption={ msg.caption } // ⬅️ caption dipastikan dikirim
+                            caption={ msg.caption }
                             time={ msg.time }
                             align={ align }
                             isActive={ true }

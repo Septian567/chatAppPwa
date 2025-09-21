@@ -6,6 +6,7 @@ import { RootState } from "../../states";
 import { MoreVertical, User, Trash2 } from "lucide-react";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import { setMessagesForContact } from "../../states/chatSlice";
+import { deleteConversation } from "../../utils/deleteConversationApi"; // ⬅️ import API
 
 interface ChatMenuProps
 {
@@ -14,7 +15,11 @@ interface ChatMenuProps
     onMainMenuClick: ( menu: string ) => void;
 }
 
-export default function ChatMenu( { filteredContacts, setActiveContact, onMainMenuClick }: ChatMenuProps )
+export default function ChatMenu( {
+    filteredContacts,
+    setActiveContact,
+    onMainMenuClick,
+}: ChatMenuProps )
 {
     const chatData = useSelector( ( state: RootState ) => state.chat );
     const usersList = useSelector( ( state: RootState ) => state.users.list );
@@ -23,6 +28,7 @@ export default function ChatMenu( { filteredContacts, setActiveContact, onMainMe
     const [selectedContact, setSelectedContact] = useState<any | null>( null );
     const [showConfirm, setShowConfirm] = useState( false );
     const [openMenuIndex, setOpenMenuIndex] = useState<number | null>( null );
+    const [loading, setLoading] = useState( false );
     const menuRef = useRef<HTMLDivElement | null>( null );
 
     // Map email → avatar_url
@@ -50,12 +56,32 @@ export default function ChatMenu( { filteredContacts, setActiveContact, onMainMe
         return () => document.removeEventListener( "mousedown", handleClickOutside );
     }, [openMenuIndex] );
 
-    const handleClearConversation = ( contact: any ) =>
+    const handleClearConversation = async ( contact: any ) =>
     {
-        dispatch( setMessagesForContact( { email: contact.email, messages: [] } ) );
+        try
+        {
+            setLoading( true );
+            console.log( "DEBUG: Hapus percakapan API untuk contact:", contact.contact_id );
+
+            // ⬅️ Panggil API deleteConversation
+            const res = await deleteConversation( contact.contact_id );
+            console.log( "DEBUG: deleteConversation sukses:", res );
+
+            // Kosongkan pesan di Redux hanya jika sukses
+            dispatch( setMessagesForContact( { email: contact.email, messages: [] } ) );
+        } catch ( err )
+        {
+            console.error( "Gagal menghapus percakapan:", err );
+        } finally
+        {
+            setLoading( false );
+            setShowConfirm( false );
+        }
     };
 
-    const recentChats = filteredContacts.filter( c => ( chatData[c.email] || [] ).length > 0 );
+    const recentChats = filteredContacts.filter(
+        ( c ) => ( chatData[c.email] || [] ).length > 0
+    );
 
     if ( !recentChats.length )
     {
@@ -76,15 +102,26 @@ export default function ChatMenu( { filteredContacts, setActiveContact, onMainMe
                 {
                     const ext = lastMessage.fileName?.split( "." ).pop()?.toLowerCase();
                     const type = lastMessage.fileType || "";
-                    if ( ["jpg", "jpeg", "png", "gif"].includes( ext || "" ) || type.startsWith( "image/" ) ) lastMessageText = "[Gambar]";
-                    else if ( ["mp4", "mov", "avi"].includes( ext || "" ) || type.startsWith( "video/" ) ) lastMessageText = "[Video]";
+                    if (
+                        ["jpg", "jpeg", "png", "gif"].includes( ext || "" ) ||
+                        type.startsWith( "image/" )
+                    )
+                        lastMessageText = "[Gambar]";
+                    else if (
+                        ["mp4", "mov", "avi"].includes( ext || "" ) ||
+                        type.startsWith( "video/" )
+                    )
+                        lastMessageText = "[Video]";
                     else lastMessageText = "[Dokumen]";
                 } else if ( lastMessage?.audioUrl ) lastMessageText = "[Audio]";
 
                 return (
                     <div
                         key={ `chat-${ c.email }` }
-                        className={ `rounded-lg flex flex-col p-2 ${ openMenuIndex === index ? "bg-white" : "hover:bg-gray-100 cursor-pointer" }` }
+                        className={ `rounded-lg flex flex-col p-2 ${ openMenuIndex === index
+                                ? "bg-white"
+                                : "hover:bg-gray-100 cursor-pointer"
+                            }` }
                         onClick={ () =>
                         {
                             if ( openMenuIndex === index ) return;
@@ -96,7 +133,11 @@ export default function ChatMenu( { filteredContacts, setActiveContact, onMainMe
                             {/* Avatar */ }
                             <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center shrink-0 mr-3 overflow-hidden">
                                 { avatarMap[c.email] ? (
-                                    <img src={ avatarMap[c.email] } alt={ c.alias || c.name } className="w-full h-full object-cover" />
+                                    <img
+                                        src={ avatarMap[c.email] }
+                                        alt={ c.alias || c.name }
+                                        className="w-full h-full object-cover"
+                                    />
                                 ) : (
                                     <User className="w-6 h-6 text-gray-500" />
                                 ) }
@@ -104,24 +145,35 @@ export default function ChatMenu( { filteredContacts, setActiveContact, onMainMe
 
                             {/* Konten teks */ }
                             <div className="flex flex-col flex-1 min-w-0">
-                                <span className="font-semibold text-sm truncate">{ c.alias || c.name }</span>
+                                <span className="font-semibold text-sm truncate">
+                                    { c.alias || c.name }
+                                </span>
                                 <div className="flex items-center justify-between mt-0 min-w-0">
-                                    <span className="text-sm text-gray-600 truncate min-w-0 flex-1">{ lastMessageText }</span>
+                                    <span className="text-sm text-gray-600 truncate min-w-0 flex-1">
+                                        { lastMessageText }
+                                    </span>
                                     <div className="flex items-center gap-2 flex-shrink-0 ml-2 relative">
-                                        <span className="text-xs text-gray-500 whitespace-nowrap">{ lastMessage?.time || "" }</span>
+                                        <span className="text-xs text-gray-500 whitespace-nowrap">
+                                            { lastMessage?.time || "" }
+                                        </span>
                                         <button
                                             className="p-1"
                                             onClick={ ( e ) =>
                                             {
                                                 e.stopPropagation();
-                                                setOpenMenuIndex( openMenuIndex === index ? null : index );
+                                                setOpenMenuIndex(
+                                                    openMenuIndex === index ? null : index
+                                                );
                                             } }
                                         >
                                             <MoreVertical className="w-4 h-4 text-gray-500" />
                                         </button>
 
                                         { openMenuIndex === index && (
-                                            <div ref={ menuRef } className="absolute right-0 top-6 w-44 bg-white border rounded-lg shadow-lg z-50 overflow-hidden">
+                                            <div
+                                                ref={ menuRef }
+                                                className="absolute right-0 top-6 w-44 bg-white border rounded-lg shadow-lg z-50 overflow-hidden"
+                                            >
                                                 <button
                                                     className="flex items-center gap-2 px-4 py-2 w-full text-left text-gray-900"
                                                     onClick={ ( e ) =>
@@ -132,8 +184,15 @@ export default function ChatMenu( { filteredContacts, setActiveContact, onMainMe
                                                         setOpenMenuIndex( null );
                                                     } }
                                                 >
-                                                    <Trash2 size={ 16 } className="shrink-0 text-gray-600" />
-                                                    <span className="text-sm">Hapus percakapan</span>
+                                                    <Trash2
+                                                        size={ 16 }
+                                                        className="shrink-0 text-gray-600"
+                                                    />
+                                                    <span className="text-sm">
+                                                        { loading
+                                                            ? "Menghapus..."
+                                                            : "Hapus percakapan" }
+                                                    </span>
                                                 </button>
                                             </div>
                                         ) }

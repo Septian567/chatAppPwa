@@ -1,0 +1,64 @@
+DeleteConversationApi
+
+file yang terlibat
+1. ChatPage.tsx -- done
+2. useChatHistory.ts -- done
+3. getChatHistoryApi.ts -- done
+4. chatSlice.ts  -- done
+5. Sidebar.tsx  -- done
+6. HorizontalMenuContent.tsx  -- done
+7. ChatMenu.tsx  -- done
+8. DeleteConversationApi.ts  -- done
+8. sample response api DeleteConversationApi  -- optional
+
+
+metode
+1. prompt biasa  -- SUKSES
+2. error coba debug
+
+
+EditMessageApi
+1. buat kode penghubung editMessageApi.ts di utils
+2. list kode terlibat
+3. input kode
+4. prompt
+
+kode yang terlibat
+1. editMessageApi.ts
+2. ChatPage.tsx  -- done
+3. ChatBody.tsx  -- done
+4. ChatTextMessage.tsx -- done
+5. MessageMenu.tsx -- done
+6. MessageInput.tsx -- done
+7. EditActions.tsx -- done
+8. useMessageInput.ts  -- done
+9. useChatHistory.ts  -- done
+
+2 - 5 (tampilan)
+6 - 8 (proses)
+9 (referensi)
+1 (kode pengubung)
+
+------------------------------------------
+
+SoftDeleteMessageApi
+
+1. buat kode penghubung api
+2. list kode terlibat
+3. buat prompt
+
+
+kode yang terlibat
+1. ChatPage.tsx -- done
+2. ChatBody.tsx -- done
+3. ChatTextMessage.tsx -- done
+4. MessageMenu.tsx  -- done
+5. deletedMessage.tsx -- done
+6. useChatPage.ts -- done
+7. useChatMessageActions.ts -- done
+8. SoftDeleteMessageApi.ts
+9. ChatSlice.ts
+10. useMessageDeletion.ts -- done
+11. ChatAudioMessage.tsx
+12. VideoPreview.tsx
+13. SoftDeleteMessage.tsx

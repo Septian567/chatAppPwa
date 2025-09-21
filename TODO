@@ -247,14 +247,29 @@ TODO 17 September 2025
 
 
 TODO 18 September 2025
-1. hubungkan fitur deleteCoversationApi
+1. hubungkan fitur deleteCoversationApi  -- SUCCESS
 - menggunakan userId dan ContactId
 - selaraskan dengan getChatHistory
 
+2. hubungkan fitur edit pesan lewat api -- SUCCESS
+- buat kode penghubung api
+- list file kode terlibat
+- input kode
+- prompt
+- cek fitur
+- perbaiki masalah
+
+
+
+3. hubungkan fitur hapus pesan (softDelete) lewat api -- gagal
+- ubah fungsi api menjadi softDeleteMessageApi.ts
+- sesuaikan tampilannya
+
+TODO 19 September 2025
+1. hubungkan fitur hapus pesan (softDelete) lewat api
+
 
 - aktifkan socket io (pesan realtime)
-- hubungkan fitur edit pesan lewat api
-- hubungkan fitur hapus pesan lewat api
 - habungkan fitur hapus pesan untuk saya lewat api
 - perbaiki responsive message input rekam suara minimal 340px terlihat
 - sesuaikan chat kiri kanan

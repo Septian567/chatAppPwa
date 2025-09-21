@@ -1,0 +1,4 @@
+catatan error
+
+1. terlalu banyak input kode -- chatGPT kewalahan
+2. tidak restart saat sudah kebanyakan input

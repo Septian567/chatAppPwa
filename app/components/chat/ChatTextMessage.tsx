@@ -6,10 +6,11 @@ import { SoftDeletedMessage } from "./SoftDeletedMessage";
 
 interface ChatTextMessageProps
 {
+    messageId: string; // ✅ untuk API delete
     text: string;
     time: string;
     onEditClick?: () => void;
-    onDeleteClick?: () => void;
+    onDeleteClick?: ( messageId: string ) => void; // ✅ terima id
     onSoftDeleteClick?: () => void;
     onToggleMenu?: ( isOpen: boolean ) => void;
     align?: "left" | "right";
@@ -17,10 +18,11 @@ interface ChatTextMessageProps
 
 function hasLongWord( text: string, maxLength: number = 20 )
 {
-    return text.split( /\s+/ ).some( word => word.length > maxLength );
+    return text.split( /\s+/ ).some( ( word ) => word.length > maxLength );
 }
 
 export default function ChatTextMessage( {
+    messageId,
     text,
     time,
     onEditClick,
@@ -94,7 +96,9 @@ export default function ChatTextMessage( {
                             isSoftDeleted={ isSoftDeleted }
                             onEditClick={ onEditClick }
                             onSoftDeleteClick={ onSoftDeleteClick }
-                            onDeleteClick={ onDeleteClick }
+                            onDeleteClick={ () =>
+                                onDeleteClick?.( messageId ) // ✅ lempar id ke parent
+                            }
                             align={ align }
                             onToggle={ onToggleMenu }
                         />

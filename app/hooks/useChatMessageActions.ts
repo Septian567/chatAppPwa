@@ -1,66 +1,73 @@
-import { Dispatch, SetStateAction } from "react";
-import
-    {
-        DEFAULT_SOFT_DELETED_TEXT,
-        DEFAULT_FILE_DELETED_TEXT,
-    } from "../components/chat/deletedMessage";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../states";
+import { ChatMessage, setMessagesForContact } from "../states/chatSlice";
+import { softDeleteMessage, softDeleteMessageWithApi } from "./useSoftDelete";
 
-export interface ChatMessage
-{
-    text?: string;
-    audioUrl?: string;
-    fileUrl?: string | null;
-    fileName?: string;
-    caption?: string | null;
-    duration?: number;
-    time: string;
-    isSoftDeleted?: boolean;
-    side: "kiri" | "kanan";
-}
-
-export function useChatMessageActions(
-    setMessages: Dispatch<SetStateAction<ChatMessage[]>>
+export function useMessageActions(
+    contactEmail: string,
+    editingIndex: number | null,
+    setEditingIndex: ( index: number | null ) => void,
+    setEditType: ( type: "text" | "file" | null ) => void
 )
 {
-    const softDelete = (
-        index: number,
-        updates: Partial<ChatMessage> & { isSoftDeleted?: boolean } = {}
-    ) =>
+    const dispatch = useDispatch();
+    const messages = useSelector( ( state: RootState ) => state.chat[contactEmail] || [] );
+
+    const update = ( newMessages: ChatMessage[] ) =>
+        dispatch( setMessagesForContact( { email: contactEmail, messages: newMessages } ) );
+
+    const resetEditingIfNeeded = ( index: number ) =>
     {
-        setMessages( ( prev ) =>
+        if ( editingIndex === index )
         {
-            const updated = [...prev];
-            updated[index] = {
-                ...updated[index],
-                isSoftDeleted: true,
-                ...updates,
-            };
-            return updated;
-        } );
+            setEditingIndex( null );
+            setEditType( null );
+        } else if ( editingIndex !== null && index < editingIndex )
+        {
+            setEditingIndex( editingIndex - 1 );
+        }
     };
 
-    const handleSoftDeleteTextMessage = ( index: number ) =>
-        softDelete( index, { text: DEFAULT_SOFT_DELETED_TEXT } );
+    // === Soft delete handlers ===
+    const handleSoftDeleteMessage = async ( index: number ) =>
+    {
+        const msg = messages[index];
+        if ( !msg ) return;
 
-    const handleSoftDeleteFileMessage = ( index: number ) =>
-        softDelete( index, {
-            fileUrl: null,
-            caption: DEFAULT_SOFT_DELETED_TEXT,
-        } );
+        // 1️⃣ Update lokal dulu supaya tampilan langsung berubah
+        const updatedMsg = softDeleteMessage( msg );
+        const updatedMessages = [...messages];
+        updatedMessages[index] = updatedMsg;
+        update( updatedMessages );
+        resetEditingIfNeeded( index );
 
-    const handleSoftDeleteAudioMessage = ( index: number ) =>
-        softDelete( index, { audioUrl: null, text: DEFAULT_SOFT_DELETED_TEXT } );
+        // 2️⃣ Kirim ke API untuk sinkronisasi server
+        try
+        {
+            await softDeleteMessageWithApi( msg );
+        } catch ( err )
+        {
+            console.error( "DEBUG: gagal soft delete via API:", err );
+        }
+    };
 
+    const handleSoftDeleteTextMessage = handleSoftDeleteMessage;
+    const handleSoftDeleteFileMessage = handleSoftDeleteMessage;
+    const handleSoftDeleteAudioMessage = handleSoftDeleteMessage;
+
+    // === Hard delete (tetap lokal) ===
     const handleDeleteMessage = ( index: number ) =>
-        setMessages( ( prev ) => prev.filter( ( _, i ) => i !== index ) );
+    {
+        const updated = messages.filter( ( _, i ) => i !== index );
+        update( updated );
+        resetEditingIfNeeded( index );
+    };
 
-    const handleDeleteFileMessage = ( index: number ) =>
-        setMessages( ( prev ) => prev.filter( ( _, i ) => i !== index ) );
-
-    const handleDeleteAudioMessage = ( index: number ) =>
-        softDelete( index, { audioUrl: null, text: DEFAULT_FILE_DELETED_TEXT } );
+    const handleDeleteFileMessage = handleDeleteMessage;
+    const handleDeleteAudioMessage = handleDeleteMessage;
 
     return {
+        messages,
         handleSoftDeleteTextMessage,
         handleSoftDeleteFileMessage,
         handleSoftDeleteAudioMessage,

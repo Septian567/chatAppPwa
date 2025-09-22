@@ -1,4 +1,3 @@
-// ChatPage.tsx
 "use client";
 
 import { useLayoutEffect } from "react";
@@ -23,19 +22,20 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
         ( state: RootState ) => state.contacts.activeContact
     );
 
+    // Tampilkan pesan jika tidak ada kontak aktif
     if ( !activeContact )
     {
         return (
             <main className="flex-1 flex items-center justify-center text-gray-500">
-                Pilih kontak untuk mulai chat
+                silahkan pilih kontak untuk memulai chat
             </main>
         );
     }
 
-    const contactId = activeContact.contact_id; // ⬅️ pakai contact_id
+    const contactId = activeContact.contact_id;
     const contactName = activeContact.alias || activeContact.email || "Bento";
 
-    // ⬅️ Auto fetch chat history setiap kali contact aktif berubah
+    // Auto fetch chat history setiap kali kontak aktif berubah
     useChatHistory( contactId );
 
     const {

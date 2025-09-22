@@ -6,7 +6,7 @@ import { SelectedFilePreview } from "./SelectedFilePreview";
 import { FileInputButton } from "./FileInputButton";
 import { MessageTextarea } from "./MessageTextarea";
 import { EditActions } from "./EditActions";
-import { SendActions } from "./SendActions";
+import SendActions from "./SendActions";
 import CameraModal from "../cameraModal/CameraModal";
 
 interface MessageInputProps

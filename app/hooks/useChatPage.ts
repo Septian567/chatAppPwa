@@ -4,13 +4,13 @@ import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../states";
 import
-    {
-        ChatMessage,
-        addMessageToContact,
-        setMessagesForContact,
-        updateMessageForContact,
-    } from "../states/chatSlice";
-import { useMessageEditing, useMessageDeletion } from "./chats";
+{
+    ChatMessage,
+    addMessageToContact,
+    updateMessageForContact,
+} from "../states/chatSlice";
+import { useMessageEditing } from "./chats";
+import { useMessageActions } from "./useChatMessageActions";
 import { sendMessage, SendMessageResponse } from "../utils/sendMessageApi";
 import { editMessage } from "../utils/editMessageApi";
 
@@ -29,7 +29,6 @@ export function useChatPage()
         ( state: RootState ) => state.chat[contactEmail] || []
     );
 
-    // --- Hook edit pesan ---
     const {
         editingIndex,
         editType,
@@ -39,41 +38,26 @@ export function useChatPage()
         handleCancelEdit,
         setEditingIndex,
         setEditType,
-    } = useMessageEditing( messages, ( newMessages: ChatMessage[] ) =>
-    {
-        dispatch( setMessagesForContact( { email: contactEmail, messages: newMessages } ) );
-    } );
+    } = useMessageEditing( messages );
 
-    // --- Hook hapus / soft delete ---
     const {
-        handleDeleteTextMessage,
         handleSoftDeleteTextMessage,
         handleSoftDeleteFileMessage,
-        handleDeleteFileMessage,
         handleSoftDeleteAudioMessage,
+        handleDeleteMessage,
+        handleDeleteFileMessage,
         handleDeleteAudioMessage,
-    } = useMessageDeletion(
-        messages,
-        ( newMessages: ChatMessage[] ) =>
-        {
-            dispatch( setMessagesForContact( { email: contactEmail, messages: newMessages } ) );
-        },
-        editingIndex,
-        setEditingIndex,
-        setEditType
-    );
+    } = useMessageActions( contactEmail, editingIndex, setEditingIndex, setEditType );
 
-    // --- Handle submit edit (text atau file caption) ---
+    // --- Handle submit edit ---
     const handleSubmitEdit = async ( editedText: string ) =>
     {
         if ( !editingMessage || !editingMessage.id ) return;
 
         try
         {
-            // Panggil API edit
             const updated = await editMessage( editingMessage.id, editedText );
 
-            // Update Redux state
             dispatch(
                 updateMessageForContact( {
                     email: contactEmail,
@@ -92,6 +76,7 @@ export function useChatPage()
     };
 
     // --- Handle kirim teks ---
+    // --- Handle kirim teks ---
     const handleSendMessage = async ( message: string ) =>
     {
         if ( !activeContact?.contact_id ) return;
@@ -106,7 +91,7 @@ export function useChatPage()
             const newMessage: ChatMessage = {
                 id: apiResponse.message_id,
                 text: apiResponse.message_text || "",
-                caption: "", // teks biasa tidak punya caption
+                caption: "",
                 time: new Date( apiResponse.created_at ).toLocaleTimeString( [], {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -115,7 +100,9 @@ export function useChatPage()
                 attachments: apiResponse.attachments || [],
             };
 
-            dispatch( addMessageToContact( { email: contactEmail, message: newMessage } ) );
+            dispatch(
+                addMessageToContact( { email: contactEmail, message: newMessage } )
+            );
         } catch ( err: any )
         {
             console.error( "DEBUG: Gagal mengirim pesan:", err.response?.data || err.message );
@@ -131,17 +118,19 @@ export function useChatPage()
         {
             const apiResponse: SendMessageResponse = await sendMessage(
                 activeContact.contact_id,
-                caption || "",
+                "", // teks kosong
                 [file]
             );
 
+            const serverAttachment = apiResponse.attachments?.[0];
+
             const newMessage: ChatMessage = {
                 id: apiResponse.message_id,
-                text: "", // file tidak pakai text
-                caption: caption || apiResponse.message_text || "",
-                fileUrl: apiResponse.attachments?.[0]?.media_url || URL.createObjectURL( file ),
-                fileName: apiResponse.attachments?.[0]?.media_name || file.name,
-                fileType: apiResponse.attachments?.[0]?.media_type || file.type,
+                text: "",
+                caption: caption || "",
+                fileUrl: serverAttachment?.media_url || URL.createObjectURL( file ),
+                fileName: serverAttachment?.media_name || file.name,
+                fileType: serverAttachment?.media_type || file.type,
                 time: new Date( apiResponse.created_at ).toLocaleTimeString( [], {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -150,37 +139,41 @@ export function useChatPage()
                 attachments: apiResponse.attachments || [],
             };
 
-            dispatch( addMessageToContact( { email: contactEmail, message: newMessage } ) );
+            dispatch(
+                addMessageToContact( { email: contactEmail, message: newMessage } )
+            );
         } catch ( err )
         {
             console.error( "DEBUG: Gagal mengirim file:", err );
         }
     };
 
-    // --- Handle kirim audio ---
-    const handleSendAudio = async ( audioBlob: Blob, caption?: string ) =>
+    // --- Handle kirim audio (sama seperti file) ---
+    const handleSendAudio = async ( audioBlob: Blob ) =>
     {
         if ( !activeContact?.contact_id ) return;
 
+        const file = new File( [audioBlob], `audio_${ Date.now() }.webm`, {
+            type: "audio/webm",
+        } );
+
         try
         {
-            const file = new File( [audioBlob], `audio_${ Date.now() }.webm`, {
-                type: "audio/webm",
-            } );
-
             const apiResponse: SendMessageResponse = await sendMessage(
                 activeContact.contact_id,
-                caption || "",
+                "", // teks kosong
                 [file]
             );
 
-            const audioUrl = URL.createObjectURL( audioBlob );
+            const serverAttachment = apiResponse.attachments?.[0];
 
             const newMessage: ChatMessage = {
                 id: apiResponse.message_id,
                 text: "",
-                caption: caption || apiResponse.message_text || "",
-                audioUrl,
+                caption: "",
+                audioUrl: serverAttachment?.media_url || URL.createObjectURL( file ),
+                fileName: serverAttachment?.media_name || file.name,
+                fileType: serverAttachment?.media_type || file.type,
                 time: new Date( apiResponse.created_at ).toLocaleTimeString( [], {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -189,12 +182,18 @@ export function useChatPage()
                 attachments: apiResponse.attachments || [],
             };
 
-            dispatch( addMessageToContact( { email: contactEmail, message: newMessage } ) );
+            dispatch(
+                addMessageToContact( { email: contactEmail, message: newMessage } )
+            );
         } catch ( err )
         {
             console.error( "DEBUG: Gagal mengirim audio:", err );
         }
     };
+
+
+
+
 
     return {
         messages,
@@ -207,7 +206,7 @@ export function useChatPage()
         handleEditFileMessage,
         handleSubmitEdit,
         handleCancelEdit,
-        handleDeleteTextMessage,
+        handleDeleteTextMessage: handleDeleteMessage,
         handleSoftDeleteTextMessage,
         handleDeleteFileMessage,
         handleSoftDeleteFileMessage,

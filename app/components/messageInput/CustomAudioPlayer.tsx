@@ -26,7 +26,7 @@ function PlayPauseButton( {
     <button
       onClick={ onToggle }
       disabled={ disabled }
-      className="text-black disabled:text-gray-400 disabled:cursor-not-allowed"
+      className="text-black disabled:cursor-not-allowed" // ✅ tetap hitam saat disable
       aria-label={ isPlaying ? "Pause audio" : "Play audio" }
     >
       { isPlaying ? <Pause size={ 18 } /> : <Play size={ 18 } /> }
@@ -52,7 +52,7 @@ export default function CustomAudioPlayer( {
     formatTime,
   } = useAudioPlayer( src );
 
-  const isDisabled = isLoading || error;
+  const isDisabled = isLoading || error; // tombol tetap disable saat loading/error
   const displayDuration = duration > 0 ? duration : manualDuration || 0;
 
   return (
@@ -82,14 +82,6 @@ export default function CustomAudioPlayer( {
           { formatTime( currentTime ) } / { formatTime( displayDuration ) }
         </span>
       </div>
-
-      {/* Loading & Error */ }
-      { isLoading && (
-        <div className="text-xs text-gray-500 whitespace-nowrap">Loading...</div>
-      ) }
-      { error && (
-        <div className="text-xs text-red-500 whitespace-nowrap">Error</div>
-      ) }
 
       {/* Audio element */ }
       <audio

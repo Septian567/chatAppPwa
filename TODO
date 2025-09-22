@@ -266,34 +266,27 @@ TODO 18 September 2025
 - sesuaikan tampilannya
 
 TODO 19 September 2025
-1. hubungkan fitur hapus pesan (softDelete) lewat api
+1. hubungkan fitur hapus pesan (softDelete) lewat api -- FAILED
+
+TODO 21 September 2025
+1. 1. hubungkan fitur hapus pesan (softDelete) lewat api
+- refactoring duplikasi kode useMessageDeletion dan useChatMessageActions -- SUCCESS
+- terapkan softDeleteApi -- SUCCESS
+- refactoring fungsi softDelete agar jadi satu module  -- SUCCESS
+- seragamkan tampilan softDelete " icon ban -- pesan telah dihapus -- waktu  "  -- FAILED
+- saat menghapus buat ban pesan dan waktu masih responsive seperti pesan biasa -- SUCCESS
 
 
-- aktifkan socket io (pesan realtime)
-- habungkan fitur hapus pesan untuk saya lewat api
-- perbaiki responsive message input rekam suara minimal 340px terlihat
-- sesuaikan chat kiri kanan
-- perbaiki margin chat tampilan kecil (margin responsive)
+TODO 22 September 2025
+1. aktifkan hapus pesan file tanpa caption -- SUCCESS
+2. perbaiki tampilan pesan audio -- SUCCESS
+- refactoring  kode pengirim audio
 
 
 
+TODO 23 September 2025
+1. sinkronkan hapus pesan audio
+2. hubungkan hapus pesan untuk saya dari api
 
-4. buat error handling
-- login
-- rgister
-- menu kontak
-- menu pesan
-
-
-5. fitur loading bar
-6. buat agar saat ganti akun, data user sebelumnya tidak terlihat
-7. singkronkan data profil dengan data user agar saat profil diganti, user langsung berubah
-8. sesuaikan kode api untuk ganti avatar
-9. periksa bucket di S3
-10. refactoring API yang perlu
-11. optimasi aplikasi
-12. fitur ganti bahasa dan ganti tema
-13. fitur telepon dan video call
-14. buat tampilan chat pembuka saat belum ada chat/kontak
 
 

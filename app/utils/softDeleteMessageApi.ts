@@ -19,7 +19,9 @@ export interface DeleteMessageResponse
     data: DeletedMessage;
 }
 
-export async function deleteMessage( messageId: string ): Promise<DeletedMessage>
+export async function softDeleteMessage(
+    messageId: string
+): Promise<DeleteMessageResponse>
 {
     try
     {
@@ -35,13 +37,12 @@ export async function deleteMessage( messageId: string ): Promise<DeletedMessage
             {
                 headers: {
                     Authorization: `Bearer ${ token }`,
-                    "Content-Type": "application/json",
                 },
             }
         );
 
-        console.log( "DEBUG: deleteMessage response:", response.data );
-        return response.data.data; // Mengembalikan object DeletedMessage
+        console.log( "DEBUG: softDeleteMessage response:", response.data );
+        return response.data;
     } catch ( err: any )
     {
         if ( err.response )

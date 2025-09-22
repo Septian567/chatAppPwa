@@ -1,16 +1,16 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { isSoftDeletedMessage } from "./deletedMessage";
 import { MessageMenu } from "./MessageMenu";
 import { ChatBubble } from "./ChatBubble";
-import { SoftDeletedMessage } from "./SoftDeletedMessage";
+import { SoftDeletedMessage } from "../../hooks/useSoftDelete";
 
 interface ChatTextMessageProps
 {
-    messageId: string; // ✅ untuk API delete
+    messageId: string;
     text: string;
     time: string;
+    isSoftDeleted?: boolean;
     onEditClick?: () => void;
-    onDeleteClick?: ( messageId: string ) => void; // ✅ terima id
+    onDeleteClick?: ( messageId: string ) => void;
     onSoftDeleteClick?: () => void;
     onToggleMenu?: ( isOpen: boolean ) => void;
     align?: "left" | "right";
@@ -25,6 +25,7 @@ export default function ChatTextMessage( {
     messageId,
     text,
     time,
+    isSoftDeleted = false,
     onEditClick,
     onDeleteClick,
     onSoftDeleteClick,
@@ -32,8 +33,6 @@ export default function ChatTextMessage( {
     align = "right",
 }: ChatTextMessageProps )
 {
-    const isSoftDeleted = isSoftDeletedMessage( text );
-
     const textRef = useRef<HTMLSpanElement | null>( null );
     const [isMultiLine, setIsMultiLine] = useState( false );
 
@@ -51,19 +50,20 @@ export default function ChatTextMessage( {
         }
     }, [text, isSoftDeleted] );
 
+    // Layout utama
     const layoutClass = isSoftDeleted
         ? "flex-row items-end gap-2"
         : isMultiLine
             ? "flex-col"
             : "flex-row items-end gap-2";
 
+    // Posisi waktu
     const timePositionClass = isSoftDeleted
-        ? ""
+        ? "translate-y-[2px]"
         : isMultiLine
             ? "justify-end mt-1 self-end"
             : "translate-y-[2px]";
 
-    // Tentukan kelas break word
     const breakClass = hasLongWord( text ) ? "break-all" : "break-words";
 
     return (
@@ -72,9 +72,7 @@ export default function ChatTextMessage( {
                 {/* Bagian teks */ }
                 <div className="flex-1">
                     { isSoftDeleted ? (
-                        <div className="min-h-[1.9rem] flex items-center">
-                            <SoftDeletedMessage text={ text } />
-                        </div>
+                        <SoftDeletedMessage text={ text } />
                     ) : (
                         <span
                             ref={ textRef }
@@ -88,7 +86,7 @@ export default function ChatTextMessage( {
                 {/* Bagian waktu dan menu */ }
                 <div className={ `flex items-center gap-1 ${ timePositionClass }` }>
                     <span className="text-xs text-gray-700 whitespace-nowrap">
-                        { time }
+                        { time || "—" }
                     </span>
 
                     { ( onEditClick || onSoftDeleteClick || onDeleteClick ) && (
@@ -96,9 +94,7 @@ export default function ChatTextMessage( {
                             isSoftDeleted={ isSoftDeleted }
                             onEditClick={ onEditClick }
                             onSoftDeleteClick={ onSoftDeleteClick }
-                            onDeleteClick={ () =>
-                                onDeleteClick?.( messageId ) // ✅ lempar id ke parent
-                            }
+                            onDeleteClick={ () => onDeleteClick?.( messageId ) }
                             align={ align }
                             onToggle={ onToggleMenu }
                         />

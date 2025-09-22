@@ -1,4 +1,3 @@
-// hooks/useChatHistory.ts
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -6,13 +5,12 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../states";
 import { getChatHistory, ChatHistoryItem } from "../utils/getChatHistoryApi";
 import { setMessagesForContact, ChatMessage } from "../states/chatSlice";
+import { softDeleteMessage } from "../hooks/useSoftDelete";
 
 export function useChatHistory( contactId?: string )
 {
     const dispatch = useDispatch();
-    const activeContact = useSelector(
-        ( state: RootState ) => state.contacts.activeContact
-    );
+    const activeContact = useSelector( ( state: RootState ) => state.contacts.activeContact );
 
     const targetContactId = contactId || activeContact?.contact_id;
     const contactEmail = activeContact?.email || "default";
@@ -30,26 +28,13 @@ export function useChatHistory( contactId?: string )
 
     const determineAttachmentType = useCallback( ( attachment: any ) =>
     {
-        const fileName = attachment.media_name?.toLowerCase() || '';
+        const fileName = attachment.media_name?.toLowerCase() || "";
         const mediaType = attachment.media_type;
 
         const isRecording = fileName.endsWith( ".webm" ) && mediaType === "file";
-
-        if ( isRecording )
-        {
-            return "voice_note";
-        }
-
-        if ( mediaType === "audio" )
-        {
-            return "audio_file";
-        }
-
-        if ( mediaType === "image" )
-        {
-            return "image";
-        }
-
+        if ( isRecording ) return "voice_note";
+        if ( mediaType === "audio" ) return "audio_file";
+        if ( mediaType === "image" ) return "image";
         return "file";
     }, [] );
 
@@ -74,11 +59,7 @@ export function useChatHistory( contactId?: string )
 
         try
         {
-            console.log(
-                "DEBUG: Ambil chat history untuk contact_id:",
-                targetContactId
-            );
-
+            console.log( "DEBUG: Ambil chat history untuk contact_id:", targetContactId );
             const history: ChatHistoryItem[] = await getChatHistory( targetContactId );
 
             const formattedMessages: ChatMessage[] = history.map( ( msg ) =>
@@ -89,8 +70,6 @@ export function useChatHistory( contactId?: string )
                 let audioUrl: string | undefined;
                 let caption: string | undefined;
 
-                // PERBAIKAN: Handle caption dengan benar
-                // Prioritaskan caption dari attachment, lalu dari message_text
                 if ( msg.attachments && msg.attachments.length > 0 )
                 {
                     const attachment = msg.attachments[0];
@@ -99,15 +78,7 @@ export function useChatHistory( contactId?: string )
                     fileUrl = attachment.media_url;
                     fileName = attachment.media_name;
                     fileType = attachment.media_type;
-
-                    // ⬇️ PERBAIKAN PENTING: Ambil caption dari attachment
-                    caption = attachment.caption || undefined;
-
-                    // Jika tidak ada caption di attachment, gunakan message_text sebagai caption
-                    if ( !caption && msg.message_text )
-                    {
-                        caption = msg.message_text;
-                    }
+                    caption = attachment.caption || msg.message_text || undefined;
 
                     switch ( attachmentType )
                     {
@@ -117,48 +88,42 @@ export function useChatHistory( contactId?: string )
                             fileName = undefined;
                             fileType = undefined;
                             break;
-                        case "audio_file":
-                            // Untuk audio file, gunakan message_text sebagai caption jika ada
-                            if ( !caption && msg.message_text )
-                            {
-                                caption = msg.message_text;
-                            }
-                            break;
-                        case "image":
-                            // Untuk image, gunakan message_text sebagai caption jika ada
-                            if ( !caption && msg.message_text )
-                            {
-                                caption = msg.message_text;
-                            }
-                            break;
-                        case "file":
                         default:
-                            // Untuk file umum, gunakan message_text sebagai caption jika ada
-                            if ( !caption && msg.message_text )
-                            {
-                                caption = msg.message_text;
-                            }
-                            break;
+                            if ( !caption && msg.message_text ) caption = msg.message_text;
                     }
-                } else
-                {
-                    // Jika tidak ada attachment, gunakan message_text sebagai text biasa
-                    caption = undefined;
                 }
 
-                return {
+                let message: ChatMessage = {
                     id: msg.message_id,
-                    text: msg.attachments?.length > 0 ? "" : msg.message_text || "", // ⬅️ untuk file, text dikosongkan
+                    text: msg.message_text || "",
                     fileUrl,
                     fileName,
                     fileType,
-                    caption, // ⬅️ caption sekarang berisi nilai yang benar
+                    caption,
                     audioUrl,
                     time: formatTime( msg.created_at ),
                     side: msg.from_user_id === userId ? "kanan" : "kiri",
-                    isSoftDeleted: msg.is_deleted || false,
+                    isDeleted: !!msg.is_deleted,
+                    isSoftDeleted: false,
                     attachments: msg.attachments || [],
                 };
+
+                if ( message.isDeleted )
+                {
+                    message = softDeleteMessage( message );
+                }
+
+                // --- Debug audio message ID dari server ---
+                if ( audioUrl )
+                {
+                    console.log(
+                        "DEBUG: Audio message from server (after reload):",
+                        message.id,
+                        audioUrl
+                    );
+                }
+
+                return message;
             } );
 
             dispatch(

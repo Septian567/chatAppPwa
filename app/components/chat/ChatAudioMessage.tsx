@@ -1,11 +1,11 @@
 import CustomAudioPlayer from "../messageInput/CustomAudioPlayer";
-import { DEFAULT_SOFT_DELETED_TEXT } from "./deletedMessage";
 import { MessageMenu } from "./MessageMenu";
 import { ChatBubble } from "./ChatBubble";
+import { SoftDeletedMessage } from "../../hooks/useSoftDelete";
 
 interface ChatAudioMessageProps
 {
-    audioUrl: string;
+    audioUrl?: string;
     time: string;
     duration?: number;
     isSoftDeleted?: boolean;
@@ -31,21 +31,15 @@ export default function ChatAudioMessage( {
     return (
         <ChatBubble variant="media" align={ align }>
             <div className="flex flex-col gap-1 w-full max-w-xs">
-                {/* Baris utama: audio player, waktu, menu */ }
-                <div className="flex items-center justify-between gap-3">
+                {/* Baris utama: audio player / soft delete, waktu, menu */ }
+                <div className="flex items-center justify-between gap-1 w-full">
                     { isSoftDeleted ? (
-                        <span className="text-sm text-gray-500 italic">
-                            { textStatus || DEFAULT_SOFT_DELETED_TEXT }
-                        </span>
+                        // SoftDeletedMessage menampilkan icon ban + teks + waktu
+                        <SoftDeletedMessage text={ textStatus || "" } time={ time } />
                     ) : (
                         <div className="flex items-center gap-3 flex-1">
-                            <CustomAudioPlayer
-                                src={ audioUrl }
-                                manualDuration={ duration }
-                            />
-                            <span className="text-xs text-gray-700 whitespace-nowrap">
-                                { time }
-                            </span>
+                            <CustomAudioPlayer src={ audioUrl || "" } manualDuration={ duration } />
+                            <span className="text-xs text-gray-700 whitespace-nowrap">{ time }</span>
                         </div>
                     ) }
 

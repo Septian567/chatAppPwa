@@ -2,17 +2,21 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface ChatMessage
 {
-    id?: string; // ⬅️ identifikasi pesan dari API message_id
+    id?: string;
     text?: string;
     fileUrl?: string;
     fileName?: string;
     fileType?: string;
-    caption?: string; // ⬅️ untuk file caption
+    caption?: string;
     audioUrl?: string;
     time: string;
     side: "kiri" | "kanan";
     isSoftDeleted?: boolean;
-    updatedAt?: string; // ⬅️ optional: kapan terakhir diupdate
+    isDeleted?: boolean;
+    updatedAt?: string;
+    isSending?: boolean;
+    isAudio?: boolean;
+    attachments?: any[];
 }
 
 interface ChatState
@@ -31,23 +35,32 @@ const chatSlice = createSlice( {
             action: PayloadAction<{ email: string; messages: ChatMessage[] }>
         ) =>
         {
-            state[action.payload.email] = action.payload.messages;
+            // Array baru → trigger re-render
+            state[action.payload.email] = [...action.payload.messages];
         },
+
         addMessageToContact: (
             state,
             action: PayloadAction<{ email: string; message: ChatMessage }>
         ) =>
         {
-            if ( !state[action.payload.email] ) state[action.payload.email] = [];
-            state[action.payload.email].push( action.payload.message );
+            const email = action.payload.email;
+            const newMessage = action.payload.message;
+            // Buat array baru → re-render
+            state[email] = [...( state[email] || [] ), newMessage];
         },
+
         deleteMessageForContact: (
             state,
             action: PayloadAction<{ email: string; index: number }>
         ) =>
         {
-            state[action.payload.email]?.splice( action.payload.index, 1 );
+            const email = action.payload.email;
+            if ( !state[email] ) return;
+            // Buat array baru
+            state[email] = state[email].filter( ( _, idx ) => idx !== action.payload.index );
         },
+
         clearMessagesForContact: (
             state,
             action: PayloadAction<{ email: string }>
@@ -55,7 +68,7 @@ const chatSlice = createSlice( {
         {
             state[action.payload.email] = [];
         },
-        // ⬅️ reducer edit pesan, mendukung text dan caption
+
         updateMessageForContact: (
             state,
             action: PayloadAction<{
@@ -63,24 +76,42 @@ const chatSlice = createSlice( {
                 messageId: string;
                 newText?: string;
                 newCaption?: string;
+                newFileUrl?: string;
+                newFileName?: string;
+                newFileType?: string;
+                newAudioUrl?: string;
+                attachments?: any[];
+                isDeleted?: boolean;
+                isSoftDeleted?: boolean;
+                isSending?: boolean;
                 updatedAt?: string;
             }>
         ) =>
         {
-            const { email, messageId, newText, newCaption, updatedAt } = action.payload;
+            const { email, messageId, ...updates } = action.payload;
             const messages = state[email];
-            if ( messages )
-            {
-                const msg = messages.find( ( m ) => m.id === messageId );
-                if ( msg )
-                {
-                    if ( newText !== undefined ) msg.text = newText;
-                    if ( newCaption !== undefined ) msg.caption = newCaption;
-                    if ( updatedAt ) msg.updatedAt = updatedAt;
-                }
-            }
-        },
+            if ( !messages ) return;
 
+            // Map baru → trigger re-render
+            state[email] = messages.map( msg =>
+                msg.id === messageId
+                    ? {
+                        ...msg,
+                        text: updates.newText ?? msg.text,
+                        caption: updates.newCaption ?? msg.caption,
+                        fileUrl: updates.newFileUrl ?? msg.fileUrl,
+                        fileName: updates.newFileName ?? msg.fileName,
+                        fileType: updates.newFileType ?? msg.fileType,
+                        audioUrl: updates.newAudioUrl ?? msg.audioUrl,
+                        attachments: updates.attachments ?? msg.attachments,
+                        isDeleted: updates.isDeleted ?? msg.isDeleted,
+                        isSoftDeleted: updates.isSoftDeleted ?? msg.isSoftDeleted,
+                        isSending: updates.isSending ?? msg.isSending,
+                        updatedAt: updates.updatedAt ?? msg.updatedAt,
+                    }
+                    : msg
+            );
+        },
 
         removeMessageById: (
             state,
@@ -88,10 +119,8 @@ const chatSlice = createSlice( {
         ) =>
         {
             const { email, messageId } = action.payload;
-            if ( state[email] )
-            {
-                state[email] = state[email].filter( ( msg ) => msg.id !== messageId );
-            }
+            if ( !state[email] ) return;
+            state[email] = state[email].filter( msg => msg.id !== messageId );
         },
     },
 } );

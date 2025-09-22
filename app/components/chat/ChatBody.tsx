@@ -5,9 +5,9 @@ import { RootState } from "../../states";
 import ChatTextMessage from "./ChatTextMessage";
 import ChatAudioMessage from "./ChatAudioMessage";
 import ChatFileMessage from "./ChatFileMessage";
-import { ChatMessage } from "../../hooks/useChatMessageActions";
-import { isSoftDeletedMessage } from "./deletedMessage";
+import { ChatMessage } from "../../states/chatSlice";
 import { useChatBody } from "../../hooks/chatBody/useChatBody";
+import { isSoftDeletedMessage } from "../../hooks/useSoftDelete";
 
 interface ChatBodyProps
 {
@@ -62,8 +62,7 @@ export default function ChatBody( {
         >
             { messages.map( ( msg, index ) =>
             {
-                const align: "left" | "right" =
-                    msg.side === "kiri" ? "left" : "right";
+                const align: "left" | "right" = msg.side === "kiri" ? "left" : "right";
 
                 // 1️⃣ File dengan caption
                 if ( msg.fileUrl || msg.caption )
@@ -78,16 +77,8 @@ export default function ChatBody( {
                             time={ msg.time }
                             align={ align }
                             isActive={ true }
-                            onEditClick={
-                                !isSoftDeleted
-                                    ? () => onEditFileMessage?.( index )
-                                    : undefined
-                            }
-                            onSoftDeleteClick={
-                                !isSoftDeleted
-                                    ? () => onSoftDeleteFileMessage?.( index )
-                                    : undefined
-                            }
+                            onEditClick={ !isSoftDeleted ? () => onEditFileMessage?.( index ) : undefined }
+                            onSoftDeleteClick={ !isSoftDeleted ? () => onSoftDeleteFileMessage?.( index ) : undefined }
                             onDeleteClick={ () => onDeleteFileMessage?.( index ) }
                             onToggleMenu={ setIsMenuOpen }
                         />
@@ -106,11 +97,7 @@ export default function ChatBody( {
                             isSoftDeleted={ msg.isSoftDeleted }
                             textStatus={ msg.text }
                             align={ align }
-                            onSoftDeleteClick={
-                                !msg.isSoftDeleted
-                                    ? () => onSoftDeleteAudioMessage?.( index )
-                                    : undefined
-                            }
+                            onSoftDeleteClick={ !msg.isSoftDeleted ? () => onSoftDeleteAudioMessage?.( index ) : undefined }
                             onDeleteClick={ () => onDeleteAudioMessage?.( index ) }
                             onToggleMenu={ setIsMenuOpen }
                         />
@@ -127,16 +114,8 @@ export default function ChatBody( {
                             text={ msg.text }
                             time={ msg.time }
                             align={ align }
-                            onEditClick={
-                                !isDeleted
-                                    ? () => onEditTextMessage?.( index )
-                                    : undefined
-                            }
-                            onSoftDeleteClick={
-                                !isDeleted
-                                    ? () => onSoftDeleteTextMessage?.( index )
-                                    : undefined
-                            }
+                            onEditClick={ !isDeleted ? () => onEditTextMessage?.( index ) : undefined }
+                            onSoftDeleteClick={ !isDeleted ? () => onSoftDeleteTextMessage?.( index ) : undefined }
                             onDeleteClick={ () => onDeleteTextMessage?.( index ) }
                             onToggleMenu={ setIsMenuOpen }
                         />

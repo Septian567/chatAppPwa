@@ -1,9 +1,8 @@
 import { useFilePreview } from "../../hooks/useFilePreview";
 import { ChatFilePreview } from "./ChatFilePreview";
 import { MessageMenu } from "./MessageMenu";
-import { isSoftDeletedMessage, DEFAULT_FILE_DELETED_TEXT } from "./deletedMessage";
 import { ChatBubble } from "./ChatBubble";
-import { SoftDeletedMessage } from "./SoftDeletedMessage";
+import { SoftDeletedMessage, isSoftDeletedMessage, DEFAULT_FILE_DELETED_TEXT } from "../../hooks/useSoftDelete";
 
 interface ChatFileMessageProps
 {
@@ -15,8 +14,9 @@ interface ChatFileMessageProps
     onEditClick?: () => void;
     onSoftDeleteClick?: () => void;
     onDeleteClick?: () => void;
-    onToggleMenu?: ( isOpen: boolean ) => void; // indikator toggle menu
-    isActive?: boolean; // 🔹 kontrol visibility untuk persistent media
+    onToggleMenu?: ( isOpen: boolean ) => void;
+    isActive?: boolean;
+    isDeleted?: boolean;
 }
 
 export default function ChatFileMessage( {
@@ -29,44 +29,41 @@ export default function ChatFileMessage( {
     onSoftDeleteClick,
     onDeleteClick,
     onToggleMenu,
-    isActive = true, // default aktif
+    isActive = true,
+    isDeleted = false,
 }: ChatFileMessageProps )
 {
-    const {
-        fileExtension,
-        isImage,
-        isVideo,
-        isAudio,
-        fileIcon,
-        handleDownload,
-    } = useFilePreview( fileUrl, fileName );
+    const { fileExtension, isImage, isVideo, isAudio, fileIcon, handleDownload } = useFilePreview( fileUrl, fileName );
 
-    const isSoftDeleted = isSoftDeletedMessage( caption );
+    // Kalau caption tidak ada, kita tetap bisa soft delete berdasarkan isDeleted
+    const isSoftDeleted = isDeleted || isSoftDeletedMessage( caption );
     const displayCaption = isSoftDeleted ? DEFAULT_FILE_DELETED_TEXT : caption || "";
 
-    // Komponen kecil untuk time + menu
     const TimeAndMenu = (
         <div className="flex items-center gap-1 ml-auto">
             <span className="text-xs text-gray-700 whitespace-nowrap">{ time }</span>
-            <MessageMenu
-                isSoftDeleted={ isSoftDeleted }
-                onEditClick={ onEditClick }
-                onSoftDeleteClick={ onSoftDeleteClick }
-                onDeleteClick={ onDeleteClick }
-                align={ align }
-                onToggle={ onToggleMenu }
-            />
+            { ( onEditClick || onSoftDeleteClick || onDeleteClick ) && (
+                <MessageMenu
+                    isSoftDeleted={ isSoftDeleted }
+                    onEditClick={ onEditClick }
+                    onSoftDeleteClick={ onSoftDeleteClick }
+                    onDeleteClick={ onDeleteClick }
+                    align={ align }
+                    onToggle={ onToggleMenu }
+                />
+            ) }
         </div>
     );
 
     return (
-        <ChatBubble
-            variant="media"
-            align={ align }
-            fixedWidth={ isSoftDeleted ? "5cm" : undefined }
-        >
-            <div className="flex flex-col gap-1">
-                { !isSoftDeleted ? (
+        <ChatBubble variant="media" align={ align } fixedWidth={ isSoftDeleted ? "5cm" : undefined }>
+            <div className="flex flex-col gap-1 w-full">
+                { isSoftDeleted ? (
+                    <div className="flex items-center gap-1 min-h-[1.9rem]">
+                        <SoftDeletedMessage text={ displayCaption } />
+                        { TimeAndMenu }
+                    </div>
+                ) : (
                     <div className={ `flex flex-col gap-1 w-full max-w-full ${ !isActive ? "hidden" : "" }` }>
                         <ChatFilePreview
                             fileUrl={ fileUrl }
@@ -80,27 +77,10 @@ export default function ChatFileMessage( {
                             duration={ isVideo || isAudio ? "0:00" : undefined }
                             isSoftDeleted={ isSoftDeleted }
                             align={ align }
-                            isActive={ isActive } // 🔹 video/audio tetap siap
+                            isActive={ isActive }
                         />
-                        { displayCaption && (
-                            <span className="whitespace-pre-wrap break-words text-black">
-                                { displayCaption }
-                            </span>
-                        ) }
-
-                        {/* Waktu + menu */ }
-                        { ( onEditClick || onSoftDeleteClick || onDeleteClick ) && (
-                            <div className="flex items-center gap-1 self-end mt-1">
-                                { TimeAndMenu }
-                            </div>
-                        ) }
-                    </div>
-                ) : (
-                    <div className="flex items-center gap-1 min-h-[1.9rem]">
-                        <div className="mr-[2.5px]">
-                            <SoftDeletedMessage text={ displayCaption } />
-                        </div>
-                        { ( onEditClick || onSoftDeleteClick || onDeleteClick ) && TimeAndMenu }
+                        { displayCaption && <span className="whitespace-pre-wrap break-words text-black">{ displayCaption }</span> }
+                        <div className="flex items-center gap-1 self-end mt-1">{ TimeAndMenu }</div>
                     </div>
                 ) }
             </div>

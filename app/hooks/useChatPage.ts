@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../states";
 import
-{
-    ChatMessage,
-    addMessageToContact,
-    updateMessageForContact,
-} from "../states/chatSlice";
+    {
+        ChatMessage,
+        addMessageToContact,
+        updateMessageForContact,
+    } from "../states/chatSlice";
 import { useMessageEditing } from "./chats";
 import { useMessageActions } from "./useChatMessageActions";
 import { sendMessage, SendMessageResponse } from "../utils/sendMessageApi";
@@ -23,6 +23,7 @@ export function useChatPage()
     );
 
     const contactEmail = activeContact?.email || "default";
+    const userId = activeContact?.contact_id || ""; // <-- userId untuk API
     const [chatSide, setChatSide] = useState<"kiri" | "kanan">( "kanan" );
 
     const messages = useSelector(
@@ -44,10 +45,16 @@ export function useChatPage()
         handleSoftDeleteTextMessage,
         handleSoftDeleteFileMessage,
         handleSoftDeleteAudioMessage,
-        handleDeleteMessage,
-        handleDeleteFileMessage,
-        handleDeleteAudioMessage,
-    } = useMessageActions( contactEmail, editingIndex, setEditingIndex, setEditType );
+        handleDeleteMessageForUser,
+        handleDeleteFileMessageForUser,
+        handleDeleteAudioMessageForUser,
+    } = useMessageActions(
+        contactEmail,
+        editingIndex,
+        setEditingIndex,
+        setEditType,
+        userId // <-- lempar userId ke hook
+    );
 
     // --- Handle submit edit ---
     const handleSubmitEdit = async ( editedText: string ) =>
@@ -76,7 +83,6 @@ export function useChatPage()
     };
 
     // --- Handle kirim teks ---
-    // --- Handle kirim teks ---
     const handleSendMessage = async ( message: string ) =>
     {
         if ( !activeContact?.contact_id ) return;
@@ -100,9 +106,7 @@ export function useChatPage()
                 attachments: apiResponse.attachments || [],
             };
 
-            dispatch(
-                addMessageToContact( { email: contactEmail, message: newMessage } )
-            );
+            dispatch( addMessageToContact( { email: contactEmail, message: newMessage } ) );
         } catch ( err: any )
         {
             console.error( "DEBUG: Gagal mengirim pesan:", err.response?.data || err.message );
@@ -139,16 +143,14 @@ export function useChatPage()
                 attachments: apiResponse.attachments || [],
             };
 
-            dispatch(
-                addMessageToContact( { email: contactEmail, message: newMessage } )
-            );
+            dispatch( addMessageToContact( { email: contactEmail, message: newMessage } ) );
         } catch ( err )
         {
             console.error( "DEBUG: Gagal mengirim file:", err );
         }
     };
 
-    // --- Handle kirim audio (sama seperti file) ---
+    // --- Handle kirim audio ---
     const handleSendAudio = async ( audioBlob: Blob ) =>
     {
         if ( !activeContact?.contact_id ) return;
@@ -182,18 +184,12 @@ export function useChatPage()
                 attachments: apiResponse.attachments || [],
             };
 
-            dispatch(
-                addMessageToContact( { email: contactEmail, message: newMessage } )
-            );
+            dispatch( addMessageToContact( { email: contactEmail, message: newMessage } ) );
         } catch ( err )
         {
             console.error( "DEBUG: Gagal mengirim audio:", err );
         }
     };
-
-
-
-
 
     return {
         messages,
@@ -206,11 +202,11 @@ export function useChatPage()
         handleEditFileMessage,
         handleSubmitEdit,
         handleCancelEdit,
-        handleDeleteTextMessage: handleDeleteMessage,
+        handleDeleteTextMessage: handleDeleteMessageForUser,
         handleSoftDeleteTextMessage,
-        handleDeleteFileMessage,
+        handleDeleteFileMessage: handleDeleteFileMessageForUser,
         handleSoftDeleteFileMessage,
-        handleDeleteAudioMessage,
+        handleDeleteAudioMessage: handleDeleteAudioMessageForUser,
         handleSoftDeleteAudioMessage,
         handleSendMessage,
         handleSendAudio,

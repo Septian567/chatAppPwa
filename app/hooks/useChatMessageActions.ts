@@ -2,6 +2,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../states";
 import { ChatMessage, setMessagesForContact } from "../states/chatSlice";
 import { softDeleteMessage, softDeleteMessageWithApi } from "./useSoftDelete";
+import { deleteMessageForUser } from "../utils/deleteMessageForUserApi";
 
 export function useMessageActions(
     contactEmail: string,
@@ -34,14 +35,12 @@ export function useMessageActions(
         const msg = messages[index];
         if ( !msg ) return;
 
-        // 1️⃣ Update lokal dulu supaya tampilan langsung berubah
         const updatedMsg = softDeleteMessage( msg );
         const updatedMessages = [...messages];
         updatedMessages[index] = updatedMsg;
         update( updatedMessages );
         resetEditingIfNeeded( index );
 
-        // 2️⃣ Kirim ke API untuk sinkronisasi server
         try
         {
             await softDeleteMessageWithApi( msg );
@@ -55,7 +54,7 @@ export function useMessageActions(
     const handleSoftDeleteFileMessage = handleSoftDeleteMessage;
     const handleSoftDeleteAudioMessage = handleSoftDeleteMessage;
 
-    // === Hard delete (tetap lokal) ===
+    // === Hard delete lokal ===
     const handleDeleteMessage = ( index: number ) =>
     {
         const updated = messages.filter( ( _, i ) => i !== index );
@@ -66,6 +65,42 @@ export function useMessageActions(
     const handleDeleteFileMessage = handleDeleteMessage;
     const handleDeleteAudioMessage = handleDeleteMessage;
 
+    // === Hard delete via API ===
+    const handleDeleteMessageForUser = async ( index: number ) =>
+    {
+        const msg = messages[index];
+        if ( !msg )
+        {
+            console.warn( "DEBUG: pesan tidak ditemukan di index", index );
+            return;
+        }
+
+        console.log( "DEBUG: ID pesan yang akan dihapus:", msg.id );
+
+        if ( !msg.id )
+        {
+            console.warn( "DEBUG: pesan belum ada di server, hapus lokal saja", msg );
+            handleDeleteMessage( index );
+            return;
+        }
+
+        try
+        {
+            const response = await deleteMessageForUser( msg.id );
+            console.log( "DEBUG: deleteMessageForUser berhasil", response );
+
+            const updated = messages.filter( ( _, i ) => i !== index );
+            update( updated );
+            resetEditingIfNeeded( index );
+        } catch ( err )
+        {
+            console.error( "DEBUG: Gagal hapus pesan di server:", err );
+        }
+    };
+
+    const handleDeleteFileMessageForUser = handleDeleteMessageForUser;
+    const handleDeleteAudioMessageForUser = handleDeleteMessageForUser;
+
     return {
         messages,
         handleSoftDeleteTextMessage,
@@ -74,5 +109,8 @@ export function useMessageActions(
         handleDeleteMessage,
         handleDeleteFileMessage,
         handleDeleteAudioMessage,
+        handleDeleteFileMessageForUser,
+        handleDeleteAudioMessageForUser,
+        handleDeleteMessageForUser,
     };
 }

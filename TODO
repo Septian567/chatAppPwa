@@ -286,7 +286,36 @@ TODO 22 September 2025
 
 TODO 23 September 2025
 1. sinkronkan hapus pesan audio -- SUCCESS
-2. hubungkan hapus pesan untuk saya dari api
+2. hubungkan hapus pesan untuk saya dari api -- SUCCESS
+
+
+TODO 27 September 2025
+1. implementasi socket.io  -- SUCCESS
+2. perbaiki pengiriman pesan teks -- SUCCESS
+3. refactoring socket.io ke file terpisah -- SUCCESS
+4. refactoring sendTextMessage ke file terpisah -- SUCCESS
+5. refactoring handleEditMessage ke file terpisah -- SUCCESS
+
+TODO 29 September 2025
+1. perbaiki posisi chat saat mengirim dan menerima -- SUCCESS
+
+TODO 30 September 2025
+1. perbaiki hapus pesan agar langsung menerapkan "useSoftDelete" -- SUCCESS
+2. seragamkan format waktu untuk setiap browser -- SUCCESS
+3. perbaiki fitur pesan audio dan file yang belum sesuai -- SUCCESS
+4. perbaiki pengiriman pesan file dengan caption -- SUCCESS
+5. buat pesan file langsung tampil saat dikirim (bukan optimistic ui) -- FAILED
+- percobaan1 - error
+- percobaab 2 - error
+6. buat file audio langsung tampil saat dikirim (bukan optimistic ui) -- FAILED
+7. buat pengiriman audio dengan loading
+- audio dikirim --> ui tampil dengan loading --> loading selesai --> tampil di chatPage --> realtime -- FAILED
+8. kirim file realtime -- SUCCESS
+9. kirim audio realtime -- SUCCESS
+10. edit caption realtime -- SUCCESS
+11. hapus pesan realtime
+12. sesuaikan pesan audio dan video
+
 
 
 

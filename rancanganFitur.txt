@@ -53,3 +53,12 @@ hapus pesan untuk saya
 - ChatTextMessage
 - useChatPage
 - useMessageActions
+
+
+pengiriman file
+ChatPage.tsx
+useChatPage.ts
+chatSlice.ts
+ChatBody.ts
+ChatFileMessage.tsx
+

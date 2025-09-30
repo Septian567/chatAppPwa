@@ -11,30 +11,37 @@ export function useChatHistory( contactId?: string )
 {
     const dispatch = useDispatch();
     const activeContact = useSelector( ( state: RootState ) => state.contacts.activeContact );
-
     const targetContactId = contactId || activeContact?.contact_id;
-    const contactEmail = activeContact?.email || "default";
 
     const [loading, setLoading] = useState( false );
     const [error, setError] = useState<string | null>( null );
 
+    // --- Format waktu 24 jam manual ---
     const formatTime = useCallback( ( dateString: string ) =>
     {
-        return new Date( dateString ).toLocaleTimeString( [], {
-            hour: "2-digit",
-            minute: "2-digit",
-        } );
+        const date = new Date( dateString );
+        const hours = date.getHours().toString().padStart( 2, "0" );
+        const minutes = date.getMinutes().toString().padStart( 2, "0" );
+        return `${ hours }:${ minutes }`;
     }, [] );
 
+    // --- Tentukan tipe attachment dengan prioritas video dulu ---
     const determineAttachmentType = useCallback( ( attachment: any ) =>
     {
         const fileName = attachment.media_name?.toLowerCase() || "";
         const mediaType = attachment.media_type;
 
-        const isRecording = fileName.endsWith( ".webm" ) && mediaType === "file";
-        if ( isRecording ) return "voice_note";
+        // Prioritas video dulu
+        const isVideo = ( fileName.endsWith( ".webm" ) && fileName.includes( "video" ) ) || mediaType === "video";
+
+        // Voice note setelah video
+        const isVoiceNote = fileName.endsWith( ".webm" ) && mediaType === "file" && fileName.includes( "audio" );
+
+        if ( isVideo ) return "video";
+        if ( isVoiceNote ) return "voice_note";
         if ( mediaType === "audio" ) return "audio_file";
         if ( mediaType === "image" ) return "image";
+
         return "file";
     }, [] );
 
@@ -68,6 +75,7 @@ export function useChatHistory( contactId?: string )
                 let fileName: string | undefined;
                 let fileType: string | undefined;
                 let audioUrl: string | undefined;
+                let videoUrl: string | undefined;
                 let caption: string | undefined;
 
                 if ( msg.attachments && msg.attachments.length > 0 )
@@ -88,6 +96,9 @@ export function useChatHistory( contactId?: string )
                             fileName = undefined;
                             fileType = undefined;
                             break;
+                        case "video":
+                            videoUrl = fileUrl;
+                            break;
                         default:
                             if ( !caption && msg.message_text ) caption = msg.message_text;
                     }
@@ -101,7 +112,7 @@ export function useChatHistory( contactId?: string )
                     fileType,
                     caption,
                     audioUrl,
-                    time: formatTime( msg.created_at ),
+                    videoUrl,
                     side: msg.from_user_id === userId ? "kanan" : "kiri",
                     isDeleted: !!msg.is_deleted,
                     isSoftDeleted: false,
@@ -113,22 +124,15 @@ export function useChatHistory( contactId?: string )
                     message = softDeleteMessage( message );
                 }
 
-                // --- Debug audio message ID dari server ---
-                if ( audioUrl )
-                {
-                    console.log(
-                        "DEBUG: Audio message from server (after reload):",
-                        message.id,
-                        audioUrl
-                    );
-                }
+                if ( audioUrl ) console.log( "DEBUG: Audio message:", message.id, audioUrl );
+                if ( videoUrl ) console.log( "DEBUG: Video message:", message.id, videoUrl );
 
                 return message;
             } );
 
             dispatch(
                 setMessagesForContact( {
-                    email: contactEmail,
+                    contactId: targetContactId,
                     messages: formattedMessages,
                 } )
             );
@@ -144,7 +148,7 @@ export function useChatHistory( contactId?: string )
         {
             setLoading( false );
         }
-    }, [targetContactId, contactEmail, dispatch, formatTime, determineAttachmentType] );
+    }, [targetContactId, dispatch, formatTime, determineAttachmentType] );
 
     useEffect( () =>
     {

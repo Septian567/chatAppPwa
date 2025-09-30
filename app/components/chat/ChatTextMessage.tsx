@@ -13,7 +13,7 @@ interface ChatTextMessageProps
     onDeleteClick?: ( messageId: string ) => void;
     onSoftDeleteClick?: () => void;
     onToggleMenu?: ( isOpen: boolean ) => void;
-    align?: "left" | "right";
+    align?: "left" | "right"; // kiri = kontak, kanan = user sendiri
 }
 
 function hasLongWord( text: string, maxLength: number = 20 )
@@ -91,6 +91,7 @@ export default function ChatTextMessage( {
 
                     { ( onEditClick || onSoftDeleteClick || onDeleteClick ) && (
                         <MessageMenu
+                            isOwnMessage={ align === "right" } // 🔹 penting
                             isSoftDeleted={ isSoftDeleted }
                             onEditClick={ onEditClick }
                             onSoftDeleteClick={ onSoftDeleteClick }

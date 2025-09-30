@@ -1,21 +1,23 @@
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../states";
-import { ChatMessage, setMessagesForContact } from "../states/chatSlice";
+import { ChatMessage, setMessagesForContact, } from "../states/chatSlice";
 import { softDeleteMessage, softDeleteMessageWithApi } from "./useSoftDelete";
 import { deleteMessageForUser } from "../utils/deleteMessageForUserApi";
 
 export function useMessageActions(
-    contactEmail: string,
+    contactId: string,
     editingIndex: number | null,
     setEditingIndex: ( index: number | null ) => void,
     setEditType: ( type: "text" | "file" | null ) => void
 )
 {
     const dispatch = useDispatch();
-    const messages = useSelector( ( state: RootState ) => state.chat[contactEmail] || [] );
+    const messages = useSelector(
+        ( state: RootState ) => state.chat[contactId] || []
+    );
 
     const update = ( newMessages: ChatMessage[] ) =>
-        dispatch( setMessagesForContact( { email: contactEmail, messages: newMessages } ) );
+        dispatch( setMessagesForContact( { contactId, messages: newMessages } ) );
 
     const resetEditingIfNeeded = ( index: number ) =>
     {
@@ -43,7 +45,11 @@ export function useMessageActions(
 
         try
         {
-            await softDeleteMessageWithApi( msg );
+            // Hanya panggil API jika ID server ada
+            if ( msg.id && !msg.id.startsWith( "temp-" ) )
+            {
+                await softDeleteMessageWithApi( msg );
+            }
         } catch ( err )
         {
             console.error( "DEBUG: gagal soft delete via API:", err );
@@ -65,7 +71,7 @@ export function useMessageActions(
     const handleDeleteFileMessage = handleDeleteMessage;
     const handleDeleteAudioMessage = handleDeleteMessage;
 
-    // === Hard delete via API ===
+    // === Hard delete via API / server ===
     const handleDeleteMessageForUser = async ( index: number ) =>
     {
         const msg = messages[index];
@@ -77,7 +83,8 @@ export function useMessageActions(
 
         console.log( "DEBUG: ID pesan yang akan dihapus:", msg.id );
 
-        if ( !msg.id )
+        // Jika pesan masih menggunakan temporary ID atau isSending, hapus langsung lokal
+        if ( !msg.id || msg.id.startsWith( "temp-" ) || msg.isSending )
         {
             console.warn( "DEBUG: pesan belum ada di server, hapus lokal saja", msg );
             handleDeleteMessage( index );
@@ -89,9 +96,7 @@ export function useMessageActions(
             const response = await deleteMessageForUser( msg.id );
             console.log( "DEBUG: deleteMessageForUser berhasil", response );
 
-            const updated = messages.filter( ( _, i ) => i !== index );
-            update( updated );
-            resetEditingIfNeeded( index );
+            handleDeleteMessage( index );
         } catch ( err )
         {
             console.error( "DEBUG: Gagal hapus pesan di server:", err );

@@ -31,10 +31,10 @@ export default function ChatMenu( {
     const [loading, setLoading] = useState( false );
     const menuRef = useRef<HTMLDivElement | null>( null );
 
-    // Map email → avatar_url
+    // Map contactId → avatar_url
     const avatarMap = usersList.reduce( ( acc, u ) =>
     {
-        acc[u.email] = u.avatar_url;
+        if ( u.contact_id ) acc[u.contact_id] = u.avatar_url;
         return acc;
     }, {} as Record<string, string> );
 
@@ -68,7 +68,7 @@ export default function ChatMenu( {
             console.log( "DEBUG: deleteConversation sukses:", res );
 
             // Kosongkan pesan di Redux hanya jika sukses
-            dispatch( setMessagesForContact( { email: contact.email, messages: [] } ) );
+            dispatch( setMessagesForContact( { contactId: contact.contact_id, messages: [] } ) );
         } catch ( err )
         {
             console.error( "Gagal menghapus percakapan:", err );
@@ -80,7 +80,7 @@ export default function ChatMenu( {
     };
 
     const recentChats = filteredContacts.filter(
-        ( c ) => ( chatData[c.email] || [] ).length > 0
+        ( c ) => ( chatData[c.contact_id] || [] ).length > 0
     );
 
     if ( !recentChats.length )
@@ -92,7 +92,7 @@ export default function ChatMenu( {
         <div className="space-y-0 -ml-4">
             { recentChats.map( ( c, index ) =>
             {
-                const chatMessages = chatData[c.email] || [];
+                const chatMessages = chatData[c.contact_id] || [];
                 const lastMessage = chatMessages[chatMessages.length - 1];
 
                 let lastMessageText = "";
@@ -102,25 +102,17 @@ export default function ChatMenu( {
                 {
                     const ext = lastMessage.fileName?.split( "." ).pop()?.toLowerCase();
                     const type = lastMessage.fileType || "";
-                    if (
-                        ["jpg", "jpeg", "png", "gif"].includes( ext || "" ) ||
-                        type.startsWith( "image/" )
-                    )
+                    if ( ["jpg", "jpeg", "png", "gif"].includes( ext || "" ) || type.startsWith( "image/" ) )
                         lastMessageText = "[Gambar]";
-                    else if (
-                        ["mp4", "mov", "avi"].includes( ext || "" ) ||
-                        type.startsWith( "video/" )
-                    )
+                    else if ( ["mp4", "mov", "avi"].includes( ext || "" ) || type.startsWith( "video/" ) )
                         lastMessageText = "[Video]";
                     else lastMessageText = "[Dokumen]";
                 } else if ( lastMessage?.audioUrl ) lastMessageText = "[Audio]";
 
                 return (
                     <div
-                        key={ `chat-${ c.email }` }
-                        className={ `rounded-lg flex flex-col p-2 ${ openMenuIndex === index
-                                ? "bg-white"
-                                : "hover:bg-gray-100 cursor-pointer"
+                        key={ `chat-${ c.contact_id }` }
+                        className={ `rounded-lg flex flex-col p-2 ${ openMenuIndex === index ? "bg-white" : "hover:bg-gray-100 cursor-pointer"
                             }` }
                         onClick={ () =>
                         {
@@ -132,9 +124,9 @@ export default function ChatMenu( {
                         <div className="flex items-center">
                             {/* Avatar */ }
                             <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center shrink-0 mr-3 overflow-hidden">
-                                { avatarMap[c.email] ? (
+                                { avatarMap[c.contact_id] ? (
                                     <img
-                                        src={ avatarMap[c.email] }
+                                        src={ avatarMap[c.contact_id] }
                                         alt={ c.alias || c.name }
                                         className="w-full h-full object-cover"
                                     />
@@ -145,25 +137,17 @@ export default function ChatMenu( {
 
                             {/* Konten teks */ }
                             <div className="flex flex-col flex-1 min-w-0">
-                                <span className="font-semibold text-sm truncate">
-                                    { c.alias || c.name }
-                                </span>
+                                <span className="font-semibold text-sm truncate">{ c.alias || c.name }</span>
                                 <div className="flex items-center justify-between mt-0 min-w-0">
-                                    <span className="text-sm text-gray-600 truncate min-w-0 flex-1">
-                                        { lastMessageText }
-                                    </span>
+                                    <span className="text-sm text-gray-600 truncate min-w-0 flex-1">{ lastMessageText }</span>
                                     <div className="flex items-center gap-2 flex-shrink-0 ml-2 relative">
-                                        <span className="text-xs text-gray-500 whitespace-nowrap">
-                                            { lastMessage?.time || "" }
-                                        </span>
+                                        <span className="text-xs text-gray-500 whitespace-nowrap">{ lastMessage?.time || "" }</span>
                                         <button
                                             className="p-1"
                                             onClick={ ( e ) =>
                                             {
                                                 e.stopPropagation();
-                                                setOpenMenuIndex(
-                                                    openMenuIndex === index ? null : index
-                                                );
+                                                setOpenMenuIndex( openMenuIndex === index ? null : index );
                                             } }
                                         >
                                             <MoreVertical className="w-4 h-4 text-gray-500" />
@@ -184,15 +168,8 @@ export default function ChatMenu( {
                                                         setOpenMenuIndex( null );
                                                     } }
                                                 >
-                                                    <Trash2
-                                                        size={ 16 }
-                                                        className="shrink-0 text-gray-600"
-                                                    />
-                                                    <span className="text-sm">
-                                                        { loading
-                                                            ? "Menghapus..."
-                                                            : "Hapus percakapan" }
-                                                    </span>
+                                                    <Trash2 size={ 16 } className="shrink-0 text-gray-600" />
+                                                    <span className="text-sm">{ loading ? "Menghapus..." : "Hapus percakapan" }</span>
                                                 </button>
                                             </div>
                                         ) }

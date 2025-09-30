@@ -10,7 +10,7 @@ export interface ChatMessage
     caption?: string;
     audioUrl?: string;
     time: string;
-    side: "kiri" | "kanan";
+    side: "kiri" | "kanan"; // posisi balon chat
     isSoftDeleted?: boolean;
     isDeleted?: boolean;
     updatedAt?: string;
@@ -21,7 +21,7 @@ export interface ChatMessage
 
 interface ChatState
 {
-    [email: string]: ChatMessage[];
+    [contactId: string]: ChatMessage[];
 }
 
 const initialState: ChatState = {};
@@ -32,47 +32,50 @@ const chatSlice = createSlice( {
     reducers: {
         setMessagesForContact: (
             state,
-            action: PayloadAction<{ email: string; messages: ChatMessage[] }>
+            action: PayloadAction<{ contactId: string; messages: ChatMessage[] }>
         ) =>
         {
-            // Array baru → trigger re-render
-            state[action.payload.email] = [...action.payload.messages];
+            state[action.payload.contactId] = [...action.payload.messages];
         },
 
         addMessageToContact: (
             state,
-            action: PayloadAction<{ email: string; message: ChatMessage }>
+            action: PayloadAction<{ contactId: string; message: ChatMessage }>
         ) =>
         {
-            const email = action.payload.email;
-            const newMessage = action.payload.message;
-            // Buat array baru → re-render
-            state[email] = [...( state[email] || [] ), newMessage];
+            const { contactId, message } = action.payload;
+
+            const exists = ( state[contactId] || [] ).some(
+                ( msg ) => msg.id && message.id && msg.id === message.id
+            );
+            if ( exists ) return;
+
+            state[contactId] = [...( state[contactId] || [] ), message];
         },
 
         deleteMessageForContact: (
             state,
-            action: PayloadAction<{ email: string; index: number }>
+            action: PayloadAction<{ contactId: string; index: number }>
         ) =>
         {
-            const email = action.payload.email;
-            if ( !state[email] ) return;
-            // Buat array baru
-            state[email] = state[email].filter( ( _, idx ) => idx !== action.payload.index );
+            const { contactId, index } = action.payload;
+            if ( !state[contactId] ) return;
+            state[contactId] = state[contactId].filter( ( _, idx ) => idx !== index );
         },
 
         clearMessagesForContact: (
             state,
-            action: PayloadAction<{ email: string }>
+            action: PayloadAction<{ contactId: string }>
         ) =>
         {
-            state[action.payload.email] = [];
+            state[action.payload.contactId] = [];
         },
 
+        
         updateMessageForContact: (
             state,
             action: PayloadAction<{
-                email: string;
+                contactId: string;
                 messageId: string;
                 newText?: string;
                 newCaption?: string;
@@ -88,12 +91,11 @@ const chatSlice = createSlice( {
             }>
         ) =>
         {
-            const { email, messageId, ...updates } = action.payload;
-            const messages = state[email];
+            const { contactId, messageId, ...updates } = action.payload;
+            const messages = state[contactId];
             if ( !messages ) return;
 
-            // Map baru → trigger re-render
-            state[email] = messages.map( msg =>
+            state[contactId] = messages.map( ( msg ) =>
                 msg.id === messageId
                     ? {
                         ...msg,
@@ -115,12 +117,12 @@ const chatSlice = createSlice( {
 
         removeMessageById: (
             state,
-            action: PayloadAction<{ email: string; messageId: string }>
+            action: PayloadAction<{ contactId: string; messageId: string }>
         ) =>
         {
-            const { email, messageId } = action.payload;
-            if ( !state[email] ) return;
-            state[email] = state[email].filter( msg => msg.id !== messageId );
+            const { contactId, messageId } = action.payload;
+            if ( !state[contactId] ) return;
+            state[contactId] = state[contactId].filter( ( msg ) => msg.id !== messageId );
         },
     },
 } );

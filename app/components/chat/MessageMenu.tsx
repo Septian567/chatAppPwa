@@ -5,8 +5,9 @@ import { useRef, useEffect, useState } from "react";
 
 interface MessageMenuProps
 {
-    isSoftDeleted?: boolean;  // soft delete lokal
-    isDeleted?: boolean;      // soft/hard delete dari server
+    isOwnMessage: boolean;   // 🔹 baru: apakah pesan dari user sendiri
+    isSoftDeleted?: boolean;
+    isDeleted?: boolean;
     align?: "left" | "right";
     onEditClick?: () => void;
     onSoftDeleteClick?: () => void;
@@ -15,8 +16,9 @@ interface MessageMenuProps
 }
 
 export function MessageMenu( {
+    isOwnMessage,
     isSoftDeleted = false,
-    isDeleted = false,       // 🔹 default false
+    isDeleted = false,
     align = "right",
     onEditClick,
     onSoftDeleteClick,
@@ -94,8 +96,8 @@ export function MessageMenu( {
             className="absolute w-44 bg-white border rounded shadow text-sm z-[9999]"
             style={ { top: position.top, left: position.left, position: "absolute" } }
         >
-            {/* Hanya tampilkan tombol edit & soft delete jika pesan belum dihapus server */ }
-            { !isDeleted && !isSoftDeleted && onEditClick && (
+            {/* Jika pesan milik user sendiri */ }
+            { isOwnMessage && !isDeleted && !isSoftDeleted && onEditClick && (
                 <button
                     type="button"
                     className="flex items-center gap-2 w-full text-left px-3 py-1 hover:bg-gray-100"
@@ -104,7 +106,7 @@ export function MessageMenu( {
                     <Edit3 size={ 14 } /> Edit
                 </button>
             ) }
-            { !isDeleted && !isSoftDeleted && onSoftDeleteClick && (
+            { isOwnMessage && !isDeleted && !isSoftDeleted && onSoftDeleteClick && (
                 <button
                     type="button"
                     className="flex items-center gap-2 w-full text-left px-3 py-1 hover:bg-gray-100"
@@ -113,7 +115,8 @@ export function MessageMenu( {
                     <Slash size={ 14 } /> Hapus pesan
                 </button>
             ) }
-            {/* Tombol "Hapus untuk saya" selalu tampil jika onDeleteClick ada */ }
+
+            {/* Tombol "Hapus untuk saya" selalu ada untuk semua pesan */ }
             { onDeleteClick && (
                 <button
                     type="button"

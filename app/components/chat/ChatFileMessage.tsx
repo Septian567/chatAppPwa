@@ -2,7 +2,12 @@ import { useFilePreview } from "../../hooks/useFilePreview";
 import { ChatFilePreview } from "./ChatFilePreview";
 import { MessageMenu } from "./MessageMenu";
 import { ChatBubble } from "./ChatBubble";
-import { SoftDeletedMessage, isSoftDeletedMessage, DEFAULT_FILE_DELETED_TEXT } from "../../hooks/useSoftDelete";
+import
+    {
+        SoftDeletedMessage,
+        isSoftDeletedMessage,
+        DEFAULT_FILE_DELETED_TEXT,
+    } from "../../hooks/useSoftDelete";
 
 interface ChatFileMessageProps
 {
@@ -24,7 +29,7 @@ export default function ChatFileMessage( {
     fileName = "Dokumen",
     caption,
     time,
-    align,
+    align = "right",
     onEditClick,
     onSoftDeleteClick,
     onDeleteClick,
@@ -33,7 +38,8 @@ export default function ChatFileMessage( {
     isDeleted = false,
 }: ChatFileMessageProps )
 {
-    const { fileExtension, isImage, isVideo, isAudio, fileIcon, handleDownload } = useFilePreview( fileUrl, fileName );
+    const { fileExtension, isImage, isVideo, isAudio, fileIcon, handleDownload } =
+        useFilePreview( fileUrl, fileName );
 
     // Kalau caption tidak ada, kita tetap bisa soft delete berdasarkan isDeleted
     const isSoftDeleted = isDeleted || isSoftDeletedMessage( caption );
@@ -44,6 +50,7 @@ export default function ChatFileMessage( {
             <span className="text-xs text-gray-700 whitespace-nowrap">{ time }</span>
             { ( onEditClick || onSoftDeleteClick || onDeleteClick ) && (
                 <MessageMenu
+                    isOwnMessage={ align === "right" } // 🔹 Tambahkan flag ini
                     isSoftDeleted={ isSoftDeleted }
                     onEditClick={ onEditClick }
                     onSoftDeleteClick={ onSoftDeleteClick }
@@ -56,7 +63,11 @@ export default function ChatFileMessage( {
     );
 
     return (
-        <ChatBubble variant="media" align={ align } fixedWidth={ isSoftDeleted ? "5cm" : undefined }>
+        <ChatBubble
+            variant="media"
+            align={ align }
+            fixedWidth={ isSoftDeleted ? "5cm" : undefined }
+        >
             <div className="flex flex-col gap-1 w-full">
                 { isSoftDeleted ? (
                     <div className="flex items-center gap-1 min-h-[1.9rem]">
@@ -64,7 +75,10 @@ export default function ChatFileMessage( {
                         { TimeAndMenu }
                     </div>
                 ) : (
-                    <div className={ `flex flex-col gap-1 w-full max-w-full ${ !isActive ? "hidden" : "" }` }>
+                    <div
+                        className={ `flex flex-col gap-1 w-full max-w-full ${ !isActive ? "hidden" : ""
+                            }` }
+                    >
                         <ChatFilePreview
                             fileUrl={ fileUrl }
                             fileName={ fileName }
@@ -79,8 +93,14 @@ export default function ChatFileMessage( {
                             align={ align }
                             isActive={ isActive }
                         />
-                        { displayCaption && <span className="whitespace-pre-wrap break-words text-black">{ displayCaption }</span> }
-                        <div className="flex items-center gap-1 self-end mt-1">{ TimeAndMenu }</div>
+                        { displayCaption && (
+                            <span className="whitespace-pre-wrap break-words text-black">
+                                { displayCaption }
+                            </span>
+                        ) }
+                        <div className="flex items-center gap-1 self-end mt-1">
+                            { TimeAndMenu }
+                        </div>
                     </div>
                 ) }
             </div>

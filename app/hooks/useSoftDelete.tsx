@@ -4,7 +4,6 @@ import { Ban } from "lucide-react";
 import React from "react";
 
 /* ---------------- Default Text ---------------- */
-
 export const SOFT_DELETED_MESSAGES = [
     "Pesan telah dihapus",
     "Pesan telah dihapus"
@@ -14,7 +13,6 @@ export const DEFAULT_SOFT_DELETED_TEXT = SOFT_DELETED_MESSAGES[0];
 export const DEFAULT_FILE_DELETED_TEXT = SOFT_DELETED_MESSAGES[1];
 
 /* ---------------- Utility ---------------- */
-
 export function isSoftDeletedMessage( text?: string | null ): boolean
 {
     if ( !text ) return false;
@@ -25,24 +23,49 @@ export function softDeleteMessage( message: ChatMessage ): ChatMessage
 {
     if ( message.text )
     {
-        // Text message
-        return { ...message, text: DEFAULT_SOFT_DELETED_TEXT, isSoftDeleted: true };
+        // Text message → hapus semua media
+        return {
+            ...message,
+            text: DEFAULT_SOFT_DELETED_TEXT,
+            audioUrl: null,
+            fileUrl: null,
+            caption: "",
+            isSoftDeleted: true,
+        };
     } else if ( message.caption )
     {
         // File message dengan caption
-        return { ...message, caption: DEFAULT_FILE_DELETED_TEXT, isSoftDeleted: true };
+        return {
+            ...message,
+            caption: DEFAULT_FILE_DELETED_TEXT,
+            audioUrl: null,
+            fileUrl: null,
+            isSoftDeleted: true,
+        };
     } else if ( message.fileUrl && !message.caption )
     {
-        // File message TANPA caption
-        return { ...message, caption: DEFAULT_FILE_DELETED_TEXT, isSoftDeleted: true };
+        // File message tanpa caption
+        return {
+            ...message,
+            caption: DEFAULT_FILE_DELETED_TEXT,
+            audioUrl: null,
+            fileUrl: null,
+            isSoftDeleted: true,
+        };
     } else if ( message.audioUrl )
     {
-        // Audio message
-        return { ...message, text: DEFAULT_SOFT_DELETED_TEXT, audioUrl: null, isSoftDeleted: true };
+        // Audio message → hapus audioUrl
+        return {
+            ...message,
+            text: DEFAULT_SOFT_DELETED_TEXT,
+            audioUrl: null,
+            fileUrl: null,
+            caption: "",
+            isSoftDeleted: true,
+        };
     }
     return message;
 }
-
 
 export async function softDeleteMessageWithApi( message: ChatMessage ): Promise<ChatMessage>
 {
@@ -69,13 +92,12 @@ export function undoSoftDeleteMessage( message: ChatMessage ): ChatMessage
         return { ...message, caption: "", isSoftDeleted: false };
     } else if ( message.audioUrl === null && message.text === DEFAULT_SOFT_DELETED_TEXT )
     {
-        return { ...message, text: "", audioUrl: "", isSoftDeleted: false };
+        return { ...message, text: "", audioUrl: null, isSoftDeleted: false };
     }
     return message;
 }
 
 /* ---------------- Komponen ---------------- */
-
 interface SoftDeletedMessageProps
 {
     text: string;
@@ -92,6 +114,3 @@ export const SoftDeletedMessage: React.FC<SoftDeletedMessageProps> = ( { text, t
         </div>
     );
 };
-
-
-

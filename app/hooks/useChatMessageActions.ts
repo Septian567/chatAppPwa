@@ -1,8 +1,9 @@
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../states";
-import { ChatMessage, setMessagesForContact, } from "../states/chatSlice";
+import { ChatMessage, setMessagesForContact } from "../states/chatSlice";
 import { softDeleteMessage, softDeleteMessageWithApi } from "./useSoftDelete";
 import { deleteMessageForUser } from "../utils/deleteMessageForUserApi";
+import { useChatSocket } from "./useChatSocket";
 
 export function useMessageActions(
     contactId: string,
@@ -12,6 +13,9 @@ export function useMessageActions(
 )
 {
     const dispatch = useDispatch();
+    const currentUserId = localStorage.getItem( "userId" ) || "";
+    const socket = useChatSocket( contactId, currentUserId );
+
     const messages = useSelector(
         ( state: RootState ) => state.chat[contactId] || []
     );
@@ -37,6 +41,7 @@ export function useMessageActions(
         const msg = messages[index];
         if ( !msg ) return;
 
+        // update lokal dulu
         const updatedMsg = softDeleteMessage( msg );
         const updatedMessages = [...messages];
         updatedMessages[index] = updatedMsg;
@@ -45,10 +50,19 @@ export function useMessageActions(
 
         try
         {
-            // Hanya panggil API jika ID server ada
             if ( msg.id && !msg.id.startsWith( "temp-" ) )
             {
                 await softDeleteMessageWithApi( msg );
+
+                // 🔹 Emit ke server supaya realtime
+                if ( socket )
+                {
+                    console.log( "DEBUG emit softDeleteMessage:", msg.id, contactId );
+                    socket.emit( "softDeleteMessage", {
+                        messageId: msg.id,
+                        contactId,
+                    } );
+                }
             }
         } catch ( err )
         {

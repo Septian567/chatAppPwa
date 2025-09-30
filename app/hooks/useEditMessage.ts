@@ -1,87 +1,64 @@
-import { useState } from "react";
+// hooks/useEditMessage.ts
+"use client";
+
+import { useCallback } from "react";
 import { useDispatch } from "react-redux";
-import { updateMessageForContact } from "../states/chatSlice";
 import { editMessage } from "../utils/editMessageApi";
-import { ChatMessage } from "../states/chatSlice";
+import { updateMessageForContact } from "../states/chatSlice";
+import { useMapSendMessageResponse } from "./useMapSendMessageResponse";
 
-interface UseEditMessageProps
-{
-    contactId: string;
-}
-
-export function useEditMessage( { contactId }: UseEditMessageProps )
+export function useEditMessage(
+    contactId: string,
+    socket: any,
+    editType: "text" | "file" | null,
+    handleCancelEdit: () => void
+)
 {
     const dispatch = useDispatch();
+    const { mapSendMessageResponse } = useMapSendMessageResponse();
 
-    const [editingIndex, setEditingIndex] = useState<number | null>( null );
-    const [editType, setEditType] = useState<"text" | "file" | null>( null );
-    const [editingMessage, setEditingMessage] = useState<ChatMessage | null>( null );
-
-    const handleEditTextMessage = ( message: ChatMessage, index: number ) =>
-    {
-        setEditingMessage( message );
-        setEditingIndex( index );
-        setEditType( "text" );
-    };
-
-    const handleEditFileMessage = ( message: ChatMessage, index: number ) =>
-    {
-        setEditingMessage( message );
-        setEditingIndex( index );
-        setEditType( "file" );
-    };
-
-    const handleCancelEdit = () =>
-    {
-        setEditingMessage( null );
-        setEditingIndex( null );
-        setEditType( null );
-    };
-
-    const handleSubmitEdit = async ( editedText: string ) =>
-    {
-        if ( !editingMessage?.id ) return;
-
-        try
+    const handleSubmitEdit = useCallback(
+        async ( messageId: string, editedText: string ) =>
         {
-            // Panggil API edit
-            const updatedRaw = await editMessage( editingMessage.id, editedText );
+            if ( !messageId ) return;
 
-            // Mapping response agar sesuai ChatMessage
-            const updated = {
-                message_id: updatedRaw.message_id,
-                message_text: updatedRaw.message_text || "",
-                updated_at: updatedRaw.updated_at || new Date().toISOString(),
-            };
+            try
+            {
+                const updatedRaw = await editMessage( messageId, editedText );
+                const updated = mapSendMessageResponse( updatedRaw );
 
-            // Dispatch ke Redux sesuai editType
-            dispatch(
-                updateMessageForContact( {
-                    contactId,
-                    messageId: updated.message_id,
-                    newText: editType === "text" ? updated.message_text : undefined,
-                    newCaption: editType === "file" ? updated.message_text : undefined,
-                    updatedAt: updated.updated_at,
-                } )
-            );
-        } catch ( err )
-        {
-            console.error( "Gagal edit pesan:", err );
-        }
+                const newText = editType === "text" ? updated.message_text : undefined;
+                const newCaption = editType === "file" ? updated.message_text : undefined;
 
-        // Reset state edit
-        handleCancelEdit();
-    };
+                // Update redux state
+                dispatch(
+                    updateMessageForContact( {
+                        contactId,
+                        messageId: updated.message_id,
+                        newText,
+                        newCaption,
+                        updatedAt: updated.updated_at,
+                    } )
+                );
 
-    return {
-        editingIndex,
-        editType,
-        editingMessage,
-        setEditingIndex,
-        setEditType,
-        handleEditTextMessage,
-        handleEditFileMessage,
-        handleCancelEdit,
-        handleSubmitEdit,
-    };
+                // Emit realtime update ke server
+                if ( socket )
+                {
+                    socket.emit( "editMessage", {
+                        messageId: updated.message_id,
+                        newText,
+                        newCaption,
+                    } );
+                }
+            } catch ( err )
+            {
+                console.error( "Gagal edit pesan:", err );
+            }
+
+            handleCancelEdit();
+        },
+        [contactId, dispatch, editType, mapSendMessageResponse, socket, handleCancelEdit]
+    );
+
+    return { handleSubmitEdit };
 }

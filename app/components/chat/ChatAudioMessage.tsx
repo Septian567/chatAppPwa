@@ -9,9 +9,9 @@ interface ChatAudioMessageProps
     time: string;
     duration?: number;
     isSoftDeleted?: boolean;
-    isSending?: boolean; // ✅ audio sedang dikirim
-    isLoading?: boolean;  // ✅ alias untuk loading overlay
-    isError?: boolean;    // ✅ menandai gagal kirim
+    isSending?: boolean;
+    isLoading?: boolean;
+    isError?: boolean;
     textStatus?: string;
     align?: "left" | "right";
     onSoftDeleteClick?: () => void;
@@ -23,26 +23,25 @@ export default function ChatAudioMessage( {
     audioUrl,
     time,
     duration,
-    isSoftDeleted,
+    isSoftDeleted = false,
     isSending = false,
     isLoading = false,
     isError = false,
-    textStatus,
+    textStatus = "Pesan telah dihapus",
     align = "right",
     onSoftDeleteClick,
     onDeleteClick,
     onToggleMenu,
 }: ChatAudioMessageProps )
 {
-
     const showSoftDeleted = isSoftDeleted || !audioUrl;
 
     return (
         <ChatBubble variant="media" align={ align }>
             <div className="flex flex-col gap-1 w-full">
-                <div className="flex items-center justify-between gap-1 w-full">
+                <div className="flex items-center justify-between w-full">
                     { showSoftDeleted ? (
-                        <SoftDeletedMessage text={ textStatus || "Pesan telah dihapus" } time={ time } />
+                        <SoftDeletedMessage text={ textStatus } />
                     ) : (
                         <div className="flex items-center gap-3 flex-1 relative">
                             <CustomAudioPlayer src={ audioUrl } manualDuration={ duration } />

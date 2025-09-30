@@ -93,7 +93,7 @@ export default function Home()
           </div>
 
           <p className="text-gray-700 text-center text-lg mt-2">
-            Tempat ngobrol cadangan, selalu siap dipakai.
+            masih di proses
           </p>
         </main>
       );

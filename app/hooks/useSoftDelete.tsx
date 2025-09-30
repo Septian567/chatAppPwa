@@ -21,50 +21,17 @@ export function isSoftDeletedMessage( text?: string | null ): boolean
 
 export function softDeleteMessage( message: ChatMessage ): ChatMessage
 {
-    if ( message.text )
-    {
-        // Text message → hapus semua media
-        return {
-            ...message,
-            text: DEFAULT_SOFT_DELETED_TEXT,
-            audioUrl: null,
-            fileUrl: null,
-            caption: "",
-            isSoftDeleted: true,
-        };
-    } else if ( message.caption )
-    {
-        // File message dengan caption
-        return {
-            ...message,
-            caption: DEFAULT_FILE_DELETED_TEXT,
-            audioUrl: null,
-            fileUrl: null,
-            isSoftDeleted: true,
-        };
-    } else if ( message.fileUrl && !message.caption )
-    {
-        // File message tanpa caption
-        return {
-            ...message,
-            caption: DEFAULT_FILE_DELETED_TEXT,
-            audioUrl: null,
-            fileUrl: null,
-            isSoftDeleted: true,
-        };
-    } else if ( message.audioUrl )
-    {
-        // Audio message → hapus audioUrl
-        return {
-            ...message,
-            text: DEFAULT_SOFT_DELETED_TEXT,
-            audioUrl: null,
-            fileUrl: null,
-            caption: "",
-            isSoftDeleted: true,
-        };
-    }
-    return message;
+    return {
+        ...message,
+        text: message.text ? DEFAULT_SOFT_DELETED_TEXT : "",
+        caption: message.caption || message.attachments?.length ? DEFAULT_FILE_DELETED_TEXT : "",
+        fileUrl: null,
+        fileName: null,
+        fileType: null,
+        audioUrl: null,
+        attachments: [],
+        isSoftDeleted: true,
+    };
 }
 
 export async function softDeleteMessageWithApi( message: ChatMessage ): Promise<ChatMessage>

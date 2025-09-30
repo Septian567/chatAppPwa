@@ -1,52 +1,23 @@
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../states";
+"use client";
+
+import { useDispatch } from "react-redux";
 import { addMessageToContact, ChatMessage } from "../states/chatSlice";
-import { sendMessage, SendMessageResponse } from "../utils/sendMessageApi";
+import { sendMessage } from "../utils/sendMessageApi";
+import { useMapSendMessageResponse } from "./useMapSendMessageResponse";
+import { formatTime24 } from "../utils/formatTime";
 
-// --- Map API response ke format ChatMessage ---
-function mapSendMessageResponse( apiResponse: any ): SendMessageResponse
-{
-    return {
-        message_id: apiResponse.message_id,
-        message_text: apiResponse.message_text,
-        from_user_id: apiResponse.from_user_id,
-        to_user_id: apiResponse.to_user_id,
-        created_at: apiResponse.created_at,
-        updated_at: apiResponse.updated_at || null,
-        attachments: ( apiResponse.attachments || [] ).map( ( a: any ) => ( {
-            mediaType: a.media_type,
-            mediaUrl: a.media_url,
-            mediaName: a.media_name,
-            mediaSize: a.media_size,
-        } ) ),
-    };
-}
-
-// --- Format waktu 24 jam ---
-const formatTime24 = ( dateString: string ) =>
-{
-    const date = new Date( dateString );
-    const hours = date.getHours().toString().padStart( 2, "0" );
-    const minutes = date.getMinutes().toString().padStart( 2, "0" );
-    return `${ hours }:${ minutes }`;
-};
-
-export function useSendMessage()
+export function useSendMessage( contactId: string, currentUserId: string )
 {
     const dispatch = useDispatch();
-    const activeContact = useSelector(
-        ( state: RootState ) => state.contacts.activeContact
-    );
-    const contactId = activeContact?.contact_id || "default";
-    const currentUserId = localStorage.getItem( "userId" ) || "";
+    const { mapSendMessageResponse } = useMapSendMessageResponse();
 
-    const sendTextMessage = async ( message: string ) =>
+    const handleSendMessage = async ( message: string ) =>
     {
-        if ( !activeContact?.contact_id ) return;
+        if ( !contactId ) return;
 
         try
         {
-            const apiResponseRaw = await sendMessage( activeContact.contact_id, message );
+            const apiResponseRaw = await sendMessage( contactId, message );
             const apiResponse = mapSendMessageResponse( apiResponseRaw );
 
             const side = apiResponse.from_user_id === currentUserId ? "kanan" : "kiri";
@@ -67,5 +38,5 @@ export function useSendMessage()
         }
     };
 
-    return { sendTextMessage };
+    return { handleSendMessage };
 }

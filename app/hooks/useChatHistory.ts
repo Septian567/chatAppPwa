@@ -5,7 +5,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../states";
 import { getChatHistory, ChatHistoryItem } from "../utils/getChatHistoryApi";
 import { setMessagesForContact, ChatMessage } from "../states/chatSlice";
-import { softDeleteMessage } from "../hooks/useSoftDelete";
+import { softDeleteMessage } from "./useSoftDelete";
+import { formatTime24 } from "../utils/formatTime";
+import { determineAttachmentType } from "../utils/attachmentUtils";
 
 export function useChatHistory( contactId?: string )
 {
@@ -15,35 +17,6 @@ export function useChatHistory( contactId?: string )
 
     const [loading, setLoading] = useState( false );
     const [error, setError] = useState<string | null>( null );
-
-    // --- Format waktu 24 jam manual ---
-    const formatTime = useCallback( ( dateString: string ) =>
-    {
-        const date = new Date( dateString );
-        const hours = date.getHours().toString().padStart( 2, "0" );
-        const minutes = date.getMinutes().toString().padStart( 2, "0" );
-        return `${ hours }:${ minutes }`;
-    }, [] );
-
-    // --- Tentukan tipe attachment dengan prioritas video dulu ---
-    const determineAttachmentType = useCallback( ( attachment: any ) =>
-    {
-        const fileName = attachment.media_name?.toLowerCase() || "";
-        const mediaType = attachment.media_type;
-
-        // Prioritas video dulu
-        const isVideo = ( fileName.endsWith( ".webm" ) && fileName.includes( "video" ) ) || mediaType === "video";
-
-        // Voice note setelah video
-        const isVoiceNote = fileName.endsWith( ".webm" ) && mediaType === "file" && fileName.includes( "audio" );
-
-        if ( isVideo ) return "video";
-        if ( isVoiceNote ) return "voice_note";
-        if ( mediaType === "audio" ) return "audio_file";
-        if ( mediaType === "image" ) return "image";
-
-        return "file";
-    }, [] );
 
     const fetchChatHistory = useCallback( async () =>
     {
@@ -113,6 +86,7 @@ export function useChatHistory( contactId?: string )
                     caption,
                     audioUrl,
                     videoUrl,
+                    time: formatTime24( msg.created_at ),
                     side: msg.from_user_id === userId ? "kanan" : "kiri",
                     isDeleted: !!msg.is_deleted,
                     isSoftDeleted: false,
@@ -148,7 +122,7 @@ export function useChatHistory( contactId?: string )
         {
             setLoading( false );
         }
-    }, [targetContactId, dispatch, formatTime, determineAttachmentType] );
+    }, [targetContactId, dispatch] );
 
     useEffect( () =>
     {

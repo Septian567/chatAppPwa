@@ -99,21 +99,22 @@ const chatSlice = createSlice( {
                 msg.id === messageId
                     ? {
                         ...msg,
-                        text: updates.newText ?? msg.text,
-                        caption: updates.newCaption ?? msg.caption,
-                        fileUrl: updates.newFileUrl ?? msg.fileUrl,
-                        fileName: updates.newFileName ?? msg.fileName,
-                        fileType: updates.newFileType ?? msg.fileType,
-                        audioUrl: updates.newAudioUrl ?? msg.audioUrl,
-                        attachments: updates.attachments ?? msg.attachments,
-                        isDeleted: updates.isDeleted ?? msg.isDeleted,
-                        isSoftDeleted: updates.isSoftDeleted ?? msg.isSoftDeleted,
-                        isSending: updates.isSending ?? msg.isSending,
-                        updatedAt: updates.updatedAt ?? msg.updatedAt,
+                        text: updates.newText !== undefined ? updates.newText : msg.text,
+                        caption: updates.newCaption !== undefined ? updates.newCaption : msg.caption,
+                        fileUrl: updates.newFileUrl !== undefined ? updates.newFileUrl : msg.fileUrl,
+                        fileName: updates.newFileName !== undefined ? updates.newFileName : msg.fileName,
+                        fileType: updates.newFileType !== undefined ? updates.newFileType : msg.fileType,
+                        audioUrl: updates.newAudioUrl !== undefined ? updates.newAudioUrl : msg.audioUrl,
+                        attachments: updates.attachments !== undefined ? updates.attachments : msg.attachments,
+                        isDeleted: updates.isDeleted !== undefined ? updates.isDeleted : msg.isDeleted,
+                        isSoftDeleted: updates.isSoftDeleted !== undefined ? updates.isSoftDeleted : msg.isSoftDeleted,
+                        isSending: updates.isSending !== undefined ? updates.isSending : msg.isSending,
+                        updatedAt: updates.updatedAt !== undefined ? updates.updatedAt : msg.updatedAt,
                     }
                     : msg
             );
         },
+
 
         removeMessageById: (
             state,

@@ -4,7 +4,7 @@ import { Send, Mic, Pause, Play, Trash2 } from "react-feather";
 interface SendActionsProps
 {
     onSend: () => void;
-    onSendAudio?: ( audio: Blob ) => void; // Hanya kirim Blob, UI tunggu response server
+    onSendAudio?: ( audio: Blob ) => void;
     showAudioRecorder: boolean;
 }
 

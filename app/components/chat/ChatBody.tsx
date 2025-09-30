@@ -38,93 +38,93 @@ export default function ChatBody( {
 }: ChatBodyProps )
 {
     const { bottomRef, chatBodyRef, setIsMenuOpen } = useChatBody( messages );
-
-    const activeContact = useSelector(
-        ( state: RootState ) => state.contacts.activeContact
-    );
-
+    const activeContact = useSelector( ( state: RootState ) => state.contacts.activeContact );
     const firstRender = useRef( true );
 
-    // scroll ke bawah saat ganti kontak
+    // Scroll ke bawah saat ganti kontak
     useLayoutEffect( () =>
     {
-        if ( bottomRef.current )
-        {
-            bottomRef.current.scrollIntoView( { behavior: "auto" } );
-        }
+        bottomRef.current?.scrollIntoView( { behavior: "auto" } );
         firstRender.current = false;
     }, [activeContact] );
 
+    const renderMessage = ( msg: ChatMessage, index: number ) =>
+    {
+        const align: "left" | "right" = msg.side === "kiri" ? "left" : "right";
+
+        const firstAttachment = msg.attachments?.[0];
+        const mediaType = firstAttachment?.mediaType;
+        const fileName = msg.fileName || firstAttachment?.mediaName || "";
+        const isVideoFileName = /^video-\d+\.webm$/i.test( fileName );
+
+        const isTextSoftDeleted = isSoftDeletedMessage( msg.text );
+        const isFileSoftDeleted = isSoftDeletedMessage( msg.caption );
+
+        // 1️⃣ Audio (bukan video)
+        if ( ( mediaType === "audio" || msg.audioUrl ) && !isVideoFileName )
+        {
+            return (
+                <ChatAudioMessage
+                    key={ msg.id || index }
+                    audioUrl={ msg.audioUrl || firstAttachment?.mediaUrl }
+                    time={ msg.time }
+                    duration={ msg.duration }
+                    isSoftDeleted={ msg.isSoftDeleted }
+                    textStatus={ msg.text || "" }
+                    align={ align }
+                    onSoftDeleteClick={ !msg.isSoftDeleted ? () => onSoftDeleteAudioMessage?.( index ) : undefined }
+                    onDeleteClick={ () => onDeleteAudioMessage?.( index ) }
+                    onToggleMenu={ setIsMenuOpen }
+                />
+            );
+        }
+
+        // 2️⃣ File atau video
+        if ( msg.fileUrl || msg.caption || firstAttachment )
+        {
+            return (
+                <ChatFileMessage
+                    key={ msg.id || index }
+                    fileUrl={ msg.fileUrl || firstAttachment?.mediaUrl || "" }
+                    fileName={ fileName }
+                    fileType={ firstAttachment?.mediaType || msg.fileType }
+                    caption={ msg.caption || "" }
+                    time={ msg.time }
+                    align={ align }
+                    isActive={ true }
+                    onEditClick={ !isFileSoftDeleted ? () => onEditFileMessage?.( index ) : undefined }
+                    onSoftDeleteClick={ !isFileSoftDeleted ? () => onSoftDeleteFileMessage?.( index ) : undefined }
+                    onDeleteClick={ () => onDeleteFileMessage?.( index ) }
+                    onToggleMenu={ setIsMenuOpen }
+                />
+            );
+        }
+
+        // 3️⃣ Text
+        if ( msg.text )
+        {
+            return (
+                <ChatTextMessage
+                    key={ msg.id || index }
+                    messageId={ msg.id || index.toString() }
+                    text={ msg.text }
+                    time={ msg.time }
+                    isSoftDeleted={ isTextSoftDeleted }
+                    onEditClick={ !isTextSoftDeleted ? () => onEditTextMessage?.( index ) : undefined }
+                    onSoftDeleteClick={ !isTextSoftDeleted ? () => onSoftDeleteTextMessage?.( index ) : undefined }
+                    onDeleteClick={ () => onDeleteTextMessage?.( index ) }
+                    onToggleMenu={ setIsMenuOpen }
+                    align={ align }
+                />
+            );
+        }
+
+        return null;
+    };
+
     return (
-        <div
-            ref={ chatBodyRef }
-            className="flex-1 py-6 w-full responsive-padding overflow-y-auto"
-        >
-            { messages.map( ( msg, index ) =>
-            {
-                const align: "left" | "right" = msg.side === "kiri" ? "left" : "right";
-
-                // 1️⃣ File dengan caption
-                if ( msg.fileUrl || msg.caption )
-                {
-                    const isSoftDeleted = isSoftDeletedMessage( msg.caption );
-                    return (
-                        <ChatFileMessage
-                            key={ msg.id || index }
-                            fileUrl={ msg.fileUrl || "" }
-                            fileName={ msg.fileName }
-                            caption={ msg.caption }
-                            time={ msg.time }
-                            align={ align }
-                            isActive={ true }
-                            onEditClick={ !isSoftDeleted ? () => onEditFileMessage?.( index ) : undefined }
-                            onSoftDeleteClick={ !isSoftDeleted ? () => onSoftDeleteFileMessage?.( index ) : undefined }
-                            onDeleteClick={ () => onDeleteFileMessage?.( index ) }
-                            onToggleMenu={ setIsMenuOpen }
-                        />
-                    );
-                }
-
-                // 2️⃣ Audio
-                if ( msg.audioUrl || isSoftDeletedMessage( msg.text ) )
-                {
-                    return (
-                        <ChatAudioMessage
-                            key={ msg.id || index }
-                            audioUrl={ msg.audioUrl }
-                            time={ msg.time }
-                            duration={ msg.duration }
-                            isSoftDeleted={ msg.isSoftDeleted }
-                            textStatus={ msg.text }
-                            align={ align }
-                            onSoftDeleteClick={ !msg.isSoftDeleted ? () => onSoftDeleteAudioMessage?.( index ) : undefined }
-                            onDeleteClick={ () => onDeleteAudioMessage?.( index ) }
-                            onToggleMenu={ setIsMenuOpen }
-                        />
-                    );
-                }
-
-                // 3️⃣ Text
-                if ( msg.text )
-                {
-                    const isDeleted = isSoftDeletedMessage( msg.text );
-                    return (
-                        <ChatTextMessage
-                            key={ msg.id || index }
-                            text={ msg.text }
-                            time={ msg.time }
-                            align={ align }
-                            onEditClick={ !isDeleted ? () => onEditTextMessage?.( index ) : undefined }
-                            onSoftDeleteClick={ !isDeleted ? () => onSoftDeleteTextMessage?.( index ) : undefined }
-                            onDeleteClick={ () => onDeleteTextMessage?.( index ) }
-                            onToggleMenu={ setIsMenuOpen }
-                        />
-                    );
-                }
-
-                return null;
-            } ) }
-
+        <div ref={ chatBodyRef } className="flex-1 py-6 w-full responsive-padding overflow-y-auto">
+            { messages.map( renderMessage ) }
             <div ref={ bottomRef } />
         </div>
     );

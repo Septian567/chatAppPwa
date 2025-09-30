@@ -1,29 +1,35 @@
 import { useMemo } from "react";
 
-export function useFilePreview( fileUrl: string, fileName: string )
+export function useFilePreview( fileUrl: string | null, fileName: string | null, mimeType?: string )
 {
-    const fileExtension = useMemo(
-        () => fileName.split( "." ).pop()?.toLowerCase(),
-        [fileName]
-    );
+    // Ekstensi file
+    const fileExtension = useMemo( () =>
+    {
+        if ( !fileName ) return "";
+        return fileName.split( "." ).pop()?.toLowerCase() || "";
+    }, [fileName] );
 
+    // Tentukan tipe file berdasarkan extension + mimeType
     const isImage = useMemo(
         () =>
-            ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].includes(
-                fileExtension ?? ""
-            ),
+            ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].includes( fileExtension ),
         [fileExtension]
     );
 
-    const isVideo = useMemo(
-        () => ["mp4", "webm", "ogg"].includes( fileExtension ?? "" ),
-        [fileExtension]
-    );
+    const isVideo = useMemo( () =>
+    {
+        // Tambahkan mimeType pengecekan untuk video
+        if ( mimeType?.startsWith( "video/" ) ) return true;
+        return ["mp4", "webm", "ogg"].includes( fileExtension );
+    }, [fileExtension, mimeType] );
 
-    const isAudio = useMemo(
-        () => ["mp3", "wav", "ogg", "aac", "m4a"].includes( fileExtension ?? "" ),
-        [fileExtension]
-    );
+    const isAudio = useMemo( () =>
+    {
+        // Tambahkan mimeType pengecekan untuk audio
+        if ( mimeType?.startsWith( "audio/" ) ) return true;
+        // Tambahkan webm sebagai audio jika mimeType audio
+        return ["mp3", "wav", "ogg", "aac", "m4a", "webm"].includes( fileExtension );
+    }, [fileExtension, mimeType] );
 
     const fileIcon = useMemo( () =>
     {
@@ -31,12 +37,18 @@ export function useFilePreview( fileUrl: string, fileName: string )
         if ( isVideo ) return "🎞️";
         if ( isAudio ) return "🎵";
         if ( fileExtension === "pdf" ) return "📄";
-        if ( ["doc", "docx"].includes( fileExtension ?? "" ) ) return "📝";
+        if ( ["doc", "docx"].includes( fileExtension ) ) return "📝";
         return "📎";
     }, [fileExtension, isImage, isVideo, isAudio] );
 
     const handleDownload = async () =>
     {
+        if ( !fileUrl || !fileName )
+        {
+            alert( "File tidak tersedia untuk diunduh." );
+            return;
+        }
+
         try
         {
             const response = await fetch( fileUrl );
@@ -44,7 +56,7 @@ export function useFilePreview( fileUrl: string, fileName: string )
 
             if ( "showSaveFilePicker" in window )
             {
-                const extension = fileName.split( "." ).pop() || "";
+                const extension = fileExtension || "";
                 try
                 {
                     const handle = await ( window as any ).showSaveFilePicker( {

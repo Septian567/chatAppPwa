@@ -22,7 +22,6 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
         ( state: RootState ) => state.contacts.activeContact
     );
 
-    // Tampilkan pesan jika tidak ada kontak aktif
     if ( !activeContact )
     {
         return (

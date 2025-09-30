@@ -41,7 +41,6 @@ export default function ChatFileMessage( {
     const { fileExtension, isImage, isVideo, isAudio, fileIcon, handleDownload } =
         useFilePreview( fileUrl, fileName );
 
-    // Kalau caption tidak ada, kita tetap bisa soft delete berdasarkan isDeleted
     const isSoftDeleted = isDeleted || isSoftDeletedMessage( caption );
     const displayCaption = isSoftDeleted ? DEFAULT_FILE_DELETED_TEXT : caption || "";
 
@@ -50,7 +49,7 @@ export default function ChatFileMessage( {
             <span className="text-xs text-gray-700 whitespace-nowrap">{ time }</span>
             { ( onEditClick || onSoftDeleteClick || onDeleteClick ) && (
                 <MessageMenu
-                    isOwnMessage={ align === "right" } // 🔹 Tambahkan flag ini
+                    isOwnMessage={ align === "right" }
                     isSoftDeleted={ isSoftDeleted }
                     onEditClick={ onEditClick }
                     onSoftDeleteClick={ onSoftDeleteClick }
@@ -63,15 +62,11 @@ export default function ChatFileMessage( {
     );
 
     return (
-        <ChatBubble
-            variant="media"
-            align={ align }
-            fixedWidth={ isSoftDeleted ? "5cm" : undefined }
-        >
-            <div className="flex flex-col gap-1 w-full">
+        <ChatBubble variant="media" align={ align }>
+            <div className="flex flex-col w-full">
                 { isSoftDeleted ? (
-                    <div className="flex items-center gap-1 min-h-[1.9rem]">
-                        <SoftDeletedMessage text={ displayCaption } />
+                    <div className="flex items-center min-h-[1.9rem]">
+                        <SoftDeletedMessage text={ displayCaption }/>
                         { TimeAndMenu }
                     </div>
                 ) : (
@@ -98,9 +93,7 @@ export default function ChatFileMessage( {
                                 { displayCaption }
                             </span>
                         ) }
-                        <div className="flex items-center gap-1 self-end mt-1">
-                            { TimeAndMenu }
-                        </div>
+                        <div className="flex items-center gap-1 self-end mt-1">{ TimeAndMenu }</div>
                     </div>
                 ) }
             </div>

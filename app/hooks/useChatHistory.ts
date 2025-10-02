@@ -20,16 +20,11 @@ export function useChatHistory( contactId?: string )
 
     const fetchChatHistory = useCallback( async () =>
     {
-        if ( !targetContactId )
-        {
-            console.warn( "DEBUG: contact_id kosong, tidak ambil chat history" );
-            return;
-        }
+        if ( !targetContactId ) return; // ⚡ skip fetch jika tidak ada kontak
 
         const userId = localStorage.getItem( "userId" );
         if ( !userId )
         {
-            console.error( "DEBUG: userId tidak ditemukan di localStorage" );
             setError( "User ID tidak ditemukan" );
             return;
         }
@@ -39,7 +34,6 @@ export function useChatHistory( contactId?: string )
 
         try
         {
-            console.log( "DEBUG: Ambil chat history untuk contact_id:", targetContactId );
             const history: ChatHistoryItem[] = await getChatHistory( targetContactId );
 
             const formattedMessages: ChatMessage[] = history.map( ( msg ) =>
@@ -98,25 +92,19 @@ export function useChatHistory( contactId?: string )
                     message = softDeleteMessage( message );
                 }
 
-                if ( audioUrl ) console.log( "DEBUG: Audio message:", message.id, audioUrl );
-                if ( videoUrl ) console.log( "DEBUG: Video message:", message.id, videoUrl );
-
                 return message;
             } );
 
-            dispatch(
-                setMessagesForContact( {
-                    contactId: targetContactId,
-                    messages: formattedMessages,
-                } )
-            );
+            dispatch( setMessagesForContact( {
+                contactId: targetContactId,
+                messages: formattedMessages,
+            } ) );
         } catch ( err: any )
         {
             const message =
                 err instanceof Error
                     ? err.message
                     : err.response?.data?.message || err.response?.data || "Unknown error";
-            console.error( "DEBUG: Gagal load chat history:", message );
             setError( message );
         } finally
         {
@@ -124,6 +112,7 @@ export function useChatHistory( contactId?: string )
         }
     }, [targetContactId, dispatch] );
 
+    // ⚡ Hook selalu dipanggil, fetch hanya jika targetContactId valid
     useEffect( () =>
     {
         fetchChatHistory();

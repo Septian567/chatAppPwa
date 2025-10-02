@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface Contact
 {
-    contact_id: string;  // wajib untuk API
+    contact_id: string;
     email: string;
     alias: string;
     avatar_url?: string;

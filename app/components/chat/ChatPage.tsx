@@ -1,13 +1,12 @@
 "use client";
 
 import { useLayoutEffect } from "react";
-import { useSelector } from "react-redux";
 import { RootState } from "../../states";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "../messageInput/MessageInput";
 import ChatBody from "./ChatBody";
 import { useChatPage } from "../../hooks/useChatPage";
-import { useChatHistory } from "../../hooks/useChatHistory";
+import { useChatHistoryManager } from "../../hooks/useChatHistoryManager";
 
 interface ChatPageProps
 {
@@ -18,24 +17,9 @@ interface ChatPageProps
 
 export default function ChatPage( { isMobile, onBack }: ChatPageProps )
 {
-    const activeContact = useSelector(
-        ( state: RootState ) => state.contacts.activeContact
-    );
-
-    if ( !activeContact )
-    {
-        return (
-            <main className="flex-1 flex items-center justify-center text-gray-500">
-                silahkan pilih kontak untuk memulai chat
-            </main>
-        );
-    }
-
-    const contactId = activeContact.contact_id;
-    const contactName = activeContact.alias || activeContact.email || "Bento";
-
-    // Auto fetch chat history setiap kali kontak aktif berubah
-    useChatHistory( contactId );
+    // 🔹 Semua logika fetch & pengecekan kontak ada di sini
+    const { activeContact, contactId, isActiveContactDeleted, loading, error } =
+        useChatHistoryManager();
 
     const {
         messages,
@@ -59,11 +43,25 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
         handleSendFile,
     } = useChatPage();
 
+    // 🔹 Scroll ke bawah saat kontak / messages berubah
     useLayoutEffect( () =>
     {
         const el = document.getElementById( "chat-bottom" );
         if ( el ) el.scrollIntoView( { behavior: "auto" } );
     }, [activeContact, messages] );
+
+    // 🔹 Render placeholder jika tidak ada kontak aktif atau kontak dihapus
+    if ( !activeContact || isActiveContactDeleted )
+    {
+        return (
+            <main className="flex-1 flex items-center justify-center text-gray-500">
+                silahkan pilih kontak untuk memulai chat
+            </main>
+        );
+    }
+
+    const contactName = activeContact.alias || activeContact.email || "Bento";
+    const avatarUrl = activeContact.avatar_url || "";
 
     return (
         <main className="flex-1 flex flex-col bg-transparent text-black overflow-hidden">
@@ -71,7 +69,8 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
                 isMobile={ isMobile }
                 onBack={ onBack }
                 contactName={ contactName }
-                contactId={ contactId }
+                contactId={ contactId! }
+                avatarUrl={ avatarUrl }
                 onChatKiri={ () => setChatSide( "kiri" ) }
                 onChatKanan={ () => setChatSide( "kanan" ) }
             />

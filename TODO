@@ -314,8 +314,29 @@ TODO 30 September 2025
 9. kirim audio realtime -- SUCCESS
 10. edit caption realtime -- SUCCESS
 11. hapus pesan realtime -- SUCCESS
-12. sesuaikan pesan audio dan video
+12. sesuaikan pesan audio dan video -- SUCCESS
 
+
+TODO 1 OKTOBER 2025
+1. pasang foto profil di chatHeader -- SUCCESS
+2. pastikan hapus kontak cepat -- SUCCESS
+3. saat kontak dihapus, percakapan dari chat ikut dihapus -- SUCCESS
+4. saat kontak yang menampilkan chat dihapus, untuk melihat kontak harus pilih kontak lagi -- SUCCESS
+5. perbaiki responsive rekam suara agar bisa di tampilan kecil -- SUCCESS
+6. perbaiki tampilan saat deleteConversation di tampilan mobile -- SUCCESS
+
+TODO 2 OKTOBER 2025
+1. perbaiki update foto profile di api agar sinkron
+- sinkronkan ke menu kontak (user) tanpa reload -- SUCCESS
+2. perbaiki edit nama profil agar sinkron tanpa reload -- SUCCESS
+3. perbaiki update kontak agar sinkron -- SUCCESS
+4. perbaiki pilih kontak untuk melihat chat setelah kontak dihapus
+- pastikan kalau kontak lain yang dihapus, chat tetap ditampilkan -- SUCCESS
+- kalau kontak yang menampilkan chat dihapus, pilih kontak baru -- SUCCESS
+- pastikan setelah menghapus kontak, membuka chat dengan kontak baru tidak error -- SUCCESS
+5. tampilkan daftar kontak saat pertama dibuka
+6. tampilkan daftar chat terakhir saat pertama web dubuka
+7. beri foto profil di menu chat
 
 
 

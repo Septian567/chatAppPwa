@@ -6,9 +6,15 @@ interface SendActionsProps
     onSend: () => void;
     onSendAudio?: ( audio: Blob ) => void;
     showAudioRecorder: boolean;
+    onRecordingChange?: ( recording: boolean ) => void; // NEW
 }
 
-export default function SendActions( { onSend, onSendAudio, showAudioRecorder }: SendActionsProps )
+export default function SendActions( {
+    onSend,
+    onSendAudio,
+    showAudioRecorder,
+    onRecordingChange,
+}: SendActionsProps )
 {
     const [recording, setRecording] = useState( false );
     const [paused, setPaused] = useState( false );
@@ -20,13 +26,15 @@ export default function SendActions( { onSend, onSendAudio, showAudioRecorder }:
 
     const startTimer = () =>
     {
-        timerRef.current = setInterval( () => setRecordTime( prev => prev + 1 ), 1000 );
+        timerRef.current = setInterval( () => setRecordTime( ( prev ) => prev + 1 ), 1000 );
     };
     const stopTimer = () => clearInterval( timerRef.current! );
+
     const resetRecorder = () =>
     {
         chunksRef.current = [];
         setRecording( false );
+        if ( onRecordingChange ) onRecordingChange( false ); // inform parent
         setPaused( false );
         setMediaRecorder( null );
         setRecordTime( 0 );
@@ -38,17 +46,21 @@ export default function SendActions( { onSend, onSendAudio, showAudioRecorder }:
         const stream = await navigator.mediaDevices.getUserMedia( { audio: true } );
         const recorder = new MediaRecorder( stream, { mimeType: "audio/webm;codecs=opus" } );
 
-        recorder.ondataavailable = e => { if ( e.data.size > 0 ) chunksRef.current.push( e.data ); };
+        recorder.ondataavailable = ( e ) =>
+        {
+            if ( e.data.size > 0 ) chunksRef.current.push( e.data );
+        };
         recorder.onstop = () =>
         {
             const blob = new Blob( chunksRef.current, { type: "audio/webm;codecs=opus" } );
-            if ( onSendAudio ) onSendAudio( blob ); // Kirim ke parent, tunggu server
+            if ( onSendAudio ) onSendAudio( blob );
             resetRecorder();
         };
 
         recorder.start();
         setMediaRecorder( recorder );
         setRecording( true );
+        if ( onRecordingChange ) onRecordingChange( true ); // inform parent
         setPaused( false );
         startTimer();
     };
@@ -74,7 +86,7 @@ export default function SendActions( { onSend, onSendAudio, showAudioRecorder }:
         if ( mediaRecorder && mediaRecorder.state !== "inactive" )
         {
             mediaRecorder.stop();
-            mediaRecorder.stream.getTracks().forEach( t => t.stop() );
+            mediaRecorder.stream.getTracks().forEach( ( t ) => t.stop() );
         }
         stopTimer();
     };
@@ -85,38 +97,56 @@ export default function SendActions( { onSend, onSendAudio, showAudioRecorder }:
         {
             mediaRecorder.onstop = null;
             mediaRecorder.stop();
-            mediaRecorder.stream.getTracks().forEach( t => t.stop() );
+            mediaRecorder.stream.getTracks().forEach( ( t ) => t.stop() );
         }
         resetRecorder();
     };
 
-    const formatTime = ( sec: number ) => `0${ Math.floor( sec / 60 ) }:${ ( sec % 60 ).toString().padStart( 2, "0" ) }`;
+    const formatTime = ( sec: number ) =>
+        `0${ Math.floor( sec / 60 ) }:${ ( sec % 60 ).toString().padStart( 2, "0" ) }`;
 
     const WaveIndicator = () => (
         <div className="flex items-center gap-[2px] w-6 h-4 mt-[10px]">
-            { [1, 2, 3, 2, 1].map( ( a, i ) => <div key={ i } className={ `w-[3px] h-full bg-red-500 animate-wave${ a } rounded` }></div> ) }
+            { [1, 2, 3, 2, 1].map( ( a, i ) => (
+                <div
+                    key={ i }
+                    className={ `w-[3px] h-full bg-red-500 animate-wave${ a } rounded` }
+                ></div>
+            ) ) }
         </div>
     );
 
+    // === UI ===
     if ( showAudioRecorder && onSendAudio )
     {
         return (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-end flex-shrink-0 max-w-[160px] sm:max-w-[220px]">
                 { !recording ? (
-                    <button onClick={ startRecording } className="text-black" title="Mulai rekam">
+                    <button
+                        onClick={ startRecording }
+                        className="text-black"
+                        title="Mulai rekam"
+                    >
                         <Mic size={ 20 } className="relative top-[-2px]" />
                     </button>
                 ) : (
-                    <div className="flex items-center gap-2 bg-gray-100 px-2 py-1 rounded-lg">
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-2 bg-gray-100 px-2 py-1 rounded-lg max-w-full overflow-hidden">
                         <button onClick={ cancelRecording } title="Batalkan">
                             <Trash2 size={ 18 } className="text-black" />
                         </button>
 
-                        <span className="text-red-600 text-sm">● { formatTime( recordTime ) }</span>
+                        <span className="text-red-600 text-xs sm:text-sm whitespace-nowrap">
+                            ● { formatTime( recordTime ) }
+                        </span>
+
                         <WaveIndicator />
 
                         <button onClick={ pauseRecording } title={ paused ? "Lanjutkan" : "Pause" }>
-                            { paused ? <Play size={ 18 } className="text-black" /> : <Pause size={ 18 } className="text-black" /> }
+                            { paused ? (
+                                <Play size={ 18 } className="text-black" />
+                            ) : (
+                                <Pause size={ 18 } className="text-black" />
+                            ) }
                         </button>
 
                         <button onClick={ stopRecording } title="Kirim">

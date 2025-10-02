@@ -24,8 +24,14 @@ export interface ChatHistoryItem
     attachments: Attachment[];
 }
 
-export async function getChatHistory( contactId: string ): Promise<ChatHistoryItem[]>
+export async function getChatHistory( contactId?: string ): Promise<ChatHistoryItem[]>
 {
+    if ( !contactId )
+    {
+        console.warn( "DEBUG: contactId tidak ada, skip fetch chat history." );
+        return []; // ❌ langsung return array kosong, tidak error
+    }
+
     try
     {
         const token = localStorage.getItem( "token" );
@@ -49,16 +55,19 @@ export async function getChatHistory( contactId: string ): Promise<ChatHistoryIt
         return response.data;
     } catch ( err: any )
     {
-        if ( err.response )
+        let message = "Unknown error";
+        if ( err instanceof Error )
         {
-            console.error( "DEBUG: Gagal mengambil chat history:", err.response.data );
-        } else if ( err.request )
+            message = err.message;
+        } else if ( err?.response?.data?.message )
         {
-            console.error( "DEBUG: Tidak ada respons dari server:", err.request );
-        } else
+            message = err.response.data.message;
+        } else if ( err?.response?.statusText )
         {
-            console.error( "DEBUG: Terjadi error:", err.message );
+            message = `HTTP ${ err.response.status }: ${ err.response.statusText }`;
         }
-        throw err;
+
+       
+        return []; // ❌ return array kosong agar tidak crash
     }
 }

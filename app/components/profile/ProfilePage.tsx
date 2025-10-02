@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Pencil, User, Check, ArrowLeft } from "lucide-react";
 import { getProfile, updateProfile, UserProfile } from "../../utils/apiUtils";
+import { useDispatch } from "react-redux";
+import { updateUserAvatar, updateUserName } from "../../states/usersSlice"; // pastikan action updateUserName tersedia
 
 interface ProfilePageProps
 {
@@ -12,6 +14,8 @@ interface ProfilePageProps
 
 export default function ProfilePage( { isMobile, onBack }: ProfilePageProps )
 {
+    const dispatch = useDispatch();
+
     const [profileImage, setProfileImage] = useState<string | null>( null );
     const fileInputRef = useRef<HTMLInputElement>( null );
 
@@ -21,7 +25,7 @@ export default function ProfilePage( { isMobile, onBack }: ProfilePageProps )
     const [loading, setLoading] = useState( true );
     const [saving, setSaving] = useState( false );
 
-    // Ambil data profile dari API saat component mount
+    // Ambil data profile saat mount
     useEffect( () =>
     {
         const fetchProfile = async () =>
@@ -54,7 +58,6 @@ export default function ProfilePage( { isMobile, onBack }: ProfilePageProps )
                 setLoading( false );
             }
         };
-
         fetchProfile();
     }, [] );
 
@@ -68,12 +71,30 @@ export default function ProfilePage( { isMobile, onBack }: ProfilePageProps )
                 username: newUsername ?? username,
                 avatar: avatarFile,
             } );
+
             if ( response.success && response.data )
             {
                 const user: UserProfile = response.data;
+                const newAvatarUrl = user.avatar_url
+                    ? `${ user.avatar_url }?t=${ Date.now() }`
+                    : null;
+
                 setUsername( user.username ?? "anonim" );
                 setEmail( user.email ?? "tidak tersedia" );
-                setProfileImage( user.avatar_url ?? null );
+                setProfileImage( newAvatarUrl );
+
+                // 🔹 Dispatch update ke Redux agar ContactsPage langsung update
+                if ( user.email )
+                {
+                    if ( newAvatarUrl )
+                    {
+                        dispatch( updateUserAvatar( { email: user.email, avatar_url: newAvatarUrl } ) );
+                    }
+                    if ( user.username )
+                    {
+                        dispatch( updateUserName( { email: user.email, username: user.username } ) );
+                    }
+                }
             } else
             {
                 alert( response.message || "Gagal update profil" );
@@ -115,7 +136,6 @@ export default function ProfilePage( { isMobile, onBack }: ProfilePageProps )
 
     return (
         <main className="flex-1 flex flex-col bg-gray-50 min-h-screen">
-            {/* Header */ }
             <div className="w-full border-b border-gray-300 px-6 py-4 flex items-center">
                 { isMobile && (
                     <button onClick={ onBack } className="mr-3 text-black">
@@ -125,10 +145,8 @@ export default function ProfilePage( { isMobile, onBack }: ProfilePageProps )
                 <h1 className="text-xl font-bold">Profil Saya</h1>
             </div>
 
-            {/* Konten */ }
             <div className="flex flex-col items-start p-6">
                 <div className="w-full max-w-md bg-white rounded-xl shadow p-6">
-                    {/* Avatar */ }
                     <div
                         onClick={ handleAvatarClick }
                         className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-200 cursor-pointer mb-6 group"
@@ -153,7 +171,6 @@ export default function ProfilePage( { isMobile, onBack }: ProfilePageProps )
                         disabled={ saving }
                     />
 
-                    {/* Username */ }
                     <div className="w-full flex items-center justify-between border-b border-gray-200 py-2">
                         { isEditingName ? (
                             <input
@@ -182,7 +199,6 @@ export default function ProfilePage( { isMobile, onBack }: ProfilePageProps )
                         ) }
                     </div>
 
-                    {/* Email (Read Only) */ }
                     <div className="w-full flex flex-col border-b border-gray-200 py-2 mt-4">
                         <p className="text-sm text-gray-500">Email</p>
                         <p className="text-gray-800">{ email ?? "tidak tersedia" }</p>

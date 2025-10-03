@@ -68,6 +68,6 @@ export async function getChatHistory( contactId?: string ): Promise<ChatHistoryI
         }
 
        
-        return []; // ❌ return array kosong agar tidak crash
+        return []; 
     }
 }

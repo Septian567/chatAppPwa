@@ -89,3 +89,42 @@ hapus kontak
 - contactsSlice.ts
 - ContactList.tsx
 - ContactItem.tsx
+
+
+
+
+
+
+tampilkan daftar kontak di sidebar langsung dari api
+- Sidebar.tsx
+- HorizontalMenuContent.tsx
+- ContactMenu.tsx
+- index.ts --> states
+- contactsSlice.ts
+- ContactsPage.tsx
+- useContactsPage.ts
+- UserList.tsx
+- UserItem.tsx
+
+
+
+
+tampilkan daftar chat terakhir dari kontak
+- Sidebar.tsx
+- HorizontalMenuContent.tsx
+- ChatMenu.tsx
+- chatsSlice.ts
+- index.ts
+- getLastMessagePerChatApi.ts
+
+
+hubungkan "hapus untuk saya" dengan socket.io ke last chat sidebar
+
+- deleteMessageForUser -- controller
+- deleteMessageForUser -- service
+- ChatMenu.tsx
+- chatSlice.ts
+- index.ts
+- lastMessageSlice.ts
+- useChatSocket.ts
+- useChatPage.ts

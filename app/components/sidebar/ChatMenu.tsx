@@ -1,150 +1,77 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../../states";
 import { MoreVertical, User, Trash2 } from "lucide-react";
 import DeleteConfirmModal from "./DeleteConfirmModal";
-import { setMessagesForContact } from "../../states/chatSlice";
-import { deleteConversation } from "../../utils/deleteConversationApi"; // ⬅️ import API
+import { Contact } from "../../states/contactsSlice";
+import { useChatMenuLogic } from "../../hooks/useChatMenuLogic";
 
 interface ChatMenuProps
 {
-    filteredContacts: any[];
-    setActiveContact: ( c: any ) => void;
+    setActiveContact: ( c: Contact ) => void;
     onMainMenuClick: ( menu: string ) => void;
 }
 
-export default function ChatMenu( {
-    filteredContacts,
-    setActiveContact,
-    onMainMenuClick,
-}: ChatMenuProps )
+export default function ChatMenu( { setActiveContact, onMainMenuClick }: ChatMenuProps )
 {
-    const chatData = useSelector( ( state: RootState ) => state.chat );
-    const usersList = useSelector( ( state: RootState ) => state.users.list );
-    const dispatch = useDispatch();
+    const {
+        lastMessages,
+        loading,
+        contactsList,
+        avatarMap,
+        selectedContact,
+        setSelectedContact,
+        showConfirm,
+        setShowConfirm,
+        openMenuIndex,
+        setOpenMenuIndex,
+        menuRef,
+        handleClearConversation,
+    } = useChatMenuLogic();
 
-    const [selectedContact, setSelectedContact] = useState<any | null>( null );
-    const [showConfirm, setShowConfirm] = useState( false );
-    const [openMenuIndex, setOpenMenuIndex] = useState<number | null>( null );
-    const [loading, setLoading] = useState( false );
-    const menuRef = useRef<HTMLDivElement | null>( null );
-
-    // Map contactId → avatar_url
-    const avatarMap = usersList.reduce( ( acc, u ) =>
-    {
-        if ( u.contact_id ) acc[u.contact_id] = u.avatar_url;
-        return acc;
-    }, {} as Record<string, string> );
-
-    useEffect( () =>
-    {
-        function handleClickOutside( e: MouseEvent )
-        {
-            if ( menuRef.current && !menuRef.current.contains( e.target as Node ) )
-            {
-                setOpenMenuIndex( null );
-            }
-        }
-
-        if ( openMenuIndex !== null )
-        {
-            document.addEventListener( "mousedown", handleClickOutside );
-        }
-
-        return () => document.removeEventListener( "mousedown", handleClickOutside );
-    }, [openMenuIndex] );
-
-    const handleClearConversation = async ( contact: any ) =>
-    {
-        try
-        {
-            setLoading( true );
-            console.log( "DEBUG: Hapus percakapan API untuk contact:", contact.contact_id );
-
-            // ⬅️ Panggil API deleteConversation
-            const res = await deleteConversation( contact.contact_id );
-            console.log( "DEBUG: deleteConversation sukses:", res );
-
-            // Kosongkan pesan di Redux hanya jika sukses
-            dispatch( setMessagesForContact( { contactId: contact.contact_id, messages: [] } ) );
-        } catch ( err )
-        {
-            console.error( "Gagal menghapus percakapan:", err );
-        } finally
-        {
-            setLoading( false );
-            setShowConfirm( false );
-        }
-    };
-
-    const recentChats = filteredContacts.filter(
-        ( c ) => ( chatData[c.contact_id] || [] ).length > 0
-    );
-
-    if ( !recentChats.length )
-    {
-        return <p className="text-gray-500 text-sm ml-6">No recent chats</p>;
-    }
+    if ( loading ) return <p className="text-gray-500 text-sm ml-6">Loading chats...</p>;
+    if ( !lastMessages.length ) return <p className="text-gray-500 text-sm ml-6">No recent chats</p>;
 
     return (
         <div className="space-y-0 -ml-4">
-            { recentChats.map( ( c, index ) =>
+            { lastMessages.map( ( msg, index ) =>
             {
-                const chatMessages = chatData[c.contact_id] || [];
-                const lastMessage = chatMessages[chatMessages.length - 1];
-
-                let lastMessageText = "";
-                if ( lastMessage?.isSoftDeleted ) lastMessageText = "Pesan telah dihapus";
-                else if ( lastMessage?.text ) lastMessageText = lastMessage.text;
-                else if ( lastMessage?.fileUrl )
-                {
-                    const ext = lastMessage.fileName?.split( "." ).pop()?.toLowerCase();
-                    const type = lastMessage.fileType || "";
-                    if ( ["jpg", "jpeg", "png", "gif"].includes( ext || "" ) || type.startsWith( "image/" ) )
-                        lastMessageText = "[Gambar]";
-                    else if ( ["mp4", "mov", "avi"].includes( ext || "" ) || type.startsWith( "video/" ) )
-                        lastMessageText = "[Video]";
-                    else lastMessageText = "[Dokumen]";
-                } else if ( lastMessage?.audioUrl ) lastMessageText = "[Audio]";
+                const contactId = msg.chat_partner_id;
+                const contact = contactsList.find( c => c.contact_id === contactId );
+                const displayName = contact?.alias || contact?.email || contactId;
+                const lastMessageText = msg.is_deleted ? "Pesan telah dihapus" : msg.message_text || "[Pesan Kosong]";
 
                 return (
                     <div
-                        key={ `chat-${ c.contact_id }` }
-                        className={ `rounded-lg flex flex-col p-2 ${ openMenuIndex === index ? "bg-white" : "hover:bg-gray-100 cursor-pointer"
-                            }` }
+                        key={ `chat-${ contactId }` }
+                        className={ `rounded-lg flex flex-col p-2 ${ openMenuIndex === index ? "bg-white" : "hover:bg-gray-100 cursor-pointer" }` }
                         onClick={ () =>
                         {
                             if ( openMenuIndex === index ) return;
-                            setActiveContact( c );
+                            setActiveContact( contact || { contact_id: contactId, email: contactId, alias: contactId } );
                             onMainMenuClick( "chat" );
                         } }
                     >
                         <div className="flex items-center">
-                            {/* Avatar */ }
                             <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center shrink-0 mr-3 overflow-hidden">
-                                { avatarMap[c.contact_id] ? (
-                                    <img
-                                        src={ avatarMap[c.contact_id] }
-                                        alt={ c.alias || c.name }
-                                        className="w-full h-full object-cover"
-                                    />
+                                { avatarMap[contactId] ? (
+                                    <img src={ avatarMap[contactId] } alt={ displayName } className="w-full h-full object-cover" />
                                 ) : (
                                     <User className="w-6 h-6 text-gray-500" />
                                 ) }
                             </div>
 
-                            {/* Konten teks */ }
                             <div className="flex flex-col flex-1 min-w-0">
-                                <span className="font-semibold text-sm truncate">{ c.alias || c.name }</span>
+                                <span className="font-semibold text-sm truncate">{ displayName }</span>
                                 <div className="flex items-center justify-between mt-0 min-w-0">
                                     <span className="text-sm text-gray-600 truncate min-w-0 flex-1">{ lastMessageText }</span>
+
                                     <div className="flex items-center gap-2 flex-shrink-0 ml-2 relative">
-                                        <span className="text-xs text-gray-500 whitespace-nowrap">{ lastMessage?.time || "" }</span>
+                                        <span className="text-xs text-gray-500 whitespace-nowrap">
+                                            { msg.created_at ? new Date( msg.created_at ).toLocaleTimeString( [], { hour: "2-digit", minute: "2-digit" } ) : "" }
+                                        </span>
                                         <button
                                             className="p-1"
-                                            onClick={ ( e ) =>
+                                            onClick={ e =>
                                             {
                                                 e.stopPropagation();
                                                 setOpenMenuIndex( openMenuIndex === index ? null : index );
@@ -154,22 +81,19 @@ export default function ChatMenu( {
                                         </button>
 
                                         { openMenuIndex === index && (
-                                            <div
-                                                ref={ menuRef }
-                                                className="absolute right-0 top-6 w-44 bg-white border rounded-lg shadow-lg z-50 overflow-hidden"
-                                            >
+                                            <div ref={ menuRef } className="absolute right-0 top-6 w-44 bg-white border rounded-lg shadow-lg z-50 overflow-hidden">
                                                 <button
                                                     className="flex items-center gap-2 px-4 py-2 w-full text-left text-gray-900"
-                                                    onClick={ ( e ) =>
+                                                    onClick={ e =>
                                                     {
                                                         e.stopPropagation();
-                                                        setSelectedContact( c );
+                                                        setSelectedContact( contactId );
                                                         setShowConfirm( true );
                                                         setOpenMenuIndex( null );
                                                     } }
                                                 >
                                                     <Trash2 size={ 16 } className="shrink-0 text-gray-600" />
-                                                    <span className="text-sm">{ loading ? "Menghapus..." : "Hapus percakapan" }</span>
+                                                    <span className="text-sm">Hapus percakapan</span>
                                                 </button>
                                             </div>
                                         ) }

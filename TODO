@@ -334,9 +334,22 @@ TODO 2 OKTOBER 2025
 - pastikan kalau kontak lain yang dihapus, chat tetap ditampilkan -- SUCCESS
 - kalau kontak yang menampilkan chat dihapus, pilih kontak baru -- SUCCESS
 - pastikan setelah menghapus kontak, membuka chat dengan kontak baru tidak error -- SUCCESS
-5. tampilkan daftar kontak saat pertama dibuka
-6. tampilkan daftar chat terakhir saat pertama web dubuka
-7. beri foto profil di menu chat
+5. tampilkan daftar kontak saat pertama dibuka -- SUCCESS
+6. beri foto profil di menu chat -- SUCCESS
 
+
+TODO 3 OKTOBER 2025
+
+1. tampilkan daftar chat terakhir saat pertama web dubuka
+2. tampilkan semua daftar chat -- SUCCESS
+3. tampilkan chat diatas posisi chat yang sudah dihapus untuk saya -- SUCCESS
+4. sinkron kan "hapus untuk saya" di pesan terakhir
+5. sinkronkan hapus percakapan agar percakapan di ChatPage bisa terhapus tanpa reload
+6. beri pesan (keterangan) untuk pesan file dan audio
+7. perbaiki unduh file
+8. perbaiki error lain-lain
+
+
+FINISH DEVELOPMENT
 
 

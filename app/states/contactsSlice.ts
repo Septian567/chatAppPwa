@@ -14,21 +14,11 @@ interface ContactsState
     activeContact: Contact | null;
 }
 
-const CONTACTS_KEY = "contacts_data";
+// Hapus inisialisasi kontak dari localStorage
+const initialContacts: Contact[] = [];
+
+// Tetap bisa simpan activeContact di localStorage
 const ACTIVE_CONTACT_KEY = "active_contact";
-
-const initialContacts: Contact[] = ( () =>
-{
-    try
-    {
-        const saved = localStorage.getItem( CONTACTS_KEY );
-        return saved ? JSON.parse( saved ) : [];
-    } catch
-    {
-        return [];
-    }
-} )();
-
 const initialActiveContact: Contact | null = ( () =>
 {
     try
@@ -53,7 +43,6 @@ const contactsSlice = createSlice( {
         setContacts: ( state, action: PayloadAction<Contact[]> ) =>
         {
             state.list = action.payload;
-            localStorage.setItem( CONTACTS_KEY, JSON.stringify( state.list ) );
         },
         addContact: ( state, action: PayloadAction<Contact> ) =>
         {
@@ -66,7 +55,6 @@ const contactsSlice = createSlice( {
             if ( !exists )
             {
                 state.list.push( action.payload );
-                localStorage.setItem( CONTACTS_KEY, JSON.stringify( state.list ) );
             }
         },
         updateContactAlias: (
@@ -79,12 +67,10 @@ const contactsSlice = createSlice( {
             {
                 contact.alias = action.payload.alias;
             }
-            localStorage.setItem( CONTACTS_KEY, JSON.stringify( state.list ) );
         },
         deleteContact: ( state, action: PayloadAction<string> ) =>
         {
             state.list = state.list.filter( c => c.contact_id !== action.payload );
-            localStorage.setItem( CONTACTS_KEY, JSON.stringify( state.list ) );
         },
         setActiveContact: ( state, action: PayloadAction<Contact | null> ) =>
         {

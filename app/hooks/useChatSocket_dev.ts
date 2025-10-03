@@ -226,7 +226,7 @@ export function useChatSocket( contactId: string, currentUserId: string )
             contactId: string;
         } ) =>
         {
-            // 1️⃣ Soft-delete pesan
+            // 1️⃣ Soft-delete pesan untuk user ini
             store.dispatch(
                 updateMessageForContact( {
                     contactId: deletedContactId,
@@ -243,47 +243,42 @@ export function useChatSocket( contactId: string, currentUserId: string )
                 } )
             );
 
-            // 2️⃣ Ambil state terbaru dari store
+            // 2️⃣ Ambil semua pesan terbaru
             const updatedState: RootState = store.getState();
-            const updatedMessages = updatedState.chat[deletedContactId] || [];
+            const messages = updatedState.chat[deletedContactId] || [];
 
-            // 3️⃣ Cari pesan terakhir yang tidak dihapus untuk diri sendiri (isSoftDeleted = false)
-            let lastVisibleMessage = null;
+            // 3️⃣ Cari pesan terakhir yang TAMPIL untuk user
+            let lastVisibleMessage: ChatMessage | null = null;
 
-            // Iterasi dari pesan terbaru ke terlama
-            for ( let i = updatedMessages.length - 1; i >= 0; i-- )
+            for ( let i = messages.length - 1; i >= 0; i-- )
             {
-                const message = updatedMessages[i];
+                const msg = messages[i];
 
-                // Skip pesan yang dihapus untuk diri sendiri
-                if ( message.isSoftDeleted )
-                {
-                    continue;
-                }
+                if ( msg.isSoftDeleted ) continue; // skip pesan yang dihapus hanya untuk saya
 
-                // Jika pesan ini dihapus untuk semua, tampilkan "Pesan telah dihapus"
-                if ( message.isDeleted )
+                if ( msg.isDeleted )
                 {
+                    // Jika pesan dihapus untuk semua, tampilkan "Pesan telah dihapus"
                     lastVisibleMessage = {
-                        id: message.id,
+                        id: msg.id,
                         text: "Pesan telah dihapus",
                         isDeleted: true,
-                        updatedAt: message.updatedAt || new Date().toISOString()
-                    };
+                        updatedAt: msg.updatedAt || new Date().toISOString(),
+                    } as any;
                     break;
                 }
 
-                // Pesan normal (tidak dihapus untuk semua dan tidak dihapus untuk diri sendiri)
+                // Pesan normal yang masih terlihat
                 lastVisibleMessage = {
-                    id: message.id,
-                    text: message.text || "[Pesan Kosong]",
+                    id: msg.id,
+                    text: msg.text || "[Pesan Kosong]",
                     isDeleted: false,
-                    updatedAt: message.updatedAt || new Date().toISOString()
-                };
+                    updatedAt: msg.updatedAt || new Date().toISOString(),
+                } as any;
                 break;
             }
 
-            // 4️⃣ Update lastMessages berdasarkan pesan yang ditemukan
+            // 4️⃣ Update lastMessages
             if ( lastVisibleMessage )
             {
                 store.dispatch(
@@ -295,21 +290,21 @@ export function useChatSocket( contactId: string, currentUserId: string )
                         is_deleted: lastVisibleMessage.isDeleted,
                     } )
                 );
-            }
-            else 
+            } else
             {
                 // fallback jika tidak ada pesan sama sekali
                 store.dispatch(
                     upsertLastMessage( {
                         chat_partner_id: deletedContactId,
                         message_id: Date.now().toString(),
-                        message_text: "Pesan telah dihapus",
+                        message_text: "[Pesan Kosong]",
                         created_at: new Date().toISOString(),
                         is_deleted: false,
                     } )
                 );
             }
         };
+
 
         // ===========================
         // Register all listeners

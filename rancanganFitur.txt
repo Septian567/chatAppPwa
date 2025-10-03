@@ -128,3 +128,19 @@ hubungkan "hapus untuk saya" dengan socket.io ke last chat sidebar
 - lastMessageSlice.ts
 - useChatSocket.ts
 - useChatPage.ts
+
+
+
+perbaikan unduh file
+- ChatPage.tsx
+- ChatBody.tsx
+- ChatFileMessage.tsx
+- useFilePreview.ts
+- useChatPage.ts
+- useChatHistoryManager.ts
+- useLazyChatHistory.ts
+
+
+
+
+

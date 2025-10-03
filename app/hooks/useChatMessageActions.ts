@@ -4,6 +4,7 @@ import { ChatMessage, setMessagesForContact } from "../states/chatSlice";
 import { softDeleteMessage, softDeleteMessageWithApi } from "./useSoftDelete";
 import { deleteMessageForUser } from "../utils/deleteMessageForUserApi";
 import { useChatSocket } from "./useChatSocket";
+import { upsertLastMessage, removeLastMessageByContact } from "../states/lastMessagesSlice";
 
 export function useMessageActions(
     contactId: string,
@@ -16,9 +17,7 @@ export function useMessageActions(
     const currentUserId = localStorage.getItem( "userId" ) || "";
     const socket = useChatSocket( contactId, currentUserId );
 
-    const messages = useSelector(
-        ( state: RootState ) => state.chat[contactId] || []
-    );
+    const messages = useSelector( ( state: RootState ) => state.chat[contactId] || [] );
 
     const update = ( newMessages: ChatMessage[] ) =>
         dispatch( setMessagesForContact( { contactId, messages: newMessages } ) );
@@ -35,38 +34,51 @@ export function useMessageActions(
         }
     };
 
+    // --- Sinkronisasi last message sidebar
+    const syncLastMessage = ( updatedMessages: ChatMessage[] ) =>
+    {
+        const lastMsg = [...updatedMessages].reverse().find( msg => !msg.isDeleted );
+        if ( lastMsg )
+        {
+            dispatch(
+                upsertLastMessage( {
+                    chat_partner_id: contactId,
+                    message_id: lastMsg.id || Date.now().toString(),
+                    message_text: lastMsg.text || "",
+                    created_at: lastMsg.updatedAt || new Date().toISOString(),
+                    is_deleted: lastMsg.isDeleted ?? false,
+                } )
+            );
+        } else
+        {
+            dispatch( removeLastMessageByContact( contactId ) );
+        }
+    };
+
     // === Soft delete handlers ===
     const handleSoftDeleteMessage = async ( index: number ) =>
     {
         const msg = messages[index];
         if ( !msg ) return;
 
-        // update lokal dulu
         const updatedMsg = softDeleteMessage( msg );
         const updatedMessages = [...messages];
         updatedMessages[index] = updatedMsg;
         update( updatedMessages );
         resetEditingIfNeeded( index );
 
+        syncLastMessage( updatedMessages );
+
         try
         {
             if ( msg.id && !msg.id.startsWith( "temp-" ) )
             {
                 await softDeleteMessageWithApi( msg );
-
-                // 🔹 Emit ke server supaya realtime
-                if ( socket )
-                {
-                    console.log( "DEBUG emit softDeleteMessage:", msg.id, contactId );
-                    socket.emit( "softDeleteMessage", {
-                        messageId: msg.id,
-                        contactId,
-                    } );
-                }
+                if ( socket ) socket.emit( "softDeleteMessage", { messageId: msg.id, contactId } );
             }
         } catch ( err )
         {
-            console.error( "DEBUG: gagal soft delete via API:", err );
+            console.error( "Gagal soft delete via API:", err );
         }
     };
 
@@ -80,6 +92,7 @@ export function useMessageActions(
         const updated = messages.filter( ( _, i ) => i !== index );
         update( updated );
         resetEditingIfNeeded( index );
+        syncLastMessage( updated );
     };
 
     const handleDeleteFileMessage = handleDeleteMessage;
@@ -89,31 +102,23 @@ export function useMessageActions(
     const handleDeleteMessageForUser = async ( index: number ) =>
     {
         const msg = messages[index];
-        if ( !msg )
-        {
-            console.warn( "DEBUG: pesan tidak ditemukan di index", index );
-            return;
-        }
+        if ( !msg ) return;
 
-        console.log( "DEBUG: ID pesan yang akan dihapus:", msg.id );
+        const updatedMessages = messages.filter( ( _, i ) => i !== index );
+        update( updatedMessages );
+        resetEditingIfNeeded( index );
+        syncLastMessage( updatedMessages );
 
-        // Jika pesan masih menggunakan temporary ID atau isSending, hapus langsung lokal
-        if ( !msg.id || msg.id.startsWith( "temp-" ) || msg.isSending )
+        if ( msg.id && !msg.id.startsWith( "temp-" ) && !msg.isSending )
         {
-            console.warn( "DEBUG: pesan belum ada di server, hapus lokal saja", msg );
-            handleDeleteMessage( index );
-            return;
-        }
-
-        try
-        {
-            const response = await deleteMessageForUser( msg.id );
-            console.log( "DEBUG: deleteMessageForUser berhasil", response );
-
-            handleDeleteMessage( index );
-        } catch ( err )
-        {
-            console.error( "DEBUG: Gagal hapus pesan di server:", err );
+            try
+            {
+                await deleteMessageForUser( msg.id );
+                if ( socket ) socket.emit( "deleteMessage", { messageId: msg.id, contactId } );
+            } catch ( err )
+            {
+                console.error( "Gagal hapus pesan di server:", err );
+            }
         }
     };
 

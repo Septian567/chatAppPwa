@@ -343,13 +343,15 @@ TODO 3 OKTOBER 2025
 1. tampilkan daftar chat terakhir saat pertama web dubuka
 2. tampilkan semua daftar chat -- SUCCESS
 3. tampilkan chat diatas posisi chat yang sudah dihapus untuk saya -- SUCCESS
-4. sinkron kan "hapus untuk saya" di pesan terakhir
-5. sinkronkan hapus percakapan agar percakapan di ChatPage bisa terhapus tanpa reload
-6. beri pesan (keterangan) untuk pesan file dan audio
-7. perbaiki unduh file
-8. perbaiki error lain-lain
+4. sinkron kan "hapus untuk saya" di pesan terakhir -- SUCCESS
+5. sinkronkan hapus percakapan agar percakapan di ChatPage bisa terhapus tanpa reload -- SUCCESS
+6. beri pesan (keterangan) untuk pesan file dan audio -- SUCCESS
+7. perbaiki unduh file -- SUCCESS
+
+TODO 4 OKTOBER 2025
+1. perbaiki softDeleteAudio
 
 
-FINISH DEVELOPMENT
+FINISH DEVELOPMENT -- TRY TO PRODUCTION
 
 

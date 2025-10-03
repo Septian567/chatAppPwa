@@ -1,12 +1,12 @@
 "use client";
 
 import { useLayoutEffect } from "react";
-import { RootState } from "../../states";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "../messageInput/MessageInput";
 import ChatBody from "./ChatBody";
 import { useChatPage } from "../../hooks/useChatPage";
 import { useChatHistoryManager } from "../../hooks/useChatHistoryManager";
+import { ArrowLeft } from "lucide-react";
 
 interface ChatPageProps
 {
@@ -54,8 +54,17 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
     if ( !activeContact || isActiveContactDeleted )
     {
         return (
-            <main className="flex-1 flex items-center justify-center text-gray-500">
-                silahkan pilih kontak untuk memulai chat
+            <main className="flex-1 flex flex-col items-center justify-center text-gray-500 relative">
+                { isMobile && (
+                    <button
+                        onClick={ onBack }
+                        className="absolute top-4 left-4 flex items-center text-gray-700 font-medium"
+                    >
+                        <ArrowLeft className="w-5 h-5 mr-1" />
+                        <span>menu</span>
+                    </button>
+                ) }
+                <p>silahkan pilih kontak untuk memulai chat</p>
             </main>
         );
     }

@@ -5,16 +5,16 @@ import { io, Socket } from "socket.io-client";
 import { useDispatch } from "react-redux";
 import { store, RootState } from "../states";
 import
-{
-    addMessageToContact,
-    updateMessageForContact,
-    ChatMessage,
-} from "../states/chatSlice";
+    {
+        addMessageToContact,
+        updateMessageForContact,
+        ChatMessage,
+    } from "../states/chatSlice";
 import { upsertLastMessage } from "../states/lastMessagesSlice";
 import { softDeleteMessage } from "./useSoftDelete";
 import { formatTime24 } from "../utils/formatTime";
 import { useMapSendMessageResponse } from "./useMapSendMessageResponse";
-import { determineAttachmentType } from "../utils/attachmentUtils";
+import { getMessagePreview } from "../utils/messagePreview";
 
 let socket: Socket | null = null;
 
@@ -54,20 +54,20 @@ export function useChatSocket( contactId: string, currentUserId: string )
             if ( hasAttachment )
             {
                 const attachment = mappedMsg.attachments[0];
-                const attachmentType = determineAttachmentType( attachment );
-
                 fileUrl = attachment.mediaUrl;
                 fileName = attachment.mediaName;
                 fileType = attachment.mediaType;
                 caption = mappedMsg.message_text || "";
 
-                if ( attachmentType === "voice_note" )
+                // suara & video langsung override url
+                const previewType = getMessagePreview( mappedMsg );
+                if ( previewType === "[Audio]" )
                 {
                     audioUrl = attachment.mediaUrl;
                     fileUrl = undefined;
                     fileName = undefined;
                     fileType = undefined;
-                } else if ( attachmentType === "video" )
+                } else if ( previewType === "[Video]" )
                 {
                     videoUrl = attachment.mediaUrl;
                     fileUrl = undefined;
@@ -90,6 +90,7 @@ export function useChatSocket( contactId: string, currentUserId: string )
 
             dispatch( addMessageToContact( { contactId, message: newMessage } ) );
 
+            // 🔹 gunakan getMessagePreview
             dispatch(
                 upsertLastMessage( {
                     chat_partner_id:
@@ -97,7 +98,7 @@ export function useChatSocket( contactId: string, currentUserId: string )
                             ? mappedMsg.to_user_id
                             : mappedMsg.from_user_id,
                     message_id: mappedMsg.message_id,
-                    message_text: mappedMsg.message_text,
+                    message_text: getMessagePreview( mappedMsg ),
                     created_at: mappedMsg.created_at,
                     is_deleted: false,
                 } )
@@ -137,7 +138,7 @@ export function useChatSocket( contactId: string, currentUserId: string )
                                 ? mappedMsg.to_user_id
                                 : mappedMsg.from_user_id,
                         message_id: mappedMsg.message_id,
-                        message_text: mappedMsg.message_text,
+                        message_text: getMessagePreview( mappedMsg ),
                         created_at: mappedMsg.updated_at,
                         is_deleted: false,
                     } )
@@ -180,7 +181,9 @@ export function useChatSocket( contactId: string, currentUserId: string )
             );
 
             // Cari pesan terakhir yang valid (tidak dihapus)
-            const validMessages = contactMessages.filter( ( m ) => !m.isDeleted && !m.isSoftDeleted );
+            const validMessages = contactMessages.filter(
+                ( m ) => !m.isDeleted && !m.isSoftDeleted
+            );
             const lastValidMessage = validMessages[validMessages.length - 1];
 
             if ( lastValidMessage )
@@ -206,8 +209,9 @@ export function useChatSocket( contactId: string, currentUserId: string )
                         upsertLastMessage( {
                             chat_partner_id: deletedContactId,
                             message_id: lastValidMessage.id,
-                            message_text: lastValidMessage.text || "[Pesan Kosong]",
-                            created_at: lastValidMessage.updatedAt || new Date().toISOString(),
+                            message_text: getMessagePreview( lastValidMessage ),
+                            created_at:
+                                lastValidMessage.updatedAt || new Date().toISOString(),
                             is_deleted: false,
                         } )
                     );
@@ -247,43 +251,36 @@ export function useChatSocket( contactId: string, currentUserId: string )
             const updatedState: RootState = store.getState();
             const updatedMessages = updatedState.chat[deletedContactId] || [];
 
-            // 3️⃣ Cari pesan terakhir yang tidak dihapus untuk diri sendiri (isSoftDeleted = false)
+            // 3️⃣ Cari pesan terakhir yang tidak dihapus untuk diri sendiri
             let lastVisibleMessage = null;
-
-            // Iterasi dari pesan terbaru ke terlama
             for ( let i = updatedMessages.length - 1; i >= 0; i-- )
             {
                 const message = updatedMessages[i];
 
                 // Skip pesan yang dihapus untuk diri sendiri
-                if ( message.isSoftDeleted )
-                {
-                    continue;
-                }
+                if ( message.isSoftDeleted ) continue;
 
-                // Jika pesan ini dihapus untuk semua, tampilkan "Pesan telah dihapus"
                 if ( message.isDeleted )
                 {
                     lastVisibleMessage = {
                         id: message.id,
                         text: "Pesan telah dihapus",
                         isDeleted: true,
-                        updatedAt: message.updatedAt || new Date().toISOString()
+                        updatedAt: message.updatedAt || new Date().toISOString(),
                     };
                     break;
                 }
 
-                // Pesan normal (tidak dihapus untuk semua dan tidak dihapus untuk diri sendiri)
                 lastVisibleMessage = {
                     id: message.id,
-                    text: message.text || "[Pesan Kosong]",
+                    text: getMessagePreview( message ),
                     isDeleted: false,
-                    updatedAt: message.updatedAt || new Date().toISOString()
+                    updatedAt: message.updatedAt || new Date().toISOString(),
                 };
                 break;
             }
 
-            // 4️⃣ Update lastMessages berdasarkan pesan yang ditemukan
+            // 4️⃣ Update lastMessages
             if ( lastVisibleMessage )
             {
                 store.dispatch(
@@ -295,10 +292,8 @@ export function useChatSocket( contactId: string, currentUserId: string )
                         is_deleted: lastVisibleMessage.isDeleted,
                     } )
                 );
-            }
-            else 
+            } else
             {
-                // fallback jika tidak ada pesan sama sekali
                 store.dispatch(
                     upsertLastMessage( {
                         chat_partner_id: deletedContactId,
@@ -311,9 +306,6 @@ export function useChatSocket( contactId: string, currentUserId: string )
             }
         };
 
-        // ===========================
-        // Register all listeners
-        // ===========================
         socket.on( "newMessage", handleNewMessage );
         socket.on( "messageUpdated", handleMessageUpdated );
         socket.on( "messageDeleted", handleMessageDeleted );

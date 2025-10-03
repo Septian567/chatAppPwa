@@ -38,7 +38,7 @@ export default function ChatMenu( { setActiveContact, onMainMenuClick }: ChatMen
                 const contactId = msg.chat_partner_id;
                 const contact = contactsList.find( c => c.contact_id === contactId );
                 const displayName = contact?.alias || contact?.email || contactId;
-                const lastMessageText = msg.is_deleted ? "Pesan telah dihapus" : msg.message_text || "[Pesan Kosong]";
+                const lastMessageText = msg.is_deleted ? "Pesan telah dihapus" : msg.message_text || "Pelan telah dihapus";
 
                 return (
                     <div

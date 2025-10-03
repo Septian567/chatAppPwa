@@ -1,33 +1,31 @@
 import { useMemo } from "react";
 
-export function useFilePreview( fileUrl: string | null, fileName: string | null, mimeType?: string )
+export function useFilePreview(
+    fileUrl: string | null,
+    fileName: string | null,
+    mimeType?: string
+)
 {
-    // Ekstensi file
     const fileExtension = useMemo( () =>
     {
         if ( !fileName ) return "";
         return fileName.split( "." ).pop()?.toLowerCase() || "";
     }, [fileName] );
 
-    // Tentukan tipe file berdasarkan extension + mimeType
     const isImage = useMemo(
-        () =>
-            ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].includes( fileExtension ),
+        () => ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].includes( fileExtension ),
         [fileExtension]
     );
 
     const isVideo = useMemo( () =>
     {
-        // Tambahkan mimeType pengecekan untuk video
         if ( mimeType?.startsWith( "video/" ) ) return true;
         return ["mp4", "webm", "ogg"].includes( fileExtension );
     }, [fileExtension, mimeType] );
 
     const isAudio = useMemo( () =>
     {
-        // Tambahkan mimeType pengecekan untuk audio
         if ( mimeType?.startsWith( "audio/" ) ) return true;
-        // Tambahkan webm sebagai audio jika mimeType audio
         return ["mp3", "wav", "ogg", "aac", "m4a", "webm"].includes( fileExtension );
     }, [fileExtension, mimeType] );
 
@@ -52,34 +50,25 @@ export function useFilePreview( fileUrl: string | null, fileName: string | null,
         try
         {
             const response = await fetch( fileUrl );
+            if ( !response.ok ) throw new Error( "Gagal mengambil file dari server" );
             const blob = await response.blob();
 
             if ( "showSaveFilePicker" in window )
             {
-                const extension = fileExtension || "";
-                try
-                {
-                    const handle = await ( window as any ).showSaveFilePicker( {
-                        suggestedName: fileName,
-                        types: [
-                            {
-                                description: `${ extension.toUpperCase() } File`,
-                                accept: { [`application/${ extension }`]: [`.${ extension }`] },
-                            },
-                        ],
-                    } );
+                const extension = fileName.split( "." ).pop() || "";
+                const handle = await ( window as any ).showSaveFilePicker( {
+                    suggestedName: fileName,
+                    types: [
+                        {
+                            description: `${ extension.toUpperCase() } File`,
+                            accept: { "application/octet-stream": [`.${ extension }`] }
+                        }
+                    ]
+                } );
 
-                    const writable = await handle.createWritable();
-                    await writable.write( blob );
-                    await writable.close();
-                } catch ( err: any )
-                {
-                    if ( err.name !== "AbortError" )
-                    {
-                        console.error( "Gagal saat menyimpan file:", err );
-                        alert( "Gagal menyimpan file." );
-                    }
-                }
+                const writable = await handle.createWritable();
+                await writable.write( blob );
+                await writable.close();
             } else
             {
                 const link = document.createElement( "a" );
@@ -90,8 +79,14 @@ export function useFilePreview( fileUrl: string | null, fileName: string | null,
                 document.body.removeChild( link );
                 URL.revokeObjectURL( link.href );
             }
-        } catch ( error )
+        } catch ( error: any )
         {
+            // 🔹 Abaikan kalau user cancel Save As
+            if ( error.name === "AbortError" )
+            {
+                console.log( "Download dibatalkan oleh user." );
+                return;
+            }
             console.error( "Gagal mengunduh file:", error );
             alert( "Gagal mengunduh file." );
         }

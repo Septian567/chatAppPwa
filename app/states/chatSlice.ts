@@ -143,7 +143,9 @@ export const updateMessageAndSync = ( payload: {
 
     const state: ChatState = getState().chat;
     const messages = state[payload.contactId] || [];
-    const lastMsg = getLastValidMessage( messages );
+
+    // Cari last valid message (tidak dihapus)
+    const lastMsg = [...messages].reverse().find( msg => !msg.isDeleted );
 
     if ( lastMsg )
     {
@@ -158,9 +160,11 @@ export const updateMessageAndSync = ( payload: {
         );
     } else
     {
+        // Tidak ada pesan valid → hapus lastMessage dari sidebar
         dispatch( removeLastMessageByContact( payload.contactId ) );
     }
 };
+
 
 export const removeMessageAndSync = ( payload: { contactId: string; messageId: string } ) => ( dispatch: any, getState: any ) =>
 {

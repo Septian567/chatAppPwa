@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../states";
 import { fetchLastMessages, removeLastMessageByContact } from "../states/lastMessagesSlice";
 import { deleteConversation } from "../utils/deleteConversationApi";
+import { clearMessagesForContact } from "../states/chatSlice";
 
 export function useChatMenuLogic()
 {
@@ -56,8 +57,20 @@ export function useChatMenuLogic()
     {
         try
         {
+            // 1️⃣ Hapus percakapan di server
             await deleteConversation( contactId );
+
+            // 2️⃣ Hapus dari lastMessages slice (sidebar)
             dispatch( removeLastMessageByContact( contactId ) );
+
+            // 3️⃣ Hapus dari chat slice (ChatPage)
+            dispatch( clearMessagesForContact( { contactId } ) );
+
+            // 4️⃣ Unset kontak aktif jika sedang dipilih
+            if ( selectedContact === contactId )
+            {
+                setSelectedContact( null );
+            }
         } catch ( err )
         {
             console.error( "Gagal menghapus percakapan:", err );

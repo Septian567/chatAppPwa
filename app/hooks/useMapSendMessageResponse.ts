@@ -17,9 +17,12 @@ export function useMapSendMessageResponse()
             if ( normalizedMediaType === "file" )
             {
                 const ext = mediaName.split( "." ).pop()?.toLowerCase();
-                if ( ext === "webm" || ext === "mp3" || ext === "wav" ) normalizedMediaType = "audio";
-                else if ( ext === "mp4" || ext === "mov" || ext === "avi" ) normalizedMediaType = "video";
-                else if ( ext === "jpg" || ext === "jpeg" || ext === "png" || ext === "gif" ) normalizedMediaType = "image";
+                if ( ext === "webm" || ext === "mp3" || ext === "wav" )
+                    normalizedMediaType = "audio";
+                else if ( ext === "mp4" || ext === "mov" || ext === "avi" )
+                    normalizedMediaType = "video";
+                else if ( ext === "jpg" || ext === "jpeg" || ext === "png" || ext === "gif" )
+                    normalizedMediaType = "image";
             }
 
             return {
@@ -30,9 +33,12 @@ export function useMapSendMessageResponse()
             };
         } );
 
+        const text = apiResponse.message_text || ""; // 🔹 konsistenkan field text
+
         return {
             message_id: apiResponse.message_id,
             message_text: apiResponse.message_text,
+            text, // 🔹 field tambahan supaya getMessagePreview selalu dapat nilai
             from_user_id: apiResponse.from_user_id,
             to_user_id: apiResponse.to_user_id,
             created_at: apiResponse.created_at,

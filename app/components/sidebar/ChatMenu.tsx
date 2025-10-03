@@ -4,6 +4,7 @@ import { MoreVertical, User, Trash2 } from "lucide-react";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import { Contact } from "../../states/contactsSlice";
 import { useChatMenuLogic } from "../../hooks/useChatMenuLogic";
+import { formatTime24 } from "../../utils/formatTime";
 
 interface ChatMenuProps
 {
@@ -67,7 +68,7 @@ export default function ChatMenu( { setActiveContact, onMainMenuClick }: ChatMen
 
                                     <div className="flex items-center gap-2 flex-shrink-0 ml-2 relative">
                                         <span className="text-xs text-gray-500 whitespace-nowrap">
-                                            { msg.created_at ? new Date( msg.created_at ).toLocaleTimeString( [], { hour: "2-digit", minute: "2-digit" } ) : "" }
+                                            { msg.created_at ? formatTime24( msg.created_at ) : "" }
                                         </span>
                                         <button
                                             className="p-1"

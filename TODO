@@ -349,9 +349,11 @@ TODO 3 OKTOBER 2025
 7. perbaiki unduh file -- SUCCESS
 
 TODO 4 OKTOBER 2025
-1. perbaiki softDeleteAudio
+1. perbaiki softDeleteAudio -- SUCCESS
 
-
+BUG LIST
+1. saat ada 3 pesan, lalu pesan 2 di softDelete (pesan telah dihapus), dan pesan 3 dihapus untuk saya,langsung loncat ke pesan 1
+95% READY TO DEPLOY
 FINISH DEVELOPMENT -- TRY TO PRODUCTION
 
 

@@ -1,0 +1,4 @@
+deploy ke netlify
+
+1. pastikan sudah di npm run build
+2.

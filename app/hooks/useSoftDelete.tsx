@@ -1,4 +1,4 @@
-import { ChatMessage } from "../states/chatSlice";
+import { ChatMessage } from "../types/chat";
 import { softDeleteMessage as apiSoftDeleteMessage } from "../utils/softDeleteMessageApi";
 import { Ban } from "lucide-react";
 import React from "react";
@@ -16,31 +16,53 @@ export const DEFAULT_FILE_DELETED_TEXT = SOFT_DELETED_MESSAGES[1];
 export function isSoftDeletedMessage( text?: string | null ): boolean
 {
     if ( !text ) return false;
-    return SOFT_DELETED_MESSAGES.includes( text as typeof SOFT_DELETED_MESSAGES[number] ) || text.startsWith( "[deleted]" );
+    return (
+        SOFT_DELETED_MESSAGES.includes(
+            text as ( typeof SOFT_DELETED_MESSAGES )[number]
+        ) || text.startsWith( "[deleted]" )
+    );
 }
 
+/**
+ * Mengubah pesan menjadi soft deleted (hanya tampil di sisi user)
+ */
 export function softDeleteMessage( message: ChatMessage ): ChatMessage
 {
+    const isFileOrAudio =
+        !!message.fileUrl ||
+        !!message.audioUrl ||
+        !!message.attachments?.length ||
+        !!message.caption;
+
     return {
         ...message,
-        text: message.text ? DEFAULT_SOFT_DELETED_TEXT : "",
-        caption: message.caption || message.attachments?.length ? DEFAULT_FILE_DELETED_TEXT : "",
-        fileUrl: null,
-        fileName: null,
-        fileType: null,
-        audioUrl: null,
+        text: !isFileOrAudio ? DEFAULT_SOFT_DELETED_TEXT : "",
+        caption: isFileOrAudio ? DEFAULT_FILE_DELETED_TEXT : "",
+        fileUrl: undefined,
+        fileName: undefined,
+        fileType: undefined,
+        audioUrl: undefined,
+        videoUrl: undefined,
         attachments: [],
         isSoftDeleted: true,
+        isDeleted: false,
+        updatedAt: new Date().toISOString(),
     };
 }
 
-export async function softDeleteMessageWithApi( message: ChatMessage ): Promise<ChatMessage>
+/**
+ * Melakukan soft delete ke server dan update lokal
+ */
+export async function softDeleteMessageWithApi(
+    message: ChatMessage
+): Promise<ChatMessage>
 {
-    if ( !message.id ) return message;
+    const idToDelete = message.id || message.message_id;
+    if ( !idToDelete ) return message;
 
     try
     {
-        await apiSoftDeleteMessage( message.id );
+        await apiSoftDeleteMessage( idToDelete );
         return softDeleteMessage( message );
     } catch ( err )
     {
@@ -49,18 +71,29 @@ export async function softDeleteMessageWithApi( message: ChatMessage ): Promise<
     }
 }
 
+/**
+ * Mengembalikan pesan dari kondisi soft deleted
+ */
 export function undoSoftDeleteMessage( message: ChatMessage ): ChatMessage
 {
+    // Jika pesan teks biasa
     if ( message.text === DEFAULT_SOFT_DELETED_TEXT && !message.audioUrl )
     {
         return { ...message, text: "", isSoftDeleted: false };
-    } else if ( message.caption === DEFAULT_FILE_DELETED_TEXT )
+    }
+
+    // Jika pesan file (gambar, video, dokumen)
+    if ( message.caption === DEFAULT_FILE_DELETED_TEXT )
     {
         return { ...message, caption: "", isSoftDeleted: false };
-    } else if ( message.audioUrl === null && message.text === DEFAULT_SOFT_DELETED_TEXT )
-    {
-        return { ...message, text: "", audioUrl: null, isSoftDeleted: false };
     }
+
+    // Jika pesan audio
+    if ( message.audioUrl === undefined && message.text === DEFAULT_SOFT_DELETED_TEXT )
+    {
+        return { ...message, text: "", isSoftDeleted: false };
+    }
+
     return message;
 }
 
@@ -68,16 +101,23 @@ export function undoSoftDeleteMessage( message: ChatMessage ): ChatMessage
 interface SoftDeletedMessageProps
 {
     text: string;
-    time: string;
+    time?: string;
 }
 
-export const SoftDeletedMessage: React.FC<SoftDeletedMessageProps> = ( { text, time } ) =>
+export const SoftDeletedMessage: React.FC<SoftDeletedMessageProps> = ( {
+    text,
+    time,
+} ) =>
 {
     return (
         <div className="flex items-center gap-2 text-gray-500 text-sm pl-2 min-w-1 flex-wrap">
             <Ban size={ 16 } className="text-gray-500 flex-shrink-0" />
             <span className="italic break-words">{ text }</span>
-            <span className="ml-5 text-gray-700 text-xs whitespace-nowrap">{ time }</span>
+            { time && (
+                <span className="ml-5 text-gray-700 text-xs whitespace-nowrap">
+                    { time }
+                </span>
+            ) }
         </div>
     );
 };

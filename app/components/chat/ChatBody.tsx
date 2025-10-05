@@ -5,7 +5,7 @@ import { RootState } from "../../states";
 import ChatTextMessage from "./ChatTextMessage";
 import ChatAudioMessage from "./ChatAudioMessage";
 import ChatFileMessage from "./ChatFileMessage";
-import { ChatMessage } from "../../states/chatSlice";
+import { ChatMessage } from "../../types/chat";
 import { useChatBody } from "../../hooks/chatBody/useChatBody";
 import { isSoftDeletedMessage } from "../../hooks/useSoftDelete";
 

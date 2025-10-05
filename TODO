@@ -357,3 +357,13 @@ BUG LIST
 FINISH DEVELOPMENT -- TRY TO PRODUCTION
 
 
+DEPLOYMENT PREPARATION
+
+TODO 5 OKTOBER 2025
+1. perbaiki types error -- SUCCESS
+2. tambah pencarian kontak atau isi pesan di chat menu
+3. hilangkan glitch di chat menu sidebar
+4. sesuaikan tipe file lastChat
+5. perbaiki lastChat text -- SUCCESS
+6. sesuaikan tipe file di frontend
+6. deploy next js

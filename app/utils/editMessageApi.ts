@@ -1,4 +1,6 @@
+// utils/editMessageApi.ts
 import axios from "axios";
+import { BASE_URL } from "./apiConfig";
 
 export interface EditedMessage
 {
@@ -13,10 +15,13 @@ export interface EditedMessage
     deleted_at: string | null;
 }
 
-export async function editMessage(
-    messageId: string,
-    newText: string
-): Promise<EditedMessage>
+/**
+ * Mengedit pesan tertentu
+ * @param messageId ID pesan yang ingin diedit
+ * @param newText Teks baru untuk pesan
+ * @returns EditedMessage
+ */
+export async function editMessage( messageId: string, newText: string ): Promise<EditedMessage>
 {
     try
     {
@@ -28,10 +33,8 @@ export async function editMessage(
         }
 
         const response = await axios.put<EditedMessage>(
-            `http://localhost:5000/messages/${ messageId }`,
-            {
-                messageText: newText,
-            },
+            `${ BASE_URL }/messages/${ messageId }`,
+            { messageText: newText },
             {
                 headers: {
                     Authorization: `Bearer ${ token }`,

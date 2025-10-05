@@ -1,5 +1,5 @@
 // utils/apiUtils.ts
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
+import { BASE_URL } from "./apiConfig";
 
 export interface RegisterUserData
 {
@@ -33,7 +33,10 @@ export interface ApiResponse<T = any>
     message?: string;
 }
 
-const handleFetchResponse = async ( response: Response ) =>
+/**
+ * Helper untuk parsing JSON dan validasi status response
+ */
+export const handleFetchResponse = async ( response: Response ) =>
 {
     let json: any = {};
     try
@@ -41,7 +44,6 @@ const handleFetchResponse = async ( response: Response ) =>
         json = await response.json();
     } catch
     {
-        // JSON parse gagal, tetap lanjut
         json = {};
     }
 
@@ -53,6 +55,9 @@ const handleFetchResponse = async ( response: Response ) =>
     return json;
 };
 
+/**
+ * POST request umum
+ */
 export const postRequest = async <T>( endpoint: string, data: object ): Promise<ApiResponse<T>> =>
 {
     try
@@ -72,7 +77,11 @@ export const postRequest = async <T>( endpoint: string, data: object ): Promise<
     }
 };
 
-export const registerUser = ( userData: RegisterUserData ) => postRequest<AuthApiResponse>( "/auth/register", userData );
+/**
+ * Auth API
+ */
+export const registerUser = ( userData: RegisterUserData ) =>
+    postRequest<AuthApiResponse>( "/auth/register", userData );
 
 export const loginUser = async ( userData: LoginUserData ): Promise<ApiResponse<AuthApiResponse>> =>
 {
@@ -98,6 +107,9 @@ export const loginUser = async ( userData: LoginUserData ): Promise<ApiResponse<
     }
 };
 
+/**
+ * User Profile
+ */
 export interface UserProfile
 {
     id: string;
@@ -151,9 +163,9 @@ export const logoutUser = async (): Promise<ApiResponse<{ message: string }>> =>
     }
 };
 
-// =========================
-// Update profile (avatar + username)
-// =========================
+/**
+ * Update Profile (username + avatar)
+ */
 export const updateProfile = async ( data: { username?: string; avatar?: File } ): Promise<ApiResponse<UserProfile>> =>
 {
     try
@@ -167,13 +179,13 @@ export const updateProfile = async ( data: { username?: string; avatar?: File } 
 
         const response = await fetch( `${ BASE_URL }/me`, {
             method: "PUT",
-            headers: { Authorization: `Bearer ${ token }` }, // jangan set Content-Type
+            headers: { Authorization: `Bearer ${ token }` }, // jangan set Content-Type saat pakai FormData
             body: formData,
         } );
 
         const json = await handleFetchResponse( response );
 
-        // Tambahkan query string timestamp agar avatar selalu refresh di frontend
+        // Tambahkan timestamp di avatar_url supaya selalu refresh
         const updated: UserProfile = {
             ...json,
             avatar_url: json.avatar_url ? `${ json.avatar_url }?t=${ Date.now() }` : "",

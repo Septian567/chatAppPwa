@@ -1,5 +1,6 @@
 // utils/getLastMessagesApi.ts
 import axios from "axios";
+import { BASE_URL } from "./apiConfig";
 
 export interface LastMessageItem
 {
@@ -15,6 +16,10 @@ export interface LastMessageItem
     chat_partner_id: string;
 }
 
+/**
+ * Ambil pesan terakhir dari setiap chat
+ * @returns Array of LastMessageItem
+ */
 export async function getLastMessagesPerChat(): Promise<LastMessageItem[]>
 {
     try
@@ -27,7 +32,7 @@ export async function getLastMessagesPerChat(): Promise<LastMessageItem[]>
         }
 
         const response = await axios.get<LastMessageItem[]>(
-            "http://localhost:5000/messages/chat",
+            `${ BASE_URL }/messages/chat`,
             {
                 headers: {
                     Authorization: `Bearer ${ token }`,

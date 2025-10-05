@@ -52,7 +52,7 @@ export default function CustomAudioPlayer( {
     formatTime,
   } = useAudioPlayer( src );
 
-  const isDisabled = isLoading || error; // tombol tetap disable saat loading/error
+  const isDisabled: boolean = !!( isLoading || error );
   const displayDuration = duration > 0 ? duration : manualDuration || 0;
 
   return (

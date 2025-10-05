@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 
 interface UseAudioPlayerReturn
 {
-    audioRef: React.RefObject<HTMLAudioElement>;
+    audioRef: React.RefObject<HTMLAudioElement | null>;
     isPlaying: boolean;
     currentTime: number;
     duration: number;

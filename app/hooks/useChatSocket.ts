@@ -5,17 +5,17 @@ import { io, Socket } from "socket.io-client";
 import { useDispatch } from "react-redux";
 import { store, RootState } from "../states";
 import
-    {
-        addMessageToContact,
-        updateMessageForContact,
-        ChatMessage,
-    } from "../states/chatSlice";
+{
+    addMessageToContact,
+    updateMessageForContact,
+} from "../states/chatSlice";
+import { ChatMessage } from "../types/chat";
 import { upsertLastMessage } from "../states/lastMessagesSlice";
 import { softDeleteMessage } from "./useSoftDelete";
 import { formatTime24 } from "../utils/formatTime";
 import { useMapSendMessageResponse } from "./useMapSendMessageResponse";
 import { getMessagePreview } from "../utils/messagePreview";
-
+import { BASE_URL } from "../utils/apiConfig"; 
 let socket: Socket | null = null;
 
 export function useChatSocket( contactId: string, currentUserId: string )
@@ -25,7 +25,8 @@ export function useChatSocket( contactId: string, currentUserId: string )
 
     useEffect( () =>
     {
-        if ( !socket ) socket = io( "http://localhost:5000" );
+        // Initialize socket if not exists
+        if ( !socket ) socket = io( BASE_URL );
 
         if ( currentUserId )
         {
@@ -59,7 +60,6 @@ export function useChatSocket( contactId: string, currentUserId: string )
                 fileType = attachment.mediaType;
                 caption = mappedMsg.message_text || "";
 
-                // suara & video langsung override url
                 const previewType = getMessagePreview( mappedMsg );
                 if ( previewType === "[Audio]" )
                 {
@@ -90,7 +90,7 @@ export function useChatSocket( contactId: string, currentUserId: string )
 
             dispatch( addMessageToContact( { contactId, message: newMessage } ) );
 
-            // 🔹 gunakan getMessagePreview
+            // Update lastMessages
             dispatch(
                 upsertLastMessage( {
                     chat_partner_id:
@@ -120,11 +120,11 @@ export function useChatSocket( contactId: string, currentUserId: string )
                     newText: mappedMsg.message_text,
                     newCaption:
                         mappedMsg.attachments?.length > 0 ? mappedMsg.message_text : undefined,
-                    updatedAt: mappedMsg.updated_at,
+                    updatedAt: mappedMsg.updated_at ?? new Date().toISOString(),
                 } )
             );
 
-            // Update lastMessages hanya jika pesan yang diedit adalah pesan terakhir
+            // Update lastMessages jika pesan terakhir
             const state: RootState = store.getState();
             const contactMessages = state.chat[contactId] || [];
             const lastMessage = contactMessages[contactMessages.length - 1];
@@ -139,7 +139,7 @@ export function useChatSocket( contactId: string, currentUserId: string )
                                 : mappedMsg.from_user_id,
                         message_id: mappedMsg.message_id,
                         message_text: getMessagePreview( mappedMsg ),
-                        created_at: mappedMsg.updated_at,
+                        created_at: mappedMsg.updated_at ?? new Date().toISOString(),
                         is_deleted: false,
                     } )
                 );
@@ -171,16 +171,15 @@ export function useChatSocket( contactId: string, currentUserId: string )
                     messageId: message_id,
                     newText: softDeletedMsg.text,
                     newCaption: softDeletedMsg.caption,
-                    fileUrl: softDeletedMsg.fileUrl,
-                    fileName: softDeletedMsg.fileName,
-                    fileType: softDeletedMsg.fileType,
-                    audioUrl: softDeletedMsg.audioUrl,
+                    newFileUrl: undefined,
+                    newFileName: undefined,
+                    newFileType: undefined,
+                    newAudioUrl: softDeletedMsg.audioUrl,
                     attachments: softDeletedMsg.attachments,
                     updatedAt: new Date().toISOString(),
                 } )
             );
 
-            // Cari pesan terakhir yang valid (tidak dihapus)
             const validMessages = contactMessages.filter(
                 ( m ) => !m.isDeleted && !m.isSoftDeleted
             );
@@ -188,7 +187,6 @@ export function useChatSocket( contactId: string, currentUserId: string )
 
             if ( lastValidMessage )
             {
-                // Jika pesan yang dihapus adalah pesan terakhir, update dengan "Pesan telah dihapus"
                 const lastMessage = contactMessages[contactMessages.length - 1];
                 if ( lastMessage?.id === message_id )
                 {
@@ -201,17 +199,14 @@ export function useChatSocket( contactId: string, currentUserId: string )
                             is_deleted: true,
                         } )
                     );
-                }
-                // Jika bukan pesan terakhir, tetap tampilkan pesan terakhir yang valid
-                else if ( lastValidMessage.id === lastMessage?.id )
+                } else if ( lastValidMessage.id === lastMessage?.id )
                 {
                     store.dispatch(
                         upsertLastMessage( {
                             chat_partner_id: deletedContactId,
-                            message_id: lastValidMessage.id,
+                            message_id: lastValidMessage.id || Date.now().toString(),
                             message_text: getMessagePreview( lastValidMessage ),
-                            created_at:
-                                lastValidMessage.updatedAt || new Date().toISOString(),
+                            created_at: lastValidMessage.updatedAt || new Date().toISOString(),
                             is_deleted: false,
                         } )
                     );
@@ -220,7 +215,7 @@ export function useChatSocket( contactId: string, currentUserId: string )
         };
 
         // ===========================
-        // Listener: Message Deleted For Me (user-specific)
+        // Listener: Message Deleted For Me
         // ===========================
         const handleMessageDeletedForMe = ( {
             message_id,
@@ -230,34 +225,29 @@ export function useChatSocket( contactId: string, currentUserId: string )
             contactId: string;
         } ) =>
         {
-            // 1️⃣ Soft-delete pesan
             store.dispatch(
                 updateMessageForContact( {
                     contactId: deletedContactId,
                     messageId: message_id,
                     newText: "",
                     newCaption: undefined,
-                    fileUrl: undefined,
-                    fileName: undefined,
-                    fileType: undefined,
-                    audioUrl: undefined,
+                    newFileUrl: undefined,
+                    newFileName: undefined,
+                    newFileType: undefined,
+                    newAudioUrl: undefined,
                     attachments: [],
                     isSoftDeleted: true,
                     updatedAt: new Date().toISOString(),
                 } )
             );
 
-            // 2️⃣ Ambil state terbaru dari store
             const updatedState: RootState = store.getState();
             const updatedMessages = updatedState.chat[deletedContactId] || [];
 
-            // 3️⃣ Cari pesan terakhir yang tidak dihapus untuk diri sendiri
             let lastVisibleMessage = null;
             for ( let i = updatedMessages.length - 1; i >= 0; i-- )
             {
                 const message = updatedMessages[i];
-
-                // Skip pesan yang dihapus untuk diri sendiri
                 if ( message.isSoftDeleted ) continue;
 
                 if ( message.isDeleted )
@@ -280,13 +270,12 @@ export function useChatSocket( contactId: string, currentUserId: string )
                 break;
             }
 
-            // 4️⃣ Update lastMessages
             if ( lastVisibleMessage )
             {
                 store.dispatch(
                     upsertLastMessage( {
                         chat_partner_id: deletedContactId,
-                        message_id: lastVisibleMessage.id,
+                        message_id: lastVisibleMessage.id || Date.now().toString(),
                         message_text: lastVisibleMessage.text,
                         created_at: lastVisibleMessage.updatedAt,
                         is_deleted: lastVisibleMessage.isDeleted,
@@ -306,6 +295,9 @@ export function useChatSocket( contactId: string, currentUserId: string )
             }
         };
 
+        // ===========================
+        // Attach listeners
+        // ===========================
         socket.on( "newMessage", handleNewMessage );
         socket.on( "messageUpdated", handleMessageUpdated );
         socket.on( "messageDeleted", handleMessageDeleted );

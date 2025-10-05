@@ -1,3 +1,6 @@
+// utils/contactApi.ts
+import { BASE_URL } from "./apiConfig";
+
 export interface ContactCreateBody
 {
     contactId: string;
@@ -10,15 +13,19 @@ export interface ContactResponse
     contact_id: string;
     alias: string;
     created_at: string;
+    id?: string;
 }
 
-const BASE_URL = "http://localhost:5000";
-
+/**
+ * Membuat contact baru
+ * @param body Body request { contactId, alias }
+ * @param token Optional: token user, jika tidak diberikan akan ambil dari localStorage
+ * @returns ContactResponse
+ */
 export async function createContact( body: ContactCreateBody, token?: string ): Promise<ContactResponse>
 {
     try
     {
-        // Ambil token dari localStorage jika tidak diberikan
         const authToken = token || localStorage.getItem( "token" );
         if ( !authToken )
         {
@@ -39,14 +46,14 @@ export async function createContact( body: ContactCreateBody, token?: string ): 
             body: JSON.stringify( body ),
         } );
 
-        const responseText = await response.text(); // ambil response dulu sebagai text
+        const responseText = await response.text();
         let data: any;
         try
         {
             data = JSON.parse( responseText );
         } catch
         {
-            data = { message: responseText }; // kalau bukan JSON, simpan text saja
+            data = { message: responseText };
         }
 
         console.log( "DEBUG: Response status:", response.status );

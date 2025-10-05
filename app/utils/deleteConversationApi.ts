@@ -1,5 +1,6 @@
 // utils/deleteConversationApi.ts
 import axios from "axios";
+import { BASE_URL } from "./apiConfig";
 
 export interface DeleteConversationResponse
 {
@@ -7,6 +8,11 @@ export interface DeleteConversationResponse
     hiddenCount: number; // contoh: 77
 }
 
+/**
+ * Menghapus percakapan antara user dan contact tertentu
+ * @param contactId ID contact
+ * @returns DeleteConversationResponse
+ */
 export async function deleteConversation( contactId: string ): Promise<DeleteConversationResponse>
 {
     try
@@ -20,7 +26,7 @@ export async function deleteConversation( contactId: string ): Promise<DeleteCon
         }
 
         const response = await axios.delete<DeleteConversationResponse>(
-            `http://localhost:5000/messages/conversation/${ userId }/${ contactId }`,
+            `${ BASE_URL }/messages/conversation/${ userId }/${ contactId }`,
             {
                 headers: {
                     Authorization: `Bearer ${ token }`,

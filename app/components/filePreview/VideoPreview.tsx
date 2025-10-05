@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { Play } from "lucide-react";
 import { formatDuration } from "../../utils/format";
 import { DEFAULT_SOFT_DELETED_TEXT } from "../chat/deletedMessage";
@@ -7,11 +7,13 @@ import CaptionWithTime from "../common/CaptionWithTime";
 interface VideoPreviewProps
 {
     fileUrl: string;
+    fileName?: string;
     duration?: string;
     caption?: string;
     time?: string;
     isSoftDeleted?: boolean;
     align?: "left" | "right";
+    preload?: string;
     poster?: string;
     isActive?: boolean; // apakah video sedang ditampilkan
 }
@@ -88,7 +90,7 @@ function VideoPreviewComponent( {
                 <DurationBadge duration={ videoDuration } />
             </div>
 
-            <CaptionWithTime caption={ caption } time={ time } align={ align } />
+            <CaptionWithTime caption={ caption } time={ time } />
 
             { isModalOpen && <VideoModal fileUrl={ fileUrl } onClose={ () => setIsModalOpen( false ) } /> }
         </div>

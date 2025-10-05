@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../states";
 import
-{
-    setContacts,
-    updateContactAlias,
-    deleteContact as deleteContactRedux,
-    setActiveContact,
-} from "../../states/contactsSlice";
+    {
+        setContacts,
+        updateContactAlias,
+        deleteContact as deleteContactRedux,
+        setActiveContact,
+    } from "../../states/contactsSlice";
 import { getContacts } from "../../utils/contactApiUtils";
 import { createContact } from "../../utils/createContactApi";
 import { updateContact as updateContactApi } from "../../utils/updateContactApi";
@@ -28,18 +28,16 @@ interface Contact
     email: string;
     alias: string;
     avatar_url?: string;
-    contact_id?: string;
+    contact_id: string;
 }
 
 export function useContactsPage( token?: string )
 {
     const dispatch = useDispatch();
 
-    // Ambil contacts & activeContact dari Redux
     const contacts = useSelector( ( state: RootState ) => state.contacts.list as Contact[] );
     const activeContact = useSelector( ( state: RootState ) => state.contacts.activeContact );
 
-    // Ambil users dari Redux supaya avatar selalu update
     const usersRedux = useSelector( ( state: RootState ) => state.users.list as User[] );
     const [users, setUsers] = useState<User[]>( [] );
 
@@ -47,15 +45,17 @@ export function useContactsPage( token?: string )
     const [loading, setLoading] = useState( true );
     const [error, setError] = useState<string | null>( null );
 
+    const [addingUser, setAddingUser] = useState( false );
+    const [newUserName, setNewUserName] = useState( "" );
+    const [newUserEmail, setNewUserEmail] = useState( "" );
+
     const currentUserToken = token || localStorage.getItem( "token" ) || "";
 
-    // Sinkronisasi local users state dengan Redux users
     useEffect( () =>
     {
         setUsers( usersRedux );
     }, [usersRedux] );
 
-    // Fetch contacts dari backend
     useEffect( () =>
     {
         const fetchContacts = async () =>
@@ -63,7 +63,7 @@ export function useContactsPage( token?: string )
             setLoading( true );
             try
             {
-                const data = await getContacts( currentUserToken );
+                const data = await getContacts();
                 const mapped = data.map( ( c: any ) => ( {
                     email: c.email,
                     alias: c.alias?.trim() || "",
@@ -83,7 +83,37 @@ export function useContactsPage( token?: string )
     }, [dispatch, currentUserToken] );
 
     // ================================
-    // Fungsi update alias kontak/user
+    // Tambahkan User baru
+    // ================================
+    const handleAddUser = () =>
+    {
+        if ( !newUserName || !newUserEmail ) return alert( "Nama & Email harus diisi" );
+
+        const exists = users.find( u => u.email.toLowerCase() === newUserEmail.toLowerCase() );
+        if ( exists ) return alert( "User sudah ada" );
+
+        const newUser: User = {
+            userId: crypto.randomUUID(),
+            username: newUserName,
+            email: newUserEmail,
+            alias: newUserName,
+        };
+
+        setUsers( prev => [...prev, newUser] );
+        setNewUserName( "" );
+        setNewUserEmail( "" );
+        setAddingUser( false );
+    };
+
+    const handleCancelUser = () =>
+    {
+        setAddingUser( false );
+        setNewUserName( "" );
+        setNewUserEmail( "" );
+    };
+
+    // ================================
+    // Update alias kontak/user
     // ================================
     const handleUpdateContact = async ( email: string, alias: string ) =>
     {
@@ -104,7 +134,7 @@ export function useContactsPage( token?: string )
                 alias: contact.alias || "",
                 avatar_url: contact.avatar_url,
             };
-            setUsers( prev => [...prev, user] );
+            setUsers( prev => [...prev, user!] );
         }
 
         let contact = contacts.find( c => c.email.toLowerCase() === normalizedEmail );
@@ -116,8 +146,7 @@ export function useContactsPage( token?: string )
             if ( contact && contact.contact_id )
             {
                 const result = await updateContactApi( contact.contact_id, { alias } );
-                if ( !result.success || !result.data )
-                    throw new Error( result.message || "Gagal update kontak" );
+                if ( !result.success || !result.data ) throw new Error( result.message || "Gagal update kontak" );
 
                 updatedAlias = result.data.alias;
                 dispatch( updateContactAlias( { contact_id: contact.contact_id, alias: updatedAlias } ) );
@@ -128,7 +157,7 @@ export function useContactsPage( token?: string )
                     email: user.email,
                     alias: newContact.alias,
                     avatar_url: user.avatar_url,
-                    contact_id: newContact.contact_id || newContact.contactId || newContact.id,
+                    contact_id: newContact.contact_id,
                 };
                 dispatch(
                     setContacts( [
@@ -166,7 +195,6 @@ export function useContactsPage( token?: string )
 
         try
         {
-            // Hapus percakapan
             try
             {
                 const convResult = await deleteConversation( contact.contact_id );
@@ -182,22 +210,17 @@ export function useContactsPage( token?: string )
                 }
             }
 
-            // Hapus kontak di backend
             const result = await deleteContactApi( contact.contact_id );
             if ( !result.success ) throw new Error( result.message || "Gagal menghapus kontak" );
 
-            // Update Redux: hapus kontak
             dispatch( deleteContactRedux( contact.contact_id ) );
 
-            // ✅ Reset activeContact hanya jika kontak yang dihapus adalah kontak aktif
             if ( activeContact?.contact_id === contact.contact_id )
             {
                 dispatch( setActiveContact( null ) );
             }
 
-            // Update users lokal
             setUsers( prev => prev.map( u => ( u.email === email ? { ...u, alias: "" } : u ) ) );
-
             console.log( "Kontak & percakapan berhasil dihapus:", email );
         } catch ( err: any )
         {
@@ -206,9 +229,6 @@ export function useContactsPage( token?: string )
         }
     };
 
-    // ================================
-    // usersWithAlias untuk UserList
-    // ================================
     const usersWithAlias = users.map( u =>
     {
         const contact = contacts.find( c => c.email === u.email );
@@ -224,6 +244,14 @@ export function useContactsPage( token?: string )
         setActiveMenu,
         users: usersWithAlias,
         contacts,
+        addingUser,
+        setAddingUser,
+        newUserName,
+        setNewUserName,
+        newUserEmail,
+        setNewUserEmail,
+        handleAddUser,
+        handleCancelUser,
         handleUpdateContact,
         handleUpdateAliasFromUser,
         handleDeleteContact,
@@ -231,4 +259,3 @@ export function useContactsPage( token?: string )
         error,
     };
 }
-

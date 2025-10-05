@@ -1,6 +1,10 @@
 import { useEffect, useRef } from "react";
 
-export function useBlockScroll( isMenuOpen: boolean, chatBodyRef: React.RefObject<HTMLDivElement>, isScrollable: boolean )
+export function useBlockScroll(
+    isMenuOpen: boolean,
+    chatBodyRef: React.RefObject<HTMLDivElement | null>,
+    isScrollable: boolean
+)
 {
     const blockersRef = useRef<{ wheel?: any; touch?: any; key?: any } | null>( null );
 

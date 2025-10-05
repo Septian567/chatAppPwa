@@ -1,8 +1,8 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 
 export function useInitialScroll(
-    chatBodyRef: React.RefObject<HTMLDivElement>,
-    bottomRef: React.RefObject<HTMLDivElement>
+    chatBodyRef: React.RefObject<HTMLDivElement | null>,
+    bottomRef: React.RefObject<HTMLDivElement | null>
 )
 {
     const hasScrolledToBottom = useRef( false );

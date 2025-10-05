@@ -1,13 +1,14 @@
-const BASE_URL = "http://localhost:5000";
+// utils/updateContactApi.ts
+import { BASE_URL } from "./apiConfig";
 
 // Tipe payload untuk update kontak
-interface ContactUpdatePayload
+export interface ContactUpdatePayload
 {
     alias: string;
 }
 
 // Tipe response dari API
-interface ContactResponse
+export interface ContactResponse
 {
     user_id: string;
     contact_id: string;
@@ -16,13 +17,19 @@ interface ContactResponse
 }
 
 // Tipe standar untuk response API
-interface ApiResponse<T>
+export interface ApiResponse<T>
 {
     success: boolean;
     data?: T;
     message?: string;
 }
 
+/**
+ * Update alias kontak tertentu
+ * @param contactId ID kontak
+ * @param payload Data yang akan diupdate (alias)
+ * @returns ApiResponse<ContactResponse>
+ */
 export const updateContact = async (
     contactId: string,
     payload: ContactUpdatePayload
@@ -59,7 +66,7 @@ export const updateContact = async (
         };
     } catch ( error: any )
     {
-        console.error( "API Error:", error );
+        console.error( "API Error (updateContact):", error );
         return {
             success: false,
             message: error.message,

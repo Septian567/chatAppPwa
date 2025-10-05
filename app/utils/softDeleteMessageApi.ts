@@ -1,4 +1,6 @@
+// utils/softDeleteMessageApi.ts
 import axios from "axios";
+import { BASE_URL } from "./apiConfig";
 
 export interface DeletedMessage
 {
@@ -19,9 +21,12 @@ export interface DeleteMessageResponse
     data: DeletedMessage;
 }
 
-export async function softDeleteMessage(
-    messageId: string
-): Promise<DeleteMessageResponse>
+/**
+ * Soft delete / sembunyikan pesan tertentu
+ * @param messageId ID pesan yang ingin dihapus
+ * @returns DeleteMessageResponse
+ */
+export async function softDeleteMessage( messageId: string ): Promise<DeleteMessageResponse>
 {
     try
     {
@@ -33,7 +38,7 @@ export async function softDeleteMessage(
         }
 
         const response = await axios.delete<DeleteMessageResponse>(
-            `http://localhost:5000/messages/${ messageId }`,
+            `${ BASE_URL }/messages/${ messageId }`,
             {
                 headers: {
                     Authorization: `Bearer ${ token }`,

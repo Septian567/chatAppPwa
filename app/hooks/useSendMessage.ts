@@ -1,7 +1,8 @@
 "use client";
 
 import { useDispatch } from "react-redux";
-import { addMessageToContact, ChatMessage } from "../states/chatSlice";
+import { addMessageToContact} from "../states/chatSlice";
+import { ChatMessage } from "../types/chat";
 import { sendMessage } from "../utils/sendMessageApi";
 import { useMapSendMessageResponse } from "./useMapSendMessageResponse";
 import { formatTime24 } from "../utils/formatTime";

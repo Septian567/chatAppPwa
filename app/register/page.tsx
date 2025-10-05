@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { registerUser, RegisterUserData, ApiResponse, RegisterApiResponse } from "../utils/apiUtils";
+import { registerUser, RegisterUserData, ApiResponse, AuthApiResponse } from "../utils/apiUtils";
 
 export default function RegisterPage()
 {
@@ -34,14 +34,14 @@ export default function RegisterPage()
 
         try
         {
-            const response: ApiResponse<RegisterApiResponse> = await registerUser( payload );
+            const response: ApiResponse<AuthApiResponse> = await registerUser( payload );
             console.log( "API Response:", response );
 
             if ( response.success && response.data )
             {
                 const { token, user } = response.data;
 
-                // Simpan token di localStorage
+                // Simpan token & user di localStorage
                 localStorage.setItem( "token", token );
                 localStorage.setItem( "user", JSON.stringify( user ) );
 

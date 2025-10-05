@@ -13,11 +13,14 @@ import { setContacts, setActiveContact } from "../../states/contactsSlice";
 import { useContactsPage } from "../../hooks/contacts/useContactsPage";
 import { useSidebarNavigation } from "../../hooks/useSidebarNavigation";
 import { useEffect } from "react";
+import { v4 as uuidv4 } from 'uuid';
+
 
 interface ContactsPageProps
 {
     isMobile: boolean;
     onBack: () => void;
+    onContactClick?: ( aliasOrName: string ) => void;
 }
 
 export default function ContactsPage( { isMobile, onBack }: ContactsPageProps )
@@ -48,7 +51,10 @@ export default function ContactsPage( { isMobile, onBack }: ContactsPageProps )
 
     // Gunakan hook search yang sudah menyesuaikan alias dari kontak
     const { searchQuery, setSearchQuery, filteredUsers, filteredContacts } =
-        useSearchFilter( users, contacts );
+        useSearchFilter(
+            users.map( u => ( { ...u, username: u.username || "" } ) ),
+            contacts
+        );
 
     // Sinkronkan contacts ke Redux
     useEffect( () =>
@@ -63,9 +69,10 @@ export default function ContactsPage( { isMobile, onBack }: ContactsPageProps )
         {
             dispatch(
                 addUser( {
-                    username: u.username,
+                    userId: uuidv4(), // buat ID unik
+                    username: u.username || "",
                     email: u.email,
-                    alias: u.alias,
+                    alias: u.alias || "",
                 } )
             );
         } );
@@ -126,12 +133,10 @@ export default function ContactsPage( { isMobile, onBack }: ContactsPageProps )
                                 dispatch(
                                     setActiveContact( {
                                         ...selectedContact,
-                                        alias:
-                                            selectedContact.alias ||
-                                            selectedContact.username ||
-                                            "",
+                                        alias: selectedContact.alias || "",
                                     } )
                                 );
+
                             }
                             handleMainMenuClick( "chat" );
                         } }

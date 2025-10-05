@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { Pencil, User, Check, ArrowLeft } from "lucide-react";
 import { getProfile, updateProfile, UserProfile } from "../../utils/apiUtils";
 import { useDispatch } from "react-redux";
-import { updateUserAvatar, updateUserName } from "../../states/usersSlice"; // pastikan action updateUserName tersedia
+import { updateUserAvatar, updateUserName } from "../../states/usersSlice";
+import type { AppDispatch } from "../../states";
 
 interface ProfilePageProps
 {
@@ -14,7 +15,7 @@ interface ProfilePageProps
 
 export default function ProfilePage( { isMobile, onBack }: ProfilePageProps )
 {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     const [profileImage, setProfileImage] = useState<string | null>( null );
     const fileInputRef = useRef<HTMLInputElement>( null );

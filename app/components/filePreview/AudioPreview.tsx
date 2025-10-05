@@ -4,8 +4,10 @@ import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 interface AudioPreviewProps
 {
     fileUrl: string;
-    fileName: string;
+    fileName?: string;
     align?: "left" | "right";
+    duration?: string;
+    preload?: string;
 }
 
 export default function AudioPreview( { fileUrl, fileName, align = "right" }: AudioPreviewProps )
@@ -16,7 +18,6 @@ export default function AudioPreview( { fileUrl, fileName, align = "right" }: Au
         currentTime,
         duration,
         togglePlay,
-        handleTimeUpdate,
         handleLoadedMetadata,
         handleSeek,
         formatTime,
@@ -27,7 +28,7 @@ export default function AudioPreview( { fileUrl, fileName, align = "right" }: Au
             <audio
                 ref={ audioRef }
                 src={ fileUrl }
-                onTimeUpdate={ handleTimeUpdate }
+                onTimeUpdate={ () => { } }
                 onLoadedMetadata={ handleLoadedMetadata }
                 className="hidden"
             />
@@ -40,7 +41,7 @@ export default function AudioPreview( { fileUrl, fileName, align = "right" }: Au
                     min={ 0 }
                     max={ duration || 0 }
                     value={ currentTime }
-                    onChange={ handleSeek }
+                    onChange={ ( e ) => handleSeek( parseFloat( e.target.value ) ) }
                     step="0.1"
                     className="flex-1 h-1 bg-gray-300 rounded-lg accent-green-600 min-w-0"
                 />

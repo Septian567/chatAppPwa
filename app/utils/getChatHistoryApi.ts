@@ -1,12 +1,14 @@
 // utils/getChatHistoryApi.ts
 import axios from "axios";
+import { BASE_URL } from "./apiConfig";
 
 export interface Attachment
 {
     media_type: string;   // contoh: "image", "audio", "video", "file"
     media_url: string;    // contoh: "https://chat-app-bucket.../file.png"
     media_name: string;   // contoh: "sample.png"
-    media_size: number;   // ukuran file dalam byte
+    media_size: number;
+    caption?: string;
 }
 
 export interface ChatHistoryItem
@@ -24,12 +26,17 @@ export interface ChatHistoryItem
     attachments: Attachment[];
 }
 
+/**
+ * Ambil riwayat chat antara user saat ini dan contact tertentu
+ * @param contactId ID contact
+ * @returns Array of ChatHistoryItem
+ */
 export async function getChatHistory( contactId?: string ): Promise<ChatHistoryItem[]>
 {
     if ( !contactId )
     {
         console.warn( "DEBUG: contactId tidak ada, skip fetch chat history." );
-        return []; // ❌ langsung return array kosong, tidak error
+        return [];
     }
 
     try
@@ -43,7 +50,7 @@ export async function getChatHistory( contactId?: string ): Promise<ChatHistoryI
         }
 
         const response = await axios.get<ChatHistoryItem[]>(
-            `http://localhost:5000/messages/${ userId }/with/${ contactId }`,
+            `${ BASE_URL }/messages/${ userId }/with/${ contactId }`,
             {
                 headers: {
                     Authorization: `Bearer ${ token }`,
@@ -67,7 +74,7 @@ export async function getChatHistory( contactId?: string ): Promise<ChatHistoryI
             message = `HTTP ${ err.response.status }: ${ err.response.statusText }`;
         }
 
-       
-        return []; 
+        console.error( "DEBUG: getChatHistory error:", message );
+        return []; // tetap return array kosong jika error
     }
 }

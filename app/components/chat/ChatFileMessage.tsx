@@ -14,6 +14,7 @@ interface ChatFileMessageProps
     fileUrl: string;
     fileName?: string;
     caption?: string;
+    fileType?: string;
     time: string;
     align?: "left" | "right";
     onEditClick?: () => void;

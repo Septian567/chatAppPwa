@@ -13,6 +13,7 @@ interface ChatPageProps
     isMobile: boolean;
     onBack: () => void;
     sidebarWidth?: number | string;
+    contactName?: string;
 }
 
 export default function ChatPage( { isMobile, onBack }: ChatPageProps )
@@ -23,8 +24,6 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
 
     const {
         messages,
-        chatSide,
-        setChatSide,
         editingIndex,
         editType,
         editingMessage,
@@ -80,8 +79,7 @@ export default function ChatPage( { isMobile, onBack }: ChatPageProps )
                 contactName={ contactName }
                 contactId={ contactId! }
                 avatarUrl={ avatarUrl }
-                onChatKiri={ () => setChatSide( "kiri" ) }
-                onChatKanan={ () => setChatSide( "kanan" ) }
+                
             />
 
             <ChatBody

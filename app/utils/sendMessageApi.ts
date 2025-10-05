@@ -1,6 +1,6 @@
+// utils/sendMessageApi.ts
 import axios, { AxiosResponse } from "axios";
-
-const API_BASE_URL = "http://localhost:5000";
+import { BASE_URL } from "./apiConfig";
 
 export interface SendMessageResponse
 {
@@ -8,6 +8,7 @@ export interface SendMessageResponse
     from_user_id: string;
     to_user_id: string;
     message_text: string;
+    text?: string; 
     created_at: string;
     read_at: string | null;
     updated_at: string;
@@ -16,6 +17,13 @@ export interface SendMessageResponse
     attachments: any[];
 }
 
+/**
+ * Mengirim pesan ke user tertentu, bisa dengan attachments
+ * @param toUserId ID penerima
+ * @param messageText Teks pesan
+ * @param attachments Array File opsional
+ * @returns SendMessageResponse
+ */
 export const sendMessage = async (
     toUserId: string,
     messageText: string,
@@ -43,7 +51,7 @@ export const sendMessage = async (
         }
 
         const response: AxiosResponse<SendMessageResponse> = await axios.post(
-            `${ API_BASE_URL }/messages`,
+            `${ BASE_URL }/messages`,
             formData,
             {
                 headers: {

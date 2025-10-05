@@ -34,7 +34,7 @@ export function useChatPage()
         handleCancelEdit,
         setEditingIndex,
         setEditType,
-    } = useMessageEditing( messages );
+    } = useMessageEditing( messages, () => { } );
 
     const {
         handleSoftDeleteTextMessage,
@@ -43,13 +43,7 @@ export function useChatPage()
         handleDeleteMessageForUser,
         handleDeleteFileMessageForUser,
         handleDeleteAudioMessageForUser,
-    } = useMessageActions(
-        contactId,
-        editingIndex,
-        setEditingIndex,
-        setEditType,
-        contactId
-    );
+    } = useMessageActions( contactId, editingIndex, setEditingIndex, setEditType );
 
 
     // 🔹 Init socket listener
@@ -75,7 +69,7 @@ export function useChatPage()
                     messageId: updated.message_id,
                     newText,
                     newCaption,
-                    updatedAt: updated.updated_at,
+                    updatedAt: updated.updated_at ?? undefined,
                 } )
             );
 
@@ -113,7 +107,7 @@ export function useChatPage()
                         mappedMsg.attachments && mappedMsg.attachments.length > 0
                             ? mappedMsg.message_text
                             : undefined,
-                    updatedAt: mappedMsg.updated_at,
+                    updatedAt: mappedMsg.updated_at ?? undefined,
                 } )
             );
         };

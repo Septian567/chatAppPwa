@@ -17,7 +17,7 @@ export default function UserMenu( { filteredUsers, contacts, handleAliasSave }: 
     const avatarMap = useSelector( ( state: RootState ) =>
         state.users.list.reduce( ( acc, u ) =>
         {
-            acc[u.email] = u.avatar_url;
+            acc[u.email] = u.avatar_url ?? "";
             return acc;
         }, {} as Record<string, string> )
     );

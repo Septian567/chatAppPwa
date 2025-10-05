@@ -1,5 +1,5 @@
 // utils/deleteContact.ts
-const BASE_URL = "http://localhost:5000";
+import { BASE_URL } from "./apiConfig";
 
 interface DeletedContact
 {
@@ -21,12 +21,16 @@ interface DeleteContactResponse
     deletedContact: DeletedContact;
 }
 
+/**
+ * Menghapus contact berdasarkan contactId
+ * @param contactId ID contact yang akan dihapus
+ * @returns DeleteContactResult
+ */
 export const deleteContact = async ( contactId: string ): Promise<DeleteContactResult> =>
 {
     try
     {
         const token = localStorage.getItem( "token" );
-
         if ( !token )
         {
             throw new Error( "Token tidak ditemukan. User belum login." );
@@ -53,7 +57,7 @@ export const deleteContact = async ( contactId: string ): Promise<DeleteContactR
         };
     } catch ( error: any )
     {
-        console.error( "API Error:", error );
+        console.error( "API Error (deleteContact):", error );
         return {
             success: false,
             message: error.message,

@@ -3,7 +3,8 @@
 import { useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { getChatHistory, ChatHistoryItem } from "../utils/getChatHistoryApi";
-import { setMessagesForContact, ChatMessage } from "../states/chatSlice";
+import { setMessagesForContact} from "../states/chatSlice";
+import { ChatMessage } from "../types/chat";
 import { softDeleteMessage } from "./useSoftDelete";
 import { formatTime24 } from "../utils/formatTime";
 import { determineAttachmentType } from "../utils/attachmentUtils";

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import { ChatMessage } from "./useChatMessageActions";
+import { ChatMessage } from "../../types/chat";
 
-export function useAutoScrollOnNewMessage( messages: ChatMessage[], bottomRef: React.RefObject<HTMLDivElement>, chatBodyRef: React.RefObject<HTMLDivElement> )
+export function useAutoScrollOnNewMessage( messages: ChatMessage[], bottomRef: React.RefObject<HTMLDivElement | null>, chatBodyRef: React.RefObject<HTMLDivElement | null> )
 {
     const prevMessageCount = useRef( messages.length );
 

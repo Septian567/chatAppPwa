@@ -4,7 +4,7 @@ import { useEffect, useRef, useCallback } from "react";
 
 interface ResizerProps
 {
-    onResize: ( newWidth: number ) => void;
+    onResize?: ( newWidth: number ) => void;
 }
 
 export default function Resizer( { onResize }: ResizerProps )
@@ -21,7 +21,7 @@ export default function Resizer( { onResize }: ResizerProps )
 
         animationFrameId.current = requestAnimationFrame( () =>
         {
-            onResize( newWidth );
+            onResize?.( newWidth );
         } );
     }, [onResize] );
 

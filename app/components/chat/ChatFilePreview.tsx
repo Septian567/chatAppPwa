@@ -13,7 +13,7 @@ interface ChatFilePreviewProps
     isImage: boolean;
     isVideo: boolean;
     isAudio: boolean;
-    fileIcon: JSX.Element;
+    fileIcon: React.ReactNode;
     handleDownload: () => void;
     isSoftDeleted: boolean;
     duration?: string;

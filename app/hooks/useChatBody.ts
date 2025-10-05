@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { ChatMessage } from "./useChatMessageActions";
+import { ChatMessage } from "../types/chat";
 
 export function useChatBody( messages: ChatMessage[] )
 {

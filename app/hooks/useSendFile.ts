@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { addMessageToContact, ChatMessage } from "../states/chatSlice";
+import { addMessageToContact} from "../states/chatSlice";
+import { ChatMessage} from "../types/chat";
 import { sendMessage } from "../utils/sendMessageApi";
 import { formatTime24 } from "../utils/formatTime";
 import { useMapSendMessageResponse } from "./useMapSendMessageResponse";

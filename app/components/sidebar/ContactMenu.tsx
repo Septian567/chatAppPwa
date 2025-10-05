@@ -17,7 +17,7 @@ export default function ContactMenu( { filteredContacts, setActiveContact, onMai
     const avatarMap = useSelector( ( state: RootState ) =>
         state.users.list.reduce( ( acc, u ) =>
         {
-            acc[u.email] = u.avatar_url;
+            acc[u.email] = u.avatar_url ?? "";
             return acc;
         }, {} as Record<string, string> )
     );
@@ -36,7 +36,7 @@ export default function ContactMenu( { filteredContacts, setActiveContact, onMai
                         className="cursor-pointer hover:bg-gray-100 rounded-lg"
                     >
                         <UserItem
-                            name={ c.alias || c.name || "-" }
+                            username={ c.username || c.name || "-" }
                             email={ c.email }
                             alias={ c.alias }
                             avatar_url={ avatarMap[c.email] || undefined } // pakai avatar dari API

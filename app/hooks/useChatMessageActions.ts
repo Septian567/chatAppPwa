@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../states";
-import { ChatMessage, setMessagesForContact } from "../states/chatSlice";
+import { setMessagesForContact } from "../states/chatSlice";
+import { ChatMessage } from "../types/chat";
 import { softDeleteMessage, softDeleteMessageWithApi } from "./useSoftDelete";
 import { deleteMessageForUser } from "../utils/deleteMessageForUserApi";
 import { useChatSocket } from "./useChatSocket";

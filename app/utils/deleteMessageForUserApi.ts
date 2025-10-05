@@ -1,5 +1,6 @@
 // utils/deleteMessageForUserApi.ts
 import axios from "axios";
+import { BASE_URL } from "./apiConfig";
 
 export interface DeleteMessageResponse
 {
@@ -12,10 +13,15 @@ export interface DeleteMessageResponse
     };
 }
 
+/**
+ * Menghapus pesan untuk user tertentu (soft delete / hide)
+ * @param messageId ID pesan yang ingin dihapus
+ * @returns DeleteMessageResponse
+ */
 export async function deleteMessageForUser( messageId: string ): Promise<DeleteMessageResponse>
 {
     const token = localStorage.getItem( "token" );
-    const userId = localStorage.getItem( "userId" ); // ambil dari localStorage
+    const userId = localStorage.getItem( "userId" );
 
     console.log( "DEBUG: deleteMessageForUser called", { messageId, userId, token } );
 
@@ -27,7 +33,7 @@ export async function deleteMessageForUser( messageId: string ): Promise<DeleteM
     try
     {
         const response = await axios.delete<DeleteMessageResponse>(
-            `http://localhost:5000/users/${ userId }/messages/${ messageId }`,
+            `${ BASE_URL }/users/${ userId }/messages/${ messageId }`,
             {
                 headers: {
                     Authorization: `Bearer ${ token }`,

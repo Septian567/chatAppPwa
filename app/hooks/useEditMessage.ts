@@ -37,7 +37,7 @@ export function useEditMessage(
                         messageId: updated.message_id,
                         newText,
                         newCaption,
-                        updatedAt: updated.updated_at,
+                        updatedAt: updated.updated_at ?? undefined,
                     } )
                 );
 

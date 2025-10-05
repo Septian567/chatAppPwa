@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ChatMessage } from "../useChatMessageActions";
+import { ChatMessage } from "../../types/chat";
 import { useBlockScroll } from "./useBlockScroll";
 import { useAutoScrollOnNewMessage } from "./useAutoScrollOnNewMessage";
 import { useInitialScroll } from "./useInitialScroll";

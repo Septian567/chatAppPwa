@@ -1,15 +1,28 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../states";
-import { fetchUsers, updateUserAlias } from "../states/usersSlice";
+import { fetchUsers, updateUserAlias, User } from "../states/usersSlice";
 import
     {
         setContacts,
         updateContactAlias,
         setActiveContact,
+        Contact,
     } from "../states/contactsSlice";
 
-export function useSidebarData()
+interface SidebarData
+{
+    users: User[];
+    contacts: Contact[];
+    searchQuery: string;
+    setSearchQuery: ( query: string ) => void;
+    handleAliasSave: ( email: string, alias: string ) => void;
+    filteredUsers: User[];
+    filteredContacts: Contact[];
+    setActiveContact: ( contact: Contact ) => void;
+}
+
+export function useSidebarData(): SidebarData
 {
     const dispatch = useDispatch();
     const users = useSelector( ( state: RootState ) => state.users.list );
@@ -23,25 +36,27 @@ export function useSidebarData()
         dispatch( fetchUsers() as any );
     }, [dispatch] );
 
-    // (opsional) jika contacts masih disimpan lokal, load sekali dari localStorage
+    // Load contacts dari localStorage jika ada
     useEffect( () =>
     {
-        const savedContacts = JSON.parse( localStorage.getItem( "contacts" ) || "[]" );
+        const savedContacts: Contact[] = JSON.parse(
+            localStorage.getItem( "contacts" ) || "[]"
+        );
         if ( savedContacts.length > 0 ) dispatch( setContacts( savedContacts ) );
     }, [dispatch] );
 
     // 🔹 Update alias user/contact
-    const handleAliasSave = ( name: string, email: string, alias: string ) =>
+    const handleAliasSave = ( email: string, alias: string ) =>
     {
         // update alias user → ke API + Redux
         dispatch( updateUserAlias( { email, alias } ) as any );
 
-        // update alias contact (lokal)
-        dispatch( updateContactAlias( { email, alias } ) );
+        // update alias contact → Redux
+        dispatch( updateContactAlias( { contact_id: email, alias } ) );
 
         // simpan alias untuk kontak di localStorage
         const updatedContacts = contacts.map( ( c ) =>
-            c.email === email ? { ...c, alias } : c
+            c.contact_id === email ? { ...c, alias } : c
         );
         localStorage.setItem( "contacts", JSON.stringify( updatedContacts ) );
     };
@@ -53,7 +68,7 @@ export function useSidebarData()
 
         return users.filter( ( u ) =>
         {
-            const contact = contacts.find( ( c ) => c.email === u.email );
+            const contact = contacts.find( ( c ) => c.contact_id === u.email );
             const aliasToCheck = contact?.alias || u.alias || "";
             return (
                 ( u.username || "" ).toLowerCase().includes( searchQuery.toLowerCase() ) ||
@@ -67,10 +82,9 @@ export function useSidebarData()
     const filteredContacts = useMemo( () =>
     {
         if ( !searchQuery.trim() ) return contacts;
+
         return contacts.filter( ( c ) =>
-            ( ( c.alias || c.name || "" ) || "" )
-                .toLowerCase()
-                .includes( searchQuery.toLowerCase() )
+            ( ( c.alias || c.email || "" ).toLowerCase().includes( searchQuery.toLowerCase() ) )
         );
     }, [contacts, searchQuery] );
 
@@ -82,6 +96,6 @@ export function useSidebarData()
         handleAliasSave,
         filteredUsers,
         filteredContacts,
-        setActiveContact: ( contact: any ) => dispatch( setActiveContact( contact ) ),
+        setActiveContact: ( contact: Contact ) => dispatch( setActiveContact( contact ) ),
     };
 }

@@ -1,31 +1,66 @@
+// next.config.js
+import { createRequire } from 'module';
+const require = createRequire( import.meta.url );
+const withPWA = require( 'next-pwa' )( {
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development',
+  runtimeCaching: [
+    {
+      // Cache semua static assets (CSS, JS, gambar)
+      urlPattern: /^https?.*\.(js|css|png|jpg|jpeg|svg|gif|woff2?)$/i,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'static-assets',
+        expiration: {
+          maxEntries: 100,
+          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 hari
+        },
+      },
+    },
+    {
+      // Cache API calls tapi tetap utamakan jaringan (untuk chat real-time)
+      urlPattern: /^https:\/\/your-api\.com\/api\/.*$/i,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'api-cache',
+        networkTimeoutSeconds: 5,
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 24 * 60 * 60, // 1 hari
+        },
+      },
+    },
+  ],
+} );
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Konfigurasi untuk production deployment
+  // Output mode untuk deployment
   output: 'standalone',
   trailingSlash: true,
 
-  // ESLint ignore selama build
+  // Abaikan ESLint dan TypeScript error saat build
   eslint: {
     ignoreDuringBuilds: true,
   },
-
-  // Typescript ignore selama build (jika perlu)
   typescript: {
     ignoreBuildErrors: true,
   },
 
-  // Optimasi images untuk static deployment
+  // Optimasi gambar (untuk static export atau hosting di vercel/nginx)
   images: {
     unoptimized: true,
-    domains: [], // tambahkan domain images jika diperlukan
+    domains: [], // tambahkan domain image eksternal jika ada
   },
 
-  // Environment variables yang akan diganti saat runtime
+  // Variabel lingkungan runtime
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
 
-  // Redirects untuk SPA behavior (opsional)
+  // Redirect opsional untuk behavior SPA
   async redirects()
   {
     return [
@@ -44,18 +79,23 @@ const nextConfig = {
     ];
   },
 
-  // Rewrites untuk API calls (sesuaikan dengan backend URL)
+  // Rewrites untuk API backend
   async rewrites()
   {
-    return process.env.NODE_ENV === 'production'
-      ? [
+    if ( process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_API_URL )
+    {
+      return [
         {
           source: '/api/:path*',
           destination: `${ process.env.NEXT_PUBLIC_API_URL }/api/:path*`,
         },
-      ]
-      : [];
-  }
-}
+      ];
+    }
+    // Tidak rewrite apa pun kalau variabel tidak ada
+    return [];
+  },
 
-export default nextConfig
+};
+
+// Export konfigurasi final dengan PWA
+export default withPWA( nextConfig );

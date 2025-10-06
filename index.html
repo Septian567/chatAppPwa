@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Header & Footer Tetap — Daftar 100 Angka</title>
+  <style>
+    /* Reset sederhana */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: #ffffff; color: #0f172a; }
+
+    /* Struktur: kita gunakan header fixed + footer fixed, dan main yang menggulir di antaranya */
+    header, footer { position: fixed; left: 0; right: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+
+    header {
+      top: 0;
+      height: 56px; /* tinggi aman untuk tampilan ponsel */
+      background: linear-gradient(90deg, #0ea5a2, #0891b2);
+      color: white;
+      gap: 12px;
+    }
+
+    footer {
+      bottom: 0;
+      height: 56px;
+      background: linear-gradient(90deg, #065f46, #047857);
+      color: white;
+    }
+
+    /* Area konten yang bisa discroll. Beri margin-top/bottom sebesar tinggi header/footer */
+    main {
+      margin-top: 56px;   /* jangan tumpuk dengan header */
+      margin-bottom: 56px;/* jangan tumpuk dengan footer */
+      height: calc(100vh - 112px); /* total viewport dikurangi tinggi header+footer */
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch; /* buat scrolling halus di iOS */
+      padding: 12px;
+      background: linear-gradient(180deg,#f8fafc,#ffffff);
+    }
+
+    /* Daftar angka */
+    ul.num-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr; gap: 10px; }
+    li.num-item { padding: 12px; background: #f1f5f9; border-radius: 10px; box-shadow: 0 1px 0 rgba(15,23,42,0.03); text-align: center; font-weight: 600; font-size: 18px; }
+
+    /* Responsif: untuk layar lebar, tampilkan dua kolom */
+    @media (min-width: 640px) {
+      ul.num-list { grid-template-columns: repeat(2, 1fr); }
+      header, footer { padding: 0 20px; }
+    }
+
+    /* Tombol sederhana di header */
+    .btn { background: rgba(255,255,255,0.12); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+    .btn:active { transform: translateY(1px); }
+
+    /* Membuat header/footer tidak melebihi tinggi layar ponsel (aksesibilitas) */
+    @media (max-height: 520px) {
+      header, footer { height: 48px; }
+      main { margin-top: 48px; margin-bottom: 48px; height: calc(100vh - 96px); }
+      li.num-item { font-size: 16px; padding: 10px; }
+    }
+
+  </style>
+</head>
+<body>
+
+  <header role="banner" aria-label="Header aplikasi">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <strong>Daftar Angka</strong>
+    </div>
+    <div>
+      <button id="toTop" class="btn" aria-label="Kembali ke atas">Top</button>
+    </div>
+  </header>
+
+  <main id="main" role="main" tabindex="0">
+    <p style="margin:0 0 12px 0; font-size:14px; color:#334155;">Gulir daftar di bawah — header dan footer akan tetap terlihat di layar perangkat seluler.</p>
+
+    <ul id="numbers" class="num-list" aria-label="Daftar 100 angka"></ul>
+  </main>
+
+  <footer role="contentinfo" aria-label="Footer aplikasi">
+    <div style="font-size:14px;">© 2025 — Contoh</div>
+    <div style="font-size:13px; opacity:0.95">Menampilkan 100 item</div>
+  </footer>
+
+  <script>
+    // Isi daftar angka 1..100 secara dinamis
+    const list = document.getElementById('numbers');
+    for (let i = 1; i <= 100; i++) {
+      const li = document.createElement('li');
+      li.className = 'num-item';
+      li.textContent = i;
+      li.setAttribute('role', 'listitem');
+      list.appendChild(li);
+    }
+
+    // Tombol kembali ke atas (scroll ke posisi atas main)
+    document.getElementById('toTop').addEventListener('click', () => {
+      const main = document.getElementById('main');
+      main.scrollTo({ top: 0, behavior: 'smooth' });
+      main.focus();
+    });
+
+    // Opsional: jika pengguna mengetuk item, beri efek singkat
+    list.addEventListener('click', (e) => {
+      const li = e.target.closest('.num-item');
+      if (!li) return;
+      li.animate([
+        { transform: 'scale(1)' },
+        { transform: 'scale(0.98)' },
+        { transform: 'scale(1)' }
+      ], { duration: 160 });
+    });
+  </script>
+
+</body>
+</html>

@@ -1,14 +1,16 @@
 // next.config.js
 import { createRequire } from 'module';
-const require = createRequire( import.meta.url );
-const withPWA = require( 'next-pwa' )( {
+const require = createRequire(import.meta.url);
+
+// Konfigurasi PWA dengan caching runtime
+const withPWA = require('next-pwa')({
   dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
+  register: true,       // otomatis registrasi service worker
+  skipWaiting: true,     // aktifkan SW baru langsung
+  disable: process.env.NODE_ENV === 'development', // nonaktifkan PWA saat dev
   runtimeCaching: [
     {
-      // Cache semua static assets (CSS, JS, gambar)
+      // Cache semua static assets (JS, CSS, gambar, font)
       urlPattern: /^https?.*\.(js|css|png|jpg|jpeg|svg|gif|woff2?)$/i,
       handler: 'CacheFirst',
       options: {
@@ -20,7 +22,7 @@ const withPWA = require( 'next-pwa' )( {
       },
     },
     {
-      // Cache API calls tapi tetap utamakan jaringan (untuk chat real-time)
+      // Cache API calls tapi utamakan jaringan (network first)
       urlPattern: /^https:\/\/your-api\.com\/api\/.*$/i,
       handler: 'NetworkFirst',
       options: {
@@ -33,15 +35,15 @@ const withPWA = require( 'next-pwa' )( {
       },
     },
   ],
-} );
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Output mode untuk deployment
+  // Mode output untuk standalone deployment
   output: 'standalone',
   trailingSlash: true,
 
-  // Abaikan ESLint dan TypeScript error saat build
+  // Abaikan error ESLint/TypeScript saat build
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -49,20 +51,19 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
-  // Optimasi gambar (untuk static export atau hosting di vercel/nginx)
+  // Optimasi gambar
   images: {
     unoptimized: true,
-    domains: [], // tambahkan domain image eksternal jika ada
+    domains: [], // tambahkan domain eksternal jika diperlukan
   },
 
-  // Variabel lingkungan runtime
+  // Variabel environment
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
 
-  // Redirect opsional untuk behavior SPA
-  async redirects()
-  {
+  // Redirect opsional (misal query ?page=home → /home)
+  async redirects() {
     return [
       {
         source: '/',
@@ -79,23 +80,19 @@ const nextConfig = {
     ];
   },
 
-  // Rewrites untuk API backend
-  async rewrites()
-  {
-    if ( process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_API_URL )
-    {
+  // Rewrites API backend
+  async rewrites() {
+    if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_API_URL) {
       return [
         {
           source: '/api/:path*',
-          destination: `${ process.env.NEXT_PUBLIC_API_URL }/api/:path*`,
+          destination: `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`,
         },
       ];
     }
-    // Tidak rewrite apa pun kalau variabel tidak ada
     return [];
   },
-
 };
 
 // Export konfigurasi final dengan PWA
-export default withPWA( nextConfig );
+export default withPWA(nextConfig);
